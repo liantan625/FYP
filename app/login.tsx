@@ -11,6 +11,10 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import auth from '@react-native-firebase/auth';
+
+// For more information on setting up Firebase Phone Authentication, see:
+// https://firebase.google.com/docs/auth/react-native/phone-auth
+
 //import { signIn } from '../src/services/authService';
 
 export default function LoginScreen() {

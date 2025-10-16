@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useAuth } from '../../context/auth-context';
+import { useAuth } from '../context/auth-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 
@@ -39,7 +39,7 @@ export default function OTPScreen() {
       }
 
       Alert.alert('Success', 'Phone number verified successfully!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/successfulSignUp') }
+        { text: 'OK', onPress: () => router.replace('/successfulSignUp') }
       ]);
     } catch (error) {
       console.error('Error confirming OTP:', error);

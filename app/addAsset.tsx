@@ -1,0 +1,269 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+  Alert
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import RNPickerSelect from 'react-native-picker-select';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
+const MOCK_DATA = {
+  assetCategories: [
+    { label: "Simpanan Bank", value: "bank" },
+    { label: "Pelaburan", value: "investment" },
+    { label: "Hartanah", value: "property" },
+    { label: "Pendapatan", value: "income" },
+    { label: "Lain-lain", value: "others" }
+  ],
+  defaultCurrency: "MYR"
+};
+
+export default function AddAssetScreen() {
+  const router = useRouter();
+  const [date, setDate] = useState(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (selectedDate) => {
+    setDate(selectedDate);
+    hideDatePicker();
+  };
+  const [category, setCategory] = useState(null);
+  const [assetName, setAssetName] = useState('');
+  const [amount, setAmount] = useState('0.00');
+  const [description, setDescription] = useState('');
+
+  const handleSave = async () => {
+    const user = auth().currentUser;
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to add an asset.');
+      return;
+    }
+
+    if (!category || !assetName || !amount) {
+      Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+
+    try {
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('assets')
+        .add({
+          date,
+          category,
+          assetName,
+          amount: parseFloat(amount),
+          description,
+          createdAt: firestore.FieldValue.serverTimestamp(),
+        });
+
+      Alert.alert('Simpan', 'Aset berjaya disimpan!');
+      router.back();
+    } catch (error) {
+      console.error('Error adding asset: ', error);
+      Alert.alert('Error', 'Gagal menyimpan aset. Sila cuba lagi.');
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Tambah Aset</Text>
+        <TouchableOpacity onPress={() => Alert.alert('No new notifications')}>
+          <MaterialIcons name="notifications" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      <ScrollView style={styles.container}>
+        <View style={styles.form}>
+          <Text style={styles.label}>📅 Tarikh</Text>
+          <TouchableOpacity onPress={showDatePicker} style={styles.inputContainer}>
+            <Text style={styles.input}>{date.toLocaleDateString()}</Text>
+            <MaterialIcons name="calendar-today" size={24} color="#666" style={styles.inputIcon} />
+          </TouchableOpacity>
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
+          />
+
+          <Text style={styles.label}>📂 Kategori Aset</Text>
+          <View style={styles.pickerContainer}>
+            <RNPickerSelect
+              onValueChange={(value) => setCategory(value)}
+              items={MOCK_DATA.assetCategories}
+              placeholder={{ label: 'Pilih Aset/Pendapatan', value: null }}
+              style={pickerSelectStyles}
+            />
+          </View>
+
+          <Text style={styles.label}>🏦 Nama Aset</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Contoh: Simpanan Bank"
+              value={assetName}
+              onChangeText={setAssetName}
+            />
+          </View>
+
+          <Text style={styles.label}>💰 Amaun</Text>
+          <View style={styles.amountContainer}>
+            <Text style={styles.currencyLabel}>{MOCK_DATA.defaultCurrency}</Text>
+            <TextInput
+              style={styles.amountInput}
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+            />
+          </View>
+
+          <Text style={styles.label}>📝 Penerangan (Pilihan)</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Tambah nota..."
+              value={description}
+              onChangeText={setDescription}
+              multiline
+            />
+          </View>
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Simpan</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    backgroundColor: '#00D9A8',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  container: {
+    flex: 1,
+  },
+  form: {
+    padding: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  input: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+  },
+  inputIcon: {
+    padding: 15,
+  },
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  currencyLabel: {
+    padding: 15,
+    fontSize: 16,
+    fontWeight: 'bold',
+    backgroundColor: '#f0f0f0',
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
+  },
+  amountInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  saveButton: {
+    backgroundColor: '#00D9A8',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+  placeholder: {
+    color: '#666',
+  },
+});
