@@ -6,11 +6,13 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
-  Image
+  Image,
+  ScrollView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import RNPickerSelect from 'react-native-picker-select';
 
 // Mock user data - replace with Firebase data
 const mockUser = {
@@ -24,6 +26,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
 
   useEffect(() => {
     // Simulate fetching data from Firebase
@@ -91,34 +94,46 @@ export default function ProfileScreen() {
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={{ width: 24 }} />
       </View>
+      <ScrollView>
+        {/* Profile Info */}
+        <View style={styles.profileContainer}>
+          <Image source={{ uri: user.profilePicture }} style={styles.profilePicture} />
+          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userId}>{user.idNumber}</Text>
+        </View>
 
-      {/* Profile Info */}
-      <View style={styles.profileContainer}>
-        <Image source={{ uri: user.profilePicture }} style={styles.profilePicture} />
-        <Text style={styles.userName}>{user.name}</Text>
-        <Text style={styles.userId}>{user.idNumber}</Text>
-      </View>
+        {/* Menu Buttons */}
+        <View style={styles.menuContainer}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/EditProfile')}>
+            <Text>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/Security')}>
+            <Text>Security</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/Settings')}>
+            <Text>Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
+            <Text>Logout</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Menu Buttons */}
-      <View style={styles.menuContainer}>
-        <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/EditProfile')}>
-          <Text>Edit Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/Security')}>
-          <Text>Security</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/Settings')}>
-          <Text>Settings</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
-          <Text>Logout</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Language Selector */}
-      <TouchableOpacity style={styles.languageButton}>
-        <Text>Language: English</Text>
-      </TouchableOpacity>
+        {/* Language Selector */}
+        <View style={styles.menuButton}>
+          <RNPickerSelect
+            onValueChange={(value) => setSelectedLanguage(value)}
+            items={[
+              { label: 'Bahasa Melayu', value: 'ms' },
+              { label: '中文', value: 'zh' },
+              { label: 'English', value: 'en' },
+              { label: 'Tamil', value: 'ta' },
+            ]}
+            style={pickerSelectStyles}
+            value={selectedLanguage}
+            placeholder={{}}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -174,12 +189,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 10,
   },
-  languageButton: {
-    position: 'absolute',
-    bottom: 20,
-    alignSelf: 'center',
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
   },
 });
