@@ -27,6 +27,12 @@ export default function RootLayout() {
           <Stack.Screen name="Settings" options={{ headerShown: false }} />
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="addAsset" options={{ headerShown: false }} />
+          <Stack.Screen name="SimpananBank" options={{ headerShown: false }} />
+          <Stack.Screen name="Pelaburan" options={{ headerShown: false }} />
+          <Stack.Screen name="Hartanah" options={{ headerShown: false }} />
+          <Stack.Screen name="LainLain" options={{ headerShown: false }} />
+          <Stack.Screen name="Pendapatan" options={{ headerShown: false }} />
+          <Stack.Screen name="savingsgoals" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>

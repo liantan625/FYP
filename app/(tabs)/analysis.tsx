@@ -67,35 +67,7 @@ const screenWidth = Dimensions.get("window").width;
 
 export default function AnalysisScreen() {
   const router = useRouter();
-  const [assetCategories, setAssetCategories] = useState([
-    {
-      id: 1,
-      type: "bank",
-      icon: "🏦",
-      name: "Simpanan Bank",
-      total: 0,
-      count: 0,
-      subtitle: "0 akaun",
-    },
-    {
-      id: 2,
-      type: "investment",
-      icon: "💰",
-      name: "Pelaburan",
-      total: 0,
-      count: 0,
-      subtitle: "0 portfolio",
-    },
-    {
-      id: 3,
-      type: "property",
-      icon: "🏠",
-      name: "Hartanah",
-      total: 0,
-      count: 0,
-      subtitle: "Tiada aset",
-    },
-  ]);
+  const [assetCategories, setAssetCategories] = useState([]);
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -105,33 +77,36 @@ export default function AnalysisScreen() {
         .doc(user.uid)
         .collection('assets')
         .onSnapshot(querySnapshot => {
-          const newTotals = {
-            bank: 0,
-            investment: 0,
-            property: 0,
-          };
-          const newCounts = {
-            bank: 0,
-            investment: 0,
-            property: 0,
-          };
+          const categoriesMap = new Map();
 
           querySnapshot.forEach(doc => {
             const asset = doc.data();
-            if (asset.category in newTotals) {
-              newTotals[asset.category] += asset.amount;
-              newCounts[asset.category]++;
+            const categoryType = asset.category;
+
+            if (!categoriesMap.has(categoryType)) {
+              categoriesMap.set(categoryType, {
+                id: categoryType, // Use categoryType as id for simplicity
+                type: categoryType,
+                icon: getCategoryIcon(categoryType), // Helper function to get icon
+                name: getCategoryName(categoryType), // Helper function to get name
+                total: 0,
+                count: 0,
+                subtitle: '',
+              });
             }
+
+            const categoryData = categoriesMap.get(categoryType);
+            categoryData.total += asset.amount;
+            categoryData.count++;
+            categoriesMap.set(categoryType, categoryData);
           });
 
-          setAssetCategories(prevCategories =>
-            prevCategories.map(category => ({
-              ...category,
-              total: newTotals[category.type],
-              count: newCounts[category.type],
-              subtitle: `${newCounts[category.type]} ${category.type === 'bank' ? 'akaun' : 'portfolio'}`,
-            }))
-          );
+          const dynamicCategories = Array.from(categoriesMap.values()).map(category => ({
+            ...category,
+            subtitle: `${category.count} ${category.type === 'bank' ? 'akaun' : 'portfolio'}`,
+          }));
+
+          setAssetCategories(dynamicCategories);
         });
 
       return () => unsubscribe();
@@ -180,7 +155,7 @@ export default function AnalysisScreen() {
         <View style={styles.assetListContainer}>
           <Text style={styles.sectionTitle}>Jenis Aset</Text>
           {assetCategories.map(category => (
-            <TouchableOpacity key={category.id} style={styles.assetCard} onPress={() => Alert.alert(`${category.name} pressed`)}>
+            <TouchableOpacity key={category.id} style={styles.assetCard} onPress={() => router.push(`/${category.name.replace(/\s/g, '')}`)}>
               <View style={styles.assetCardLeft}>
                 <Text style={styles.assetIcon}>{category.icon}</Text>
                 <View>
@@ -199,6 +174,28 @@ export default function AnalysisScreen() {
     </SafeAreaView>
   );
 }
+
+const getCategoryIcon = (categoryType) => {
+  switch (categoryType) {
+    case 'bank': return '🏦';
+    case 'investment': return '💰';
+    case 'property': return '🏠';
+    case 'income': return '💵';
+    case 'others': return '❓';
+    default: return '❓';
+  }
+};
+
+const getCategoryName = (categoryType) => {
+  switch (categoryType) {
+    case 'bank': return 'Simpanan Bank';
+    case 'investment': return 'Pelaburan';
+    case 'property': return 'Hartanah';
+    case 'income': return 'Pendapatan';
+    case 'others': return 'LainLain';
+    default: return 'Tidak Diketahui';
+  }
+};
 
 const styles = StyleSheet.create({
   safeArea: {

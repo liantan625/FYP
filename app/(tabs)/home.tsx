@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import {
   View,
   Text,
@@ -11,6 +13,7 @@ import {
 } from 'react-native';
 // import { PieChart } from 'react-native-chart-kit';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const MOCK_DATA = {
   user: {
@@ -51,6 +54,47 @@ const MOCK_DATA = {
 const screenWidth = Dimensions.get("window").width;
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const [financialSummary, setFinancialSummary] = useState({
+    netAmount: 0,
+    totalAssets: 0,
+    goal: 0,
+    progressPercentage: 0,
+  });
+
+  useEffect(() => {
+    const user = auth().currentUser;
+    if (user) {
+      const unsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('savings_goals')
+        .onSnapshot(querySnapshot => {
+          let netAmount = 0;
+          let totalAssets = 0;
+          let goal = 0;
+
+          querySnapshot.forEach(doc => {
+            const goalData = doc.data();
+            netAmount += goalData.currentAmount;
+            totalAssets += goalData.currentAmount;
+            goal += goalData.targetAmount;
+          });
+
+          const progressPercentage = goal > 0 ? (totalAssets / goal) * 100 : 0;
+
+          setFinancialSummary({
+            netAmount,
+            totalAssets,
+            goal,
+            progressPercentage,
+          });
+        });
+
+      return () => unsubscribe();
+    }
+  }, []);
+
   const chartData = MOCK_DATA.expenses.categories.map(category => ({
     name: category.name,
     population: category.amount,
@@ -68,19 +112,19 @@ export default function HomeScreen() {
           <Text style={styles.headerGreeting}>Selamat Datang, {MOCK_DATA.user.name}!</Text>
           
           {/* Financial Summary Card */}
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Jumlah Bersih</Text>
-            <Text style={styles.summaryAmount}>RM {MOCK_DATA.financial.netAmount.toFixed(2)}</Text>
+          <TouchableOpacity style={styles.summaryCard} onPress={() => router.push('/savingsgoals')}>
+            <Text style={styles.summaryTitle}>Matlamat Simpanan</Text>
+            <Text style={styles.summaryAmount}>RM {financialSummary.netAmount.toFixed(2)}</Text>
             <Text style={styles.summaryTrend}>↑ +{MOCK_DATA.financial.trend}% bulan ini</Text>
             
-            <Text style={styles.progressTitle}>Progress: {MOCK_DATA.financial.progressPercentage}%</Text>
+            <Text style={styles.progressTitle}>Progress: {financialSummary.progressPercentage.toFixed(0)}%</Text>
             <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, { width: `${MOCK_DATA.financial.progressPercentage}%` }]} />
+              <View style={[styles.progressBar, { width: `${financialSummary.progressPercentage}%` }]} />
             </View>
-            <Text style={styles.progressText}>RM {MOCK_DATA.financial.totalAssets.toFixed(2)} / RM {MOCK_DATA.financial.goal.toFixed(2)}</Text>
+            <Text style={styles.progressText}>RM {financialSummary.totalAssets.toFixed(2)} / RM {financialSummary.goal.toFixed(2)}</Text>
             
             <Text style={styles.summaryMessage}>✓ {MOCK_DATA.financial.message}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Action Cards */}
