@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 export interface ExpenseCategory {
   id: string;
@@ -21,88 +23,143 @@ export interface ExpenseCategory {
 }
 
 export interface BudgetSummary {
-  totalIncome: number;
   totalExpenses: number;
-  budgetGoal: number;
   percentageUsed: number;
-  message?: string;
 }
 
-const MOCK_DATA = {
-  summary: {
-    totalIncome: 7783.00,
-    totalExpenses: 1187.40,
-    budgetGoal: 20000.00,
-    percentageUsed: 30,
-    message: "Hebat Kerana Konsisten!",
+
+
+const budgetGoal = 10000.00;
+
+const categoriesData = [
+  {
+    id: '1',
+    name: 'Runcit',
+    icon: '🛒',
+    color: '#4A9EFF',
+    monthlySpent: 0,
+    isPopular: true,
   },
-  categories: [
-    {
-      id: '1',
-      name: 'Makanan',
-      icon: '🍴',
-      color: '#4A9EFF',
-      monthlySpent: 600.00,
-      isPopular: true,
-    },
-    {
-      id: '2',
-      name: 'Pengangkutan',
-      icon: '🚌',
-      color: '#6B9EFF',
-      monthlySpent: 287.00,
-      isPopular: true,
-    },
-    {
-      id: '3',
-      name: 'Perubatan',
-      icon: '💊',
-      color: '#8BB4FF',
-      monthlySpent: 300.00,
-      isPopular: true,
-    },
-    {
-      id: '4',
-      name: 'Runcit',
-      icon: '🛒',
-      color: '#4A9EFF',
-      monthlySpent: 200.00,
-    },
-    {
-      id: '5',
-      name: 'Sewa',
-      icon: '🏠',
-      color: '#6B9EFF',
-      monthlySpent: 500.00,
-    },
-    {
-      id: '6',
-      name: 'Perayaan',
-      icon: '🎁',
-      color: '#8BB4FF',
-      monthlySpent: 0.00,
-    },
-    {
-      id: '7',
-      name: 'Simpanan',
-      icon: '💰',
-      color: '#4A9EFF',
-      monthlySpent: 1200.00,
-    },
-    {
-      id: '8',
-      name: 'Hiburan',
-      icon: '🎟️',
-      color: '#6B9EFF',
-      monthlySpent: 150.00,
-    },
-  ],
-};
+  {
+    id: '2',
+    name: 'Sewa',
+    icon: '🏠',
+    color: '#6B9EFF',
+    monthlySpent: 0,
+    isPopular: true,
+  },
+  {
+    id: '3',
+    name: 'Perayaan',
+    icon: '🎁',
+    color: '#8BB4FF',
+    monthlySpent: 0,
+    isPopular: true,
+  },
+  {
+    id: '4',
+    name: 'Hiburan',
+    icon: '🎟️',
+    color: '#4A9EFF',
+    monthlySpent: 0,
+  },
+  {
+    id: '5',
+    name: 'Lain-Lain',
+    icon: '🤷',
+    color: '#6B9EFF',
+    monthlySpent: 0,
+  },
+];
 
 export default function CategoryScreen() {
   const router = useRouter();
-  const popularCategories = MOCK_DATA.categories.filter(c => c.isPopular);
-  const otherCategories = MOCK_DATA.categories.filter(c => !c.isPopular);
+  const [categories, setCategories] = useState<ExpenseCategory[]>(categoriesData);
+  const [summary, setSummary] = useState<BudgetSummary>({
+    totalExpenses: 0,
+    percentageUsed: 0,
+  });
+
+  useEffect(() => {
+    const user = auth().currentUser;
+    if (user) {
+      const unsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('spendings')
+        .onSnapshot(querySnapshot => {
+          const spendingsByCategory = {};
+
+          const categoryMap = {
+            'Runcit': 'groceries',
+            'Sewa': 'rent',
+            'Perayaan': 'celebration',
+            'Hiburan': 'entertainment',
+            'Lain-Lain': 'others',
+          };
+
+          querySnapshot.forEach(doc => {
+            const spending = doc.data();
+            const categoryName = spending.category;
+            const amount = spending.amount;
+
+            const mappedCategoryName = Object.keys(categoryMap).find(key => categoryMap[key] === categoryName);
+
+            if (spendingsByCategory[mappedCategoryName]) {
+              spendingsByCategory[mappedCategoryName] += amount;
+            } else {
+              spendingsByCategory[mappedCategoryName] = amount;
+            }
+          });
+
+          const updatedCategories = categoriesData.map(category => ({
+            ...category,
+            monthlySpent: spendingsByCategory[category.name] || 0,
+          }));
+
+          setCategories(updatedCategories);
+
+          const totalExpenses = Object.values(spendingsByCategory).reduce((acc, val) => acc + val, 0);
+
+          setSummary(prevSummary => ({
+            ...prevSummary,
+            totalExpenses,
+            percentageUsed: (totalExpenses / budgetGoal) * 100,
+          }));
+        });
+
+      return () => unsubscribe();
+    }
+  }, []);
+
+  const handleCategoryPress = (categoryName: string) => {
+    let screenName = '';
+    switch (categoryName) {
+      case 'Runcit':
+        screenName = '/Runcit';
+        break;
+      case 'Sewa':
+        screenName = '/Sewa';
+        break;
+      case 'Perayaan':
+        screenName = '/Perayaan';
+        break;
+      case 'Hiburan':
+        screenName = '/Hiburan';
+        break;
+      case 'Lain-Lain':
+        screenName = '/LainLainSpending';
+        break;
+      default:
+        break;
+    }
+    if (screenName) {
+      router.push(screenName);
+    }
+  };
+
+  const popularCategories = categories.filter(c => c.isPopular);
+  const otherCategories = categories.filter(c => !c.isPopular);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -115,22 +172,20 @@ export default function CategoryScreen() {
       </View>
       <ScrollView style={styles.container}>
         <View style={styles.summaryContainer}>
-          <Text style={styles.incomeLabel}>Jumlah Pendapatan</Text>
-          <Text style={styles.incomeAmount}>RM {MOCK_DATA.summary.totalIncome.toFixed(2)}</Text>
-          <Text style={styles.expenseLabel}>Perbelanjaan: -RM {MOCK_DATA.summary.totalExpenses.toFixed(2)}</Text>
+          <Text style={styles.summaryTitle}>Ringkasan Perbelanjaan</Text>
+          <Text style={styles.totalSpendingText}>Perbelanjaan: -RM {summary.totalExpenses.toFixed(2)}</Text>
           <View style={styles.progressBarContainer}>
-            <View style={[styles.progressBar, { width: `${MOCK_DATA.summary.percentageUsed}%` }]} />
-            <Text style={styles.progressPercentage}>{MOCK_DATA.summary.percentageUsed}%</Text>
+            <View style={[styles.progressBar, { width: `${summary.percentageUsed.toFixed(0)}%` }]} />
+            <Text style={styles.progressPercentage}>{summary.percentageUsed.toFixed(0)}%</Text>
           </View>
-          <Text style={styles.progressText}>RM {MOCK_DATA.summary.totalIncome.toFixed(2)} / RM {MOCK_DATA.summary.budgetGoal.toFixed(2)}</Text>
-          <Text style={styles.summaryMessage}>✓ {MOCK_DATA.summary.message}</Text>
+          <Text style={styles.progressText}>RM{summary.totalExpenses.toFixed(2)} / RM{budgetGoal.toFixed(2)}</Text>
         </View>
 
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Kategori Popular</Text>
           <View style={styles.popularCategoriesContainer}>
             {popularCategories.map(category => (
-              <TouchableOpacity key={category.id} style={styles.popularCategoryCard} onPress={() => Alert.alert(category.name, `Spent: RM${category.monthlySpent.toFixed(2)}`)}>
+              <TouchableOpacity key={category.name} style={styles.popularCategoryCard} onPress={() => handleCategoryPress(category.name)}>
                 <Text style={styles.popularCategoryIcon}>{category.icon}</Text>
                 <Text style={styles.popularCategoryName}>{category.name}</Text>
                 <Text style={styles.popularCategoryAmount}>RM{category.monthlySpent.toFixed(2)}</Text>
@@ -143,7 +198,7 @@ export default function CategoryScreen() {
           <Text style={styles.sectionTitle}>Semua Kategori</Text>
           <View style={styles.allCategoriesContainer}>
             {otherCategories.map(category => (
-              <TouchableOpacity key={category.id} style={styles.categoryCard} onPress={() => Alert.alert(category.name, `Spent: RM${category.monthlySpent.toFixed(2)}`)}>
+              <TouchableOpacity key={category.name} style={styles.categoryCard} onPress={() => handleCategoryPress(category.name)}>
                 <Text style={styles.categoryIcon}>{category.icon} {category.name}</Text>
                 <Text style={styles.categoryAmount}>RM{category.monthlySpent.toFixed(2)}</Text>
               </TouchableOpacity>
@@ -155,6 +210,9 @@ export default function CategoryScreen() {
           <Text style={styles.addButtonText}>+ Tambah Kategori Baharu</Text>
         </TouchableOpacity>
       </ScrollView>
+      <TouchableOpacity style={styles.fab} onPress={() => router.push('/addSpending')}>
+        <MaterialIcons name="add" size={24} color="#fff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -185,17 +243,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  incomeLabel: {
-    fontSize: 16,
-    color: '#fff',
-  },
-  incomeAmount: {
-    fontSize: 28,
+  summaryTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
-    marginVertical: 5,
+    marginBottom: 10,
   },
-  expenseLabel: {
+  totalSpendingText: {
     fontSize: 14,
     color: '#fff',
   },
@@ -214,7 +268,7 @@ const styles = StyleSheet.create({
   },
   progressPercentage: {
     fontSize: 12,
-    color: '#fff',
+    color: '#2D3748',
     position: 'absolute',
     right: 10,
   },
@@ -222,11 +276,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#fff',
     marginTop: 5,
-  },
-  summaryMessage: {
-    fontSize: 14,
-    color: '#fff',
-    marginTop: 10,
   },
   sectionContainer: {
     padding: 20,
@@ -292,5 +341,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  fab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#00D9A8',
+    borderRadius: 28,
+    elevation: 8,
   },
 });

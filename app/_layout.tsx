@@ -27,10 +27,17 @@ export default function RootLayout() {
           <Stack.Screen name="Settings" options={{ headerShown: false }} />
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="addAsset" options={{ headerShown: false }} />
+          <Stack.Screen name="addSpending" options={{ headerShown: false }} />
           <Stack.Screen name="SimpananBank" options={{ headerShown: false }} />
           <Stack.Screen name="Pelaburan" options={{ headerShown: false }} />
           <Stack.Screen name="Hartanah" options={{ headerShown: false }} />
           <Stack.Screen name="LainLain" options={{ headerShown: false }} />
+          <Stack.Screen name="Runcit" options={{ headerShown: false }} />
+          <Stack.Screen name="Sewa" options={{ headerShown: false }} />
+          <Stack.Screen name="Perayaan" options={{ headerShown: false }} />
+          <Stack.Screen name="Hiburan" options={{ headerShown: false }} />
+          <Stack.Screen name="LainLainSpending" options={{ headerShown: false }} />
+          <Stack.Screen name="editSpending/[spendingId]" options={{ headerShown: false }} />
           <Stack.Screen name="Pendapatan" options={{ headerShown: false }} />
           <Stack.Screen name="savingsgoals" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
