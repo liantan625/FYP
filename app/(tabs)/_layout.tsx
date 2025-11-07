@@ -25,35 +25,35 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: 'Rumah',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
         name="analysis"
         options={{
-          title: 'Analysis',
+          title: 'Aset',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="pie-chart" color={color} />,
         }}
       />
       <Tabs.Screen
         name="transactions"
         options={{
-          title: 'Transactions',
+          title: 'Transaksi',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="swap-horiz" color={color} />,
         }}
       />
       <Tabs.Screen
         name="category"
         options={{
-          title: 'Category',
+          title: 'Perbelanjaan',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="widgets" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Profil',
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="person" color={color} />,
         }}
       />

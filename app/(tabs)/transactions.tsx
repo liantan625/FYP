@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,147 +12,144 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { PieChart } from 'react-native-chart-kit';
 import { useRouter } from 'expo-router';
-
-const MOCK_DATA = {
-  summary: {
-    totalBalance: 7783.00,
-    totalAssets: 4120.00,
-    totalExpenses: 1187.40,
-  },
-  expenseBreakdown: [
-    { name: 'Makanan', amount: 600, percentage: 50, color: '#48BB78' },
-    { name: 'Perubatan', amount: 300, percentage: 25, color: '#FF6B6B' },
-    { name: 'Sewa', amount: 287, percentage: 24, color: '#FFD93D' },
-  ],
-  transactions: [
-    {
-      id: '1',
-      type: 'income' as const,
-      category: 'Pencen',
-      subcategory: 'Bulanan',
-      amount: 4000.00,
-      date: '2025-04-30',
-      icon: '📦',
-    },
-    {
-      id: '2',
-      type: 'expense' as const,
-      category: 'Runcit',
-      subcategory: 'Pantri',
-      amount: 100.00,
-      date: '2025-04-24',
-      icon: '🛒',
-    },
-    {
-      id: '3',
-      type: 'expense' as const,
-      category: 'Sewa',
-      subcategory: 'Sewa',
-      amount: 674.40,
-      date: '2025-04-15',
-      icon: '🏠',
-    },
-    {
-      id: '4',
-      type: 'expense' as const,
-      category: 'Kereta',
-      subcategory: 'Kereta',
-      amount: 4.13,
-      date: '2025-04-08',
-      icon: '🚌',
-    },
-  ],
-};
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const screenWidth = Dimensions.get("window").width;
 
+const categoryTranslations = {
+  'groceries': 'Runcit',
+  'rent': 'Sewa',
+  'celebration': 'Perayaan',
+  'entertainment': 'Hiburan',
+  'others': 'Lain-Lain',
+  'income': 'Pendapatan',
+  'investment': 'Pelaburan',
+  'property': 'Hartanah',
+  'bank': 'Simpanan Bank'
+};
+
 export default function TransactionsScreen() {
   const router = useRouter();
+  const [summary, setSummary] = useState({
+    totalAssets: 0,
+    totalIncome: 0,
+    totalExpenses: 0,
+  });
+  const [expenseBreakdown, setExpenseBreakdown] = useState([]);
+  const [transactions, setTransactions] = useState([]);
 
-  const chartData = MOCK_DATA.expenseBreakdown.map(item => ({
-    name: item.name,
-    population: item.amount,
-    color: item.color,
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  }));
+  useEffect(() => {
+    const user = auth().currentUser;
+    if (!user) {
+      return;
+    }
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+    const assetsUnsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('assets')
+      .onSnapshot(assetsSnapshot => {
+        const assets = assetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'income' }));
+        const totalAssets = assets.reduce((sum, asset) => sum + asset.amount, 0);
+        const totalIncome = assets.filter(asset => asset.category === 'income').reduce((sum, asset) => sum + asset.amount, 0);
+
+        const spendingsUnsubscribe = firestore()
+          .collection('users')
+          .doc(user.uid)
+          .collection('spendings')
+          .onSnapshot(spendingsSnapshot => {
+            const spendings = spendingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'expense' }));
+            const totalExpenses = spendings.reduce((sum, spending) => sum + spending.amount, 0);
+
+            const expenseBreakdownMap = new Map();
+            spendings.forEach(spending => {
+              const categoryName = categoryTranslations[spending.category] || spending.category;
+              if (expenseBreakdownMap.has(categoryName)) {
+                expenseBreakdownMap.set(categoryName, expenseBreakdownMap.get(categoryName) + spending.amount);
+              } else {
+                expenseBreakdownMap.set(categoryName, spending.amount);
+              }
+            });
+
+            const colors = ['#48BB78', '#FF6B6B', '#FFD93D', '#4A9EFF', '#6B9EFF'];
+            let colorIndex = 0;
+            const newExpenseBreakdown = Array.from(expenseBreakdownMap, ([name, amount]) => ({
+              name,
+              population: amount,
+              color: colors[colorIndex++ % colors.length],
+              legendFontSize: 0,
+            }));
+
+            setSummary({ totalAssets: totalAssets + totalIncome, totalIncome, totalExpenses });
+            setExpenseBreakdown(newExpenseBreakdown);
+            const translatedTransactions = [...assets, ...spendings].map(t => ({...t, category: categoryTranslations[t.category] || t.category })).sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+            setTransactions(translatedTransactions);
+          });
+
+        return () => spendingsUnsubscribe();
+      });
+
+    return () => assetsUnsubscribe();
+}, []);
+
+return (
+  <SafeAreaView style={styles.safeArea}>
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => router.back()}>
+        <MaterialIcons name="arrow-back" size={24} color="black" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Transaksi</Text>
+      <View style={{ width: 24 }} />
+    </View>
+    <ScrollView>
+    <View style={styles.chartContainer}>
+    <Text style={styles.sectionTitle}>Perbelanjaan</Text>
+    <PieChart
+      data={expenseBreakdown}
+      width={screenWidth - 160} // Further reduced width
+      height={150} // Further reduced height
+      chartConfig={{
+        backgroundColor: '#1cc910',
+        backgroundGradientFrom: '#eff3ff',
+        backgroundGradientTo: '#efefef',
+        decimalPlaces: 2,
+        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+      }}
+      accessor={"population"}
+      backgroundColor={"transparent"}
+      paddingLeft={"15"} // Adjusted padding
+      absolute
+      hasLegend={false} />
+    <View style={styles.legendContainer}>
+      {expenseBreakdown.map((item, index) => (
+        <View key={index} style={styles.legendItem}>
+          <View style={[styles.legendColor, { backgroundColor: item.color }]} />
+          <Text style={styles.legendText}>{item.name}</Text>
+          <Text style={styles.legendAmount}>RM {item.population.toFixed(2)}</Text>
+        </View>
+      ))}
+    </View>
+  </View>
+<View style={styles.transactionsContainer}>
+      <Text style={styles.sectionTitle}>Transaksi</Text>
+      {transactions.map(item => (
+        <TouchableOpacity key={item.id} style={styles.transactionCard} onPress={() => Alert.alert(item.category, `Jumlah: RM ${item.amount.toFixed(2)}`)}>          <View style={styles.transactionLeft}>
+            <Text style={styles.transactionIcon}>{item.type === 'income' ? '📈' : '📉'}</Text>
+            <View>
+              <Text style={styles.transactionCategory}>{item.type === 'income' ? item.assetName : item.spendingName}</Text>
+              <Text style={styles.transactionSubcategory}>{item.category}</Text>
+            </View>
+          </View>
+          <View style={styles.transactionRight}>
+            <Text style={item.type === 'income' ? styles.transactionAmountPositive : styles.transactionAmountNegative}>
+              {item.type === 'income' ? '' : '-'}RM {item.amount.toFixed(2)}
+            </Text>
+            <Text style={styles.transactionDate}>{new Date(item.createdAt.toDate()).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' })}</Text>
+          </View>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Transaksi</Text>
-        <View style={{ width: 24 }} />
-      </View>
-      <ScrollView style={styles.container}>
-        <View style={styles.summaryContainer}>
-          <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>Jumlah Baki</Text>
-            <Text style={styles.balanceAmount}>RM {MOCK_DATA.summary.totalBalance.toFixed(2)}</Text>
-          </View>
-          <View style={styles.summaryCards}>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>📈 Aset</Text>
-              <Text style={styles.summaryAmountPositive}>RM {MOCK_DATA.summary.totalAssets.toFixed(2)}</Text>
-            </View>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>📉 Belanja</Text>
-              <Text style={styles.summaryAmountNegative}>-RM {MOCK_DATA.summary.totalExpenses.toFixed(2)}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.chartContainer}>
-          <Text style={styles.sectionTitle}>Perbelanjaan April</Text>
-          <PieChart
-            data={chartData}
-            width={screenWidth - 80} // Reduced width
-            height={180} // Reduced height
-            chartConfig={{
-              backgroundColor: '#1cc910',
-              backgroundGradientFrom: '#eff3ff',
-              backgroundGradientTo: '#efefef',
-              decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            }}
-            accessor={"population"}
-            backgroundColor={"transparent"}
-            paddingLeft={"0"} // Adjusted padding
-            absolute
-          />
-          <View style={styles.legendContainer}>
-            {MOCK_DATA.expenseBreakdown.map((item, index) => (
-              <View key={index} style={styles.legendItem}>
-                <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-                <Text style={styles.legendText}>{item.name}</Text>
-                <Text style={styles.legendAmount}>RM {item.amount.toFixed(2)}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.transactionsContainer}>
-          <Text style={styles.sectionTitle}>April 2025</Text>
-          {MOCK_DATA.transactions.map(item => (
-            <TouchableOpacity key={item.id} style={styles.transactionCard} onPress={() => Alert.alert(item.category, `Amount: ${item.amount}`)}>
-              <View style={styles.transactionLeft}>
-                <Text style={styles.transactionIcon}>{item.icon}</Text>
-                <View>
-                  <Text style={styles.transactionCategory}>{item.category}</Text>
-                  <Text style={styles.transactionSubcategory}>{item.subcategory}</Text>
-                </View>
-              </View>
-              <View style={styles.transactionRight}>
-                <Text style={item.type === 'income' ? styles.transactionAmountPositive : styles.transactionAmountNegative}>
-                  {item.type === 'income' ? '' : '-'}RM {item.amount.toFixed(2)}
-                </Text>
-                <Text style={styles.transactionDate}>{new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+      ))}
+    </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -164,16 +161,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: '#00D9A8',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
   },
   container: {
     flex: 1,
@@ -230,6 +227,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginHorizontal: 20,
     marginBottom: 20,
+    alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 18,
@@ -238,6 +236,7 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     marginTop: 20,
+    alignSelf: 'stretch',
   },
   legendItem: {
     flexDirection: 'row',
