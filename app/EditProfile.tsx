@@ -1,14 +1,52 @@
-
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const user = auth().currentUser;
+    if (user) {
+      const unsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .onSnapshot(documentSnapshot => {
+          if (documentSnapshot.exists) {
+            setName(documentSnapshot.data().name);
+          }
+          setLoading(false);
+        });
+
+      return () => unsubscribe();
+    }
+  }, []);
+
+  const handleSave = async () => {
+    const user = auth().currentUser;
+    if (user) {
+      try {
+        await firestore().collection('users').doc(user.uid).update({
+          name: name,
+        });
+        Alert.alert('Success', 'Profile updated successfully!', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      } catch (error) {
+        console.error('Error updating profile: ', error);
+        Alert.alert('Error', 'Failed to update profile. Please try again.');
+      }
+    }
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="black" />
@@ -17,9 +55,20 @@ export default function EditProfileScreen() {
         <View style={{ width: 24 }} />
       </View>
       <View style={styles.content}>
-        <Text>Edit Profile Screen</Text>
+        <View>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+          />
+        </View>
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <Text style={styles.saveButtonText}>Save Changes</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -40,9 +89,40 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  headerButton: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#00D09E',
+  },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  input: {
+    backgroundColor: '#f5f5f5',
+    padding: 15,
+    borderRadius: 10,
+    fontSize: 16,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  saveButton: {
+    backgroundColor: '#00D9A8',
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
+    marginTop: 20,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

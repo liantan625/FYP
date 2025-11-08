@@ -13,54 +13,55 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RNPickerSelect from 'react-native-picker-select';
-
-// Mock user data - replace with Firebase data
-const mockUser = {
-  name: 'John Doe',
-  idNumber: '123456-78-9012',
-  profilePicture: 'https://picsum.photos/200',
-};
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [selectedLanguage, setSelectedLanguage] = useState('ms');
 
   useEffect(() => {
-    // Simulate fetching data from Firebase
-    const fetchUserData = async () => {
-      try {
-        // Replace with your actual Firebase fetching logic
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setUser(mockUser);
-      } catch (e) {
-        setError(e.message);
-        Alert.alert('Error', 'Failed to fetch user data.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    const currentUser = auth().currentUser;
+    if (currentUser) {
+      const unsubscribe = firestore()
+        .collection('users')
+        .doc(currentUser.uid)
+        .onSnapshot(documentSnapshot => {
+          if (documentSnapshot.exists) {
+            setUser(documentSnapshot.data());
+          } else {
+            setError('User data not found.');
+          }
+          setLoading(false);
+        }, error => {
+          setError(error.message);
+          setLoading(false);
+        });
 
-    fetchUserData();
+      return () => unsubscribe();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      'Log Keluar',
+      'Anda pasti mahu log keluar?',
       [
         {
-          text: 'Cancel',
+          text: 'Batal',
           style: 'cancel',
         },
         {
           text: 'OK',
           onPress: () => {
-            // Replace with your actual Firebase sign-out logic
-            console.log('Logging out...');
-            router.replace('/login');
+            auth().signOut().then(() => {
+              router.replace('/login');
+            });
           },
         },
       ],
@@ -79,7 +80,7 @@ export default function ProfileScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.centered}>
-        <Text>Error: {error}</Text>
+        <Text>Ralat: {error}</Text>
       </SafeAreaView>
     );
   }
@@ -91,30 +92,30 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>Profil</Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView>
         {/* Profile Info */}
         <View style={styles.profileContainer}>
-          <Image source={{ uri: user.profilePicture }} style={styles.profilePicture} />
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userId}>{user.idNumber}</Text>
+          <Image source={{ uri: user?.profilePicture || 'https://picsum.photos/200' }} style={styles.profilePicture} />
+          <Text style={styles.userName}>{user?.name}</Text>
+          <Text style={styles.userId}>{user?.idNumber}</Text>
         </View>
 
         {/* Menu Buttons */}
         <View style={styles.menuContainer}>
           <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/EditProfile')}>
-            <Text>Edit Profile</Text>
+            <Text>Sunting Profil</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/Security')}>
-            <Text>Security</Text>
+            <Text>Keselamatan</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/Settings')}>
-            <Text>Settings</Text>
+            <Text>Tetapan</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
-            <Text>Logout</Text>
+            <Text>Log Keluar</Text>
           </TouchableOpacity>
         </View>
 

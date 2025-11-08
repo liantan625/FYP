@@ -55,6 +55,8 @@ const screenWidth = Dimensions.get("window").width;
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [userName, setUserName] = useState('');
+  const [totalExpenses, setTotalExpenses] = useState(0);
   const [financialSummary, setFinancialSummary] = useState({
     netAmount: 0,
     totalAssets: 0,
@@ -65,7 +67,34 @@ export default function HomeScreen() {
   useEffect(() => {
     const user = auth().currentUser;
     if (user) {
-      const unsubscribe = firestore()
+      const userUnsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .onSnapshot(documentSnapshot => {
+          if (documentSnapshot.exists) {
+            setUserName(documentSnapshot.data().name);
+          }
+        });
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const spendingsUnsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('spendings')
+        .where('date', '>=', startOfMonth)
+        .where('date', '<=', endOfMonth)
+        .onSnapshot(spendingsSnapshot => {
+          let currentMonthExpenses = 0;
+          spendingsSnapshot.forEach(doc => {
+            currentMonthExpenses += doc.data().amount;
+          });
+          setTotalExpenses(currentMonthExpenses);
+        });
+
+      const savingsUnsubscribe = firestore()
         .collection('users')
         .doc(user.uid)
         .collection('savings_goals')
@@ -91,7 +120,11 @@ export default function HomeScreen() {
           });
         });
 
-      return () => unsubscribe();
+      return () => {
+        userUnsubscribe();
+        spendingsUnsubscribe();
+        savingsUnsubscribe();
+      };
     }
   }, []);
 
@@ -109,7 +142,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.headerContainer}>
           
-          <Text style={styles.headerGreeting}>Selamat Datang, {MOCK_DATA.user.name}!</Text>
+          <Text style={styles.headerGreeting}>Selamat Datang, {userName}!</Text>
           
           {/* Financial Summary Card */}
           <TouchableOpacity style={styles.summaryCard} onPress={() => router.push('/savingsgoals')}>
@@ -129,15 +162,13 @@ export default function HomeScreen() {
 
         {/* Quick Action Cards */}
         <View style={styles.quickActionsContainer}>
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => Alert.alert('Dana Persaraan')}>
-            <Text style={styles.quickActionTitle}>💰 {MOCK_DATA.quickActions.retirement.title}</Text>
-            <Text style={styles.quickActionAmount}>RM {MOCK_DATA.quickActions.retirement.amount.toFixed(2)}</Text>
-            <Text style={styles.quickActionSubtitlePositive}>+{MOCK_DATA.quickActions.retirement.change}%</Text>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/(tabs)/analysis')}>
+            <Text style={styles.quickActionTitle}>💰 Aset Persaraan</Text>
+            <Text style={styles.quickActionAmount}>RM {financialSummary.totalAssets.toFixed(2)}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => Alert.alert('Pendapatan Bulan Ini')}>
-            <Text style={styles.quickActionTitle}>💵 {MOCK_DATA.quickActions.monthly.title}</Text>
-            <Text style={styles.quickActionAmount}>RM {MOCK_DATA.quickActions.monthly.income.toFixed(2)}</Text>
-            <Text style={styles.quickActionSubtitleNegative}>Perbelanjaan -RM {MOCK_DATA.quickActions.monthly.expenses.toFixed(2)}</Text>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/(tabs)/category')}>
+            <Text style={styles.quickActionTitle}>💵 Perbelanjaan</Text>
+            <Text style={styles.quickActionAmount}>RM {totalExpenses.toFixed(2)}</Text>
           </TouchableOpacity>
         </View>
 

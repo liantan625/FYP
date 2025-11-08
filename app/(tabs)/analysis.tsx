@@ -127,21 +127,9 @@ export default function AnalysisScreen() {
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Summary Card */}
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Pendapatan Bulan Ini</Text>
-            <Text style={styles.summaryAmount}>RM {MOCK_DATA.summary.monthlyIncome.toFixed(2)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Perbelanjaan Makanan</Text>
-            <Text style={[styles.summaryAmount, styles.negativeAmount]}>-RM {MOCK_DATA.summary.foodExpenses.toFixed(2)}</Text>
-          </View>
-        </View>
 
         {/* Asset Summary Section */}
         <View style={styles.assetSummaryContainer}>
-          <Text style={styles.sectionTitle}>Aset Persaraan</Text>
           <View style={styles.assetSummaryCard}>
             <Text style={styles.assetSummaryLabel}>Jumlah Aset Persaraan</Text>
             <Text style={styles.assetSummaryAmount}>RM {totalAssets.toFixed(2)}</Text>
