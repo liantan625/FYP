@@ -40,6 +40,7 @@ export default function RootLayout() {
           <Stack.Screen name="editSpending/[spendingId]" options={{ headerShown: false }} />
           <Stack.Screen name="Pendapatan" options={{ headerShown: false }} />
           <Stack.Screen name="savingsgoals" options={{ headerShown: false }} />
+          <Stack.Screen name="report" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>

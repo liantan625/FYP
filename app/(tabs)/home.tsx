@@ -56,6 +56,8 @@ const screenWidth = Dimensions.get("window").width;
 export default function HomeScreen() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
+  const [totalAssets, setTotalAssets] = useState(0);
+  const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [financialSummary, setFinancialSummary] = useState({
     netAmount: 0,
@@ -70,15 +72,61 @@ export default function HomeScreen() {
       const userUnsubscribe = firestore()
         .collection('users')
         .doc(user.uid)
-        .onSnapshot(documentSnapshot => {
-          if (documentSnapshot.exists) {
-            setUserName(documentSnapshot.data().name);
+        .onSnapshot(
+          documentSnapshot => {
+            if (documentSnapshot.exists) {
+              setUserName(documentSnapshot.data().name);
+            }
+          },
+          error => {
+            console.error("Error fetching user data: ", error);
           }
-        });
+        );
 
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const allAssetsUnsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('assets')
+        .onSnapshot(
+          assetsSnapshot => {
+            let total = 0;
+            if (assetsSnapshot) {
+              assetsSnapshot.forEach(doc => {
+                total += doc.data().amount;
+              });
+            }
+            setTotalAssets(total);
+          },
+          error => {
+            console.error("Error fetching all assets: ", error);
+          }
+        );
+
+      const monthlyIncomeUnsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('assets')
+        .where('date', '>=', startOfMonth)
+        .where('date', '<=', endOfMonth)
+        .where('category', '==', 'income')
+        .onSnapshot(
+          assetsSnapshot => {
+            let total = 0;
+            if (assetsSnapshot) {
+              assetsSnapshot.forEach(doc => {
+                total += doc.data().amount;
+              });
+            }
+            setMonthlyIncome(total);
+          },
+          error => {
+            console.error("Error fetching monthly income: ", error);
+          }
+        );
 
       const spendingsUnsubscribe = firestore()
         .collection('users')
@@ -86,55 +134,63 @@ export default function HomeScreen() {
         .collection('spendings')
         .where('date', '>=', startOfMonth)
         .where('date', '<=', endOfMonth)
-        .onSnapshot(spendingsSnapshot => {
-          let currentMonthExpenses = 0;
-          spendingsSnapshot.forEach(doc => {
-            currentMonthExpenses += doc.data().amount;
-          });
-          setTotalExpenses(currentMonthExpenses);
-        });
+        .onSnapshot(
+          spendingsSnapshot => {
+            let currentMonthExpenses = 0;
+            if (spendingsSnapshot) {
+              spendingsSnapshot.forEach(doc => {
+                currentMonthExpenses += doc.data().amount;
+              });
+            }
+            setTotalExpenses(currentMonthExpenses);
+          },
+          error => {
+            console.error("Error fetching spendings: ", error);
+          }
+        );
 
       const savingsUnsubscribe = firestore()
         .collection('users')
         .doc(user.uid)
         .collection('savings_goals')
-        .onSnapshot(querySnapshot => {
-          let netAmount = 0;
-          let totalAssets = 0;
-          let goal = 0;
+        .onSnapshot(
+          querySnapshot => {
+            let netAmount = 0;
+            let totalAssets = 0;
+            let goal = 0;
 
-          querySnapshot.forEach(doc => {
-            const goalData = doc.data();
-            netAmount += goalData.currentAmount;
-            totalAssets += goalData.currentAmount;
-            goal += goalData.targetAmount;
-          });
+            if (querySnapshot) {
+              querySnapshot.forEach(doc => {
+                const goalData = doc.data();
+                netAmount += goalData.currentAmount;
+                totalAssets += goalData.currentAmount;
+                goal += goalData.targetAmount;
+              });
+            }
 
-          const progressPercentage = goal > 0 ? (totalAssets / goal) * 100 : 0;
+            const progressPercentage = goal > 0 ? (totalAssets / goal) * 100 : 0;
 
-          setFinancialSummary({
-            netAmount,
-            totalAssets,
-            goal,
-            progressPercentage,
-          });
-        });
+            setFinancialSummary({
+              netAmount,
+              totalAssets,
+              goal,
+              progressPercentage,
+            });
+          },
+          error => {
+            console.error("Error fetching savings goals: ", error);
+          }
+        );
 
       return () => {
         userUnsubscribe();
+        allAssetsUnsubscribe();
+        monthlyIncomeUnsubscribe();
         spendingsUnsubscribe();
         savingsUnsubscribe();
       };
     }
   }, []);
-
-  const chartData = MOCK_DATA.expenses.categories.map(category => ({
-    name: category.name,
-    population: category.amount,
-    color: category.color,
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  }));
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -172,39 +228,21 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Expense Breakdown Section */}
+        {/* Summary Section */}
         <View style={styles.expenseContainer}>
-          <Text style={styles.expenseTitle}>{MOCK_DATA.expenses.period}</Text>
-          {/* <PieChart
-            data={chartData}
-            width={screenWidth - 40}
-            height={220}
-            chartConfig={{
-              backgroundColor: '#1cc910',
-              backgroundGradientFrom: '#eff3ff',
-              backgroundGradientTo: '#efefef',
-              decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-            }}
-            accessor={"population"}
-            backgroundColor={"transparent"}
-            paddingLeft={"15"}
-            absolute
-          /> */}
-          <View style={styles.legendContainer}>
-            {MOCK_DATA.expenses.categories.map((category, index) => (
-              <View key={index} style={styles.legendItem}>
-                <View style={[styles.legendColor, { backgroundColor: category.color }]} />
-                <Text style={styles.legendText}>{category.name}</Text>
-                <Text style={styles.legendAmount}>RM {category.amount.toFixed(2)}</Text>
-              </View>
-            ))}
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryItemTitle}>Total Aset</Text>
+            <Text style={styles.summaryItemAmount}>RM {totalAssets.toFixed(2)}</Text>
           </View>
-          <Text style={styles.totalExpense}>Total: RM {MOCK_DATA.expenses.total.toFixed(2)}</Text>
-          <TouchableOpacity style={styles.reportButton} onPress={() => Alert.alert('Report feature coming soon')}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryItemTitle}>Pendapatan Bulan Ini</Text>
+            <Text style={styles.summaryItemAmount}>RM {monthlyIncome.toFixed(2)}</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryItemTitle}>Perbelanjaan Bulan Ini</Text>
+            <Text style={styles.summaryItemAmount}>RM {totalExpenses.toFixed(2)}</Text>
+          </View>
+          <TouchableOpacity style={styles.reportButton} onPress={() => router.push('/report')}>
             <Text style={styles.reportButtonText}>📊 Lihat Laporan Penuh</Text>
           </TouchableOpacity>
         </View>
