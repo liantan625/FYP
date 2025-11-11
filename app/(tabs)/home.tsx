@@ -202,45 +202,69 @@ export default function HomeScreen() {
           
           {/* Financial Summary Card */}
           <TouchableOpacity style={styles.summaryCard} onPress={() => router.push('/savingsgoals')}>
-            <Text style={styles.summaryTitle}>Matlamat Simpanan</Text>
-            <Text style={styles.summaryAmount}>RM {financialSummary.netAmount.toFixed(2)}</Text>
-            <Text style={styles.summaryTrend}>↑ +{MOCK_DATA.financial.trend}% bulan ini</Text>
-            
-            <Text style={styles.progressTitle}>Progress: {financialSummary.progressPercentage.toFixed(0)}%</Text>
-            <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, { width: `${financialSummary.progressPercentage}%` }]} />
+            <View style={styles.summaryHeader}>
+              <Text style={styles.summaryTitle}>🎯 Matlamat Simpanan</Text>
+              <Text style={styles.summaryTrendPositive}>↑ +{MOCK_DATA.financial.trend}%</Text>
             </View>
-            <Text style={styles.progressText}>RM {financialSummary.totalAssets.toFixed(2)} / RM {financialSummary.goal.toFixed(2)}</Text>
             
-            <Text style={styles.summaryMessage}>✓ {MOCK_DATA.financial.message}</Text>
+            <View style={styles.summaryAmountContainer}>
+              <Text style={styles.summaryAmount}>💵 RM {financialSummary.netAmount.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.progressContainer}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressTitle}>📈 Kemajuan: {financialSummary.progressPercentage.toFixed(0)}%</Text>
+              </View>
+              <View style={styles.progressBarContainer}>
+                <View style={[styles.progressBar, { width: `${financialSummary.progressPercentage}%` }]} />
+              </View>
+              <Text style={styles.progressText}>RM {financialSummary.totalAssets.toFixed(2)} / RM {financialSummary.goal.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.messageContainer}>
+              <Text style={styles.summaryMessage}>✅ {MOCK_DATA.financial.message}</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
         {/* Quick Action Cards */}
         <View style={styles.quickActionsContainer}>
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/(tabs)/analysis')}>
-            <Text style={styles.quickActionTitle}>💰 Aset Persaraan</Text>
-            <Text style={styles.quickActionAmount}>RM {financialSummary.totalAssets.toFixed(2)}</Text>
+          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardGreen]} onPress={() => router.push('/(tabs)/analysis')}>
+            <Text style={styles.quickActionEmoji}>🏦</Text>
+            <Text style={styles.quickActionTitle}>Aset Persaraan</Text>
+            <Text style={[styles.quickActionAmount, { color: '#10B981' }]}>RM {financialSummary.totalAssets.toFixed(2)}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/(tabs)/category')}>
-            <Text style={styles.quickActionTitle}>💵 Perbelanjaan</Text>
-            <Text style={styles.quickActionAmount}>RM {totalExpenses.toFixed(2)}</Text>
+          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardRed]} onPress={() => router.push('/(tabs)/category')}>
+            <Text style={styles.quickActionEmoji}>💳</Text>
+            <Text style={styles.quickActionTitle}>Perbelanjaan</Text>
+            <Text style={[styles.quickActionAmount, { color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Summary Section */}
         <View style={styles.expenseContainer}>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemTitle}>Total Aset</Text>
-            <Text style={styles.summaryItemAmount}>RM {totalAssets.toFixed(2)}</Text>
+            <View style={styles.summaryItemLeft}>
+              <Text style={styles.summaryItemEmoji}>🏠</Text>
+              <Text style={styles.summaryItemTitle}>Total Aset</Text>
+            </View>
+            <Text style={[styles.summaryItemAmount, { color: '#3B82F6' }]}>RM {totalAssets.toFixed(2)}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemTitle}>Pendapatan Bulan Ini</Text>
-            <Text style={styles.summaryItemAmount}>RM {monthlyIncome.toFixed(2)}</Text>
+            <View style={styles.summaryItemLeft}>
+              <Text style={styles.summaryItemEmoji}>📥</Text>
+              <Text style={styles.summaryItemTitle}>Pendapatan Bulan Ini</Text>
+            </View>
+            <Text style={[styles.summaryItemAmount, { color: '#10B981' }]}>RM {monthlyIncome.toFixed(2)}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemTitle}>Perbelanjaan Bulan Ini</Text>
-            <Text style={styles.summaryItemAmount}>RM {totalExpenses.toFixed(2)}</Text>
+            <View style={styles.summaryItemLeft}>
+              <Text style={styles.summaryItemEmoji}>📤</Text>
+              <Text style={styles.summaryItemTitle}>Perbelanjaan Bulan Ini</Text>
+            </View>
+            <Text style={[styles.summaryItemAmount, { color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
           </View>
           <TouchableOpacity style={styles.reportButton} onPress={() => router.push('/report')}>
             <Text style={styles.reportButtonText}>📊 Lihat Laporan Penuh</Text>
@@ -286,24 +310,42 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  summaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   summaryTitle: {
     fontSize: 16,
     color: '#666',
   },
-  summaryAmount: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
   summaryTrend: {
     fontSize: 14,
     color: '#00C896',
-    marginTop: 5,
+  },
+  summaryAmountContainer: {
+    marginTop: 10,
+  },
+  summaryAmount: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 10,
+  },
+  progressContainer: {
+    marginTop: 10,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   progressTitle: {
     fontSize: 14,
     color: '#666',
-    marginTop: 15,
   },
   progressBarContainer: {
     height: 8,
@@ -322,10 +364,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
+  messageContainer: {
+    marginTop: 10,
+  },
   summaryMessage: {
     fontSize: 14,
     color: '#00C896',
-    marginTop: 15,
   },
   quickActionsContainer: {
     flexDirection: 'row',
@@ -418,5 +462,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  summaryItemTitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  summaryItemAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  summaryTrendPositive: {
+    fontSize: 14,
+    color: '#10B981',
+    fontWeight: 'bold',
+  },
+  quickActionCardGreen: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#10B981',
+  },
+  quickActionCardRed: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+  },
+  quickActionEmoji: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  summaryItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  summaryItemEmoji: {
+    fontSize: 20,
+    marginRight: 10,
   },
 });
