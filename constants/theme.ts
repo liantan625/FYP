@@ -51,3 +51,20 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+export const FontSizes = {
+  // Base font sizes (at 1.0 scale)
+  small: 12,
+  body: 14,
+  medium: 16,
+  large: 18,
+  xlarge: 20,
+  title: 24,
+  heading: 32,
+};
+
+export const FontScaleOptions = {
+  small: { label: 'Kecil', value: 0.9 },
+  medium: { label: 'Sederhana', value: 1.0 },
+  large: { label: 'Besar', value: 1.2 },
+};

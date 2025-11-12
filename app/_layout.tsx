@@ -6,6 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import 'react-native-reanimated';
 
 import { AuthProvider } from '../context/auth-context';
+import { SettingsProvider } from '../context/settings-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 
@@ -14,8 +15,9 @@ export default function RootLayout() {
   const router = useRouter();
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <SettingsProvider>
+      <AuthProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -53,6 +55,7 @@ export default function RootLayout() {
         </TouchableOpacity>
       </ThemeProvider>
     </AuthProvider>
+    </SettingsProvider>
   );
 }
 

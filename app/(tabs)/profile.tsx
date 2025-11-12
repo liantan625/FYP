@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import RNPickerSelect from 'react-native-picker-select';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import { useSettings } from '@/context/settings-context';
+import { FontScaleOptions } from '@/constants/theme';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -22,6 +24,11 @@ export default function ProfileScreen() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('ms');
+  const { fontScale, fontScaleKey, setFontScale } = useSettings();
+
+  const handleFontSizeChange = async (key: 'small' | 'medium' | 'large') => {
+    await setFontScale(key);
+  };
 
   useEffect(() => {
     const currentUser = auth().currentUser;
@@ -134,6 +141,40 @@ export default function ProfileScreen() {
             placeholder={{}}
           />
         </View>
+
+        {/* Font Size Selector */}
+        <View style={styles.fontSizeSection}>
+          <Text style={[styles.sectionTitle, { fontSize: 18 * fontScale }]}>Saiz Tulisan</Text>
+          <Text style={[styles.sectionDescription, { fontSize: 14 * fontScale }]}>
+            Pilih saiz tulisan yang sesuai untuk penglihatan anda
+          </Text>
+          
+          {Object.entries(FontScaleOptions).map(([key, { label, value }]) => (
+            <TouchableOpacity
+              key={key}
+              style={[
+                styles.fontOption,
+                fontScaleKey === key && styles.fontOptionSelected
+              ]}
+              onPress={() => handleFontSizeChange(key as 'small' | 'medium' | 'large')}
+            >
+              <View style={styles.fontOptionLeft}>
+                <View style={[
+                  styles.radio,
+                  fontScaleKey === key && styles.radioSelected
+                ]}>
+                  {fontScaleKey === key && <View style={styles.radioDot} />}
+                </View>
+                <Text style={[styles.fontOptionLabel, { fontSize: 16 * fontScale }]}>
+                  {label}
+                </Text>
+              </View>
+              <Text style={[styles.previewText, { fontSize: 16 * value }]}>
+                Contoh Teks
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,6 +230,66 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 10,
     borderRadius: 10,
+  },
+  fontSizeSection: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  sectionDescription: {
+    color: '#666',
+    marginBottom: 20,
+  },
+  fontOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    backgroundColor: '#f0f0f0',
+  },
+  fontOptionSelected: {
+    backgroundColor: '#E3F2FD',
+    borderWidth: 2,
+    borderColor: '#2196F3',
+  },
+  fontOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#999',
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioSelected: {
+    borderColor: '#2196F3',
+  },
+  radioDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#2196F3',
+  },
+  fontOptionLabel: {
+    fontWeight: '500',
+  },
+  previewText: {
+    color: '#666',
   },
 });
 
