@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
 
 export interface ExpenseCategory {
   id: string;
@@ -74,6 +75,7 @@ const categoriesData = [
 
 export default function CategoryScreen() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
   const [categories, setCategories] = useState<ExpenseCategory[]>(categoriesData);
   const [summary, setSummary] = useState<BudgetSummary>({
     totalExpenses: 0,
@@ -167,47 +169,47 @@ export default function CategoryScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pengurus Perbelanjaan</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Pengurus Perbelanjaan</Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView style={styles.container}>
         <View style={styles.summaryContainer}>
-          <Text style={styles.summaryTitle}>Ringkasan Perbelanjaan</Text>
-          <Text style={styles.totalSpendingText}>Perbelanjaan: -RM {summary.totalExpenses.toFixed(2)}</Text>
+          <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>Ringkasan Perbelanjaan</Text>
+          <Text style={[styles.totalSpendingText, { fontSize: fontSize.body }]}>Perbelanjaan: -RM {summary.totalExpenses.toFixed(2)}</Text>
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBar, { width: `${summary.percentageUsed.toFixed(0)}%` }]} />
-            <Text style={styles.progressPercentage}>{summary.percentageUsed.toFixed(0)}%</Text>
+            <Text style={[styles.progressPercentage, { fontSize: fontSize.small }]}>{summary.percentageUsed.toFixed(0)}%</Text>
           </View>
-          <Text style={styles.progressText}>RM{summary.totalExpenses.toFixed(2)} / RM{budgetGoal.toFixed(2)}</Text>
+          <Text style={[styles.progressText, { fontSize: fontSize.small }]}>RM{summary.totalExpenses.toFixed(2)} / RM{budgetGoal.toFixed(2)}</Text>
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Kategori Popular</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Kategori Popular</Text>
           <View style={styles.popularCategoriesContainer}>
             {popularCategories.map(category => (
               <TouchableOpacity key={category.name} style={styles.popularCategoryCard} onPress={() => handleCategoryPress(category.name)}>
-                <Text style={styles.popularCategoryIcon}>{category.icon}</Text>
-                <Text style={styles.popularCategoryName}>{category.name}</Text>
-                <Text style={styles.popularCategoryAmount}>RM{category.monthlySpent.toFixed(2)}</Text>
+                <Text style={[styles.popularCategoryIcon, { fontSize: fontSize.heading }]}>{category.icon}</Text>
+                <Text style={[styles.popularCategoryName, { fontSize: fontSize.body }]}>{category.name}</Text>
+                <Text style={[styles.popularCategoryAmount, { fontSize: fontSize.small }]}>RM{category.monthlySpent.toFixed(2)}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Semua Kategori</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Semua Kategori</Text>
           <View style={styles.allCategoriesContainer}>
             {otherCategories.map(category => (
               <TouchableOpacity key={category.name} style={styles.categoryCard} onPress={() => handleCategoryPress(category.name)}>
-                <Text style={styles.categoryIcon}>{category.icon} {category.name}</Text>
-                <Text style={styles.categoryAmount}>RM{category.monthlySpent.toFixed(2)}</Text>
+                <Text style={[styles.categoryIcon, { fontSize: fontSize.medium }]}>{category.icon} {category.name}</Text>
+                <Text style={[styles.categoryAmount, { fontSize: fontSize.large }]}>RM{category.monthlySpent.toFixed(2)}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
         <TouchableOpacity style={styles.addButton} onPress={() => Alert.alert('Tambah Kategori Baharu', 'This feature is coming soon!')}>
-          <Text style={styles.addButtonText}>+ Tambah Kategori Baharu</Text>
+          <Text style={[styles.addButtonText, { fontSize: fontSize.medium }]}>+ Tambah Kategori Baharu</Text>
         </TouchableOpacity>
       </ScrollView>
       <TouchableOpacity style={styles.fab} onPress={() => router.push('/addSpending')}>
@@ -230,7 +232,6 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   headerTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -244,13 +245,11 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
   },
   summaryTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 10,
   },
   totalSpendingText: {
-    fontSize: 14,
     color: '#fff',
   },
   progressBarContainer: {
@@ -267,13 +266,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   progressPercentage: {
-    fontSize: 12,
     color: '#2D3748',
     position: 'absolute',
     right: 10,
   },
   progressText: {
-    fontSize: 12,
     color: '#fff',
     marginTop: 5,
   },
@@ -281,7 +278,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   sectionTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -297,15 +293,12 @@ const styles = StyleSheet.create({
     width: '30%',
   },
   popularCategoryIcon: {
-    fontSize: 32,
   },
   popularCategoryName: {
-    fontSize: 14,
     fontWeight: 'bold',
     marginTop: 5,
   },
   popularCategoryAmount: {
-    fontSize: 12,
     color: '#666',
     marginTop: 5,
   },
@@ -322,11 +315,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   categoryIcon: {
-    fontSize: 16,
     fontWeight: 'bold',
   },
   categoryAmount: {
-    fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
   },
@@ -339,7 +330,6 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
   },
   fab: {

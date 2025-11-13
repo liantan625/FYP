@@ -14,6 +14,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { useRouter } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -31,6 +32,7 @@ const categoryTranslations = {
 
 export default function TransactionsScreen() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
   const [summary, setSummary] = useState({
     totalAssets: 0,
     totalIncome: 0,
@@ -99,16 +101,16 @@ return (
       <TouchableOpacity onPress={() => router.back()}>
         <MaterialIcons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Transaksi</Text>
+      <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Transaksi</Text>
       <View style={{ width: 24 }} />
     </View>
     <ScrollView>
     <View style={styles.chartContainer}>
-    <Text style={styles.sectionTitle}>Perbelanjaan</Text>
+    <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Perbelanjaan</Text>
     <PieChart
       data={expenseBreakdown}
-      width={screenWidth - 160} // Further reduced width
-      height={150} // Further reduced height
+      width={screenWidth - 160}
+      height={150}
       chartConfig={{
         backgroundColor: '#1cc910',
         backgroundGradientFrom: '#eff3ff',
@@ -118,34 +120,41 @@ return (
       }}
       accessor={"population"}
       backgroundColor={"transparent"}
-      paddingLeft={"15"} // Adjusted padding
+      paddingLeft={"15"}
       absolute
       hasLegend={false} />
     <View style={styles.legendContainer}>
       {expenseBreakdown.map((item, index) => (
         <View key={index} style={styles.legendItem}>
           <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-          <Text style={styles.legendText}>{item.name}</Text>
-          <Text style={styles.legendAmount}>RM {item.population.toFixed(2)}</Text>
+          <Text style={[styles.legendText, { fontSize: fontSize.body }]}>{item.name}</Text>
+          <Text style={[styles.legendAmount, { fontSize: fontSize.body }]}>RM {item.population.toFixed(2)}</Text>
         </View>
       ))}
     </View>
   </View>
 <View style={styles.transactionsContainer}>
-      <Text style={styles.sectionTitle}>Transaksi</Text>
+      <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Transaksi</Text>
       {transactions.map(item => (
-        <TouchableOpacity key={item.id} style={styles.transactionCard} onPress={() => Alert.alert(item.category, `Jumlah: RM ${item.amount.toFixed(2)}`)}>          <View style={styles.transactionLeft}>
-            <Text style={styles.transactionIcon}>{item.type === 'income' ? '📈' : '📉'}</Text>
-            <View>
-              <Text style={styles.transactionCategory}>{item.type === 'income' ? item.assetName : item.spendingName}</Text>
-              <Text style={styles.transactionSubcategory}>{item.category}</Text>
+        <TouchableOpacity key={item.id} style={styles.transactionCard} onPress={() => Alert.alert(item.category, `Jumlah: RM ${item.amount.toFixed(2)}`)}>
+          <View style={styles.transactionLeft}>
+            <Text style={[styles.transactionIcon, { fontSize: fontSize.title }]}>{item.type === 'income' ? '📈' : '📉'}</Text>
+            <View style={styles.transactionTextContainer}>
+              <Text 
+                style={[styles.transactionCategory, { fontSize: fontSize.medium }]} 
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.type === 'income' ? item.assetName : item.spendingName}
+              </Text>
+              <Text style={[styles.transactionSubcategory, { fontSize: fontSize.small }]}>{item.category}</Text>
             </View>
           </View>
           <View style={styles.transactionRight}>
-            <Text style={item.type === 'income' ? styles.transactionAmountPositive : styles.transactionAmountNegative}>
+            <Text style={[item.type === 'income' ? styles.transactionAmountPositive : styles.transactionAmountNegative, { fontSize: fontSize.medium }]}>
               {item.type === 'income' ? '' : '-'}RM {item.amount.toFixed(2)}
             </Text>
-            <Text style={styles.transactionDate}>{new Date(item.createdAt.toDate()).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' })}</Text>
+            <Text style={[styles.transactionDate, { fontSize: fontSize.small }]}>{new Date(item.createdAt.toDate()).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' })}</Text>
           </View>
         </TouchableOpacity>
       ))}
@@ -169,7 +178,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   headerTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
   },
   container: {
@@ -186,11 +194,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   balanceLabel: {
-    fontSize: 16,
     color: '#666',
   },
   balanceAmount: {
-    fontSize: 32,
     fontWeight: 'bold',
     marginTop: 5,
   },
@@ -206,17 +212,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   summaryLabel: {
-    fontSize: 16,
     color: '#666',
   },
   summaryAmountPositive: {
-    fontSize: 20,
     fontWeight: 'bold',
     color: '#48BB78',
     marginTop: 5,
   },
   summaryAmountNegative: {
-    fontSize: 20,
     fontWeight: 'bold',
     color: '#FF6B6B',
     marginTop: 5,
@@ -230,7 +233,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -250,11 +252,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   legendText: {
-    fontSize: 14,
     flex: 1,
   },
   legendAmount: {
-    fontSize: 14,
     fontWeight: 'bold',
   },
   transactionsContainer: {
@@ -272,34 +272,34 @@ const styles = StyleSheet.create({
   transactionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
   },
   transactionIcon: {
-    fontSize: 24,
-    marginRight: 15,
+    marginRight: 12,
+  },
+  transactionTextContainer: {
+    flex: 1,
   },
   transactionCategory: {
-    fontSize: 16,
     fontWeight: 'bold',
   },
   transactionSubcategory: {
-    fontSize: 12,
     color: '#666',
   },
   transactionRight: {
     alignItems: 'flex-end',
+    flexShrink: 0,
   },
   transactionAmountPositive: {
-    fontSize: 16,
     fontWeight: 'bold',
     color: '#48BB78',
   },
   transactionAmountNegative: {
-    fontSize: 16,
     fontWeight: 'bold',
     color: '#FF6B6B',
   },
   transactionDate: {
-    fontSize: 12,
     color: '#666',
     marginTop: 5,
   },

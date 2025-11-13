@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
 
 const MOCK_DATA = {
   summary: {
@@ -27,7 +28,7 @@ const MOCK_DATA = {
       id: 1,
       type: "bank",
       icon: "🏦",
-      name: "Simpanan Bank",
+      name: "Simpanan",
       total: 5500.00,
       count: 3,
       subtitle: "3 akaun",
@@ -67,6 +68,7 @@ const screenWidth = Dimensions.get("window").width;
 
 export default function AnalysisScreen() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
   const [assetCategories, setAssetCategories] = useState([]);
 
   useEffect(() => {
@@ -123,7 +125,7 @@ export default function AnalysisScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Analisis Dana Persaraan</Text>
+          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Analisis Dana Persaraan</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -131,29 +133,29 @@ export default function AnalysisScreen() {
         {/* Asset Summary Section */}
         <View style={styles.assetSummaryContainer}>
           <View style={styles.assetSummaryCard}>
-            <Text style={styles.assetSummaryLabel}>Jumlah Aset Persaraan</Text>
-            <Text style={styles.assetSummaryAmount}>RM {totalAssets.toFixed(2)}</Text>
+            <Text style={[styles.assetSummaryLabel, { fontSize: fontSize.medium }]}>Jumlah Aset Persaraan</Text>
+            <Text style={[styles.assetSummaryAmount, { fontSize: fontSize.heading }]}>RM {totalAssets.toFixed(2)}</Text>
             <TouchableOpacity style={styles.addAssetButton} onPress={() => router.push('/addAsset')}>
-              <Text style={styles.addAssetButtonText}>Tambah Aset</Text>
+              <Text style={[styles.addAssetButtonText, { fontSize: fontSize.medium }]}>Tambah Aset</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Asset List Section */}
         <View style={styles.assetListContainer}>
-          <Text style={styles.sectionTitle}>Jenis Aset</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Jenis Aset</Text>
           {assetCategories.map(category => (
             <TouchableOpacity key={category.id} style={styles.assetCard} onPress={() => router.push(`/${category.name.replace(/\s/g, '')}`)}>
               <View style={styles.assetCardLeft}>
-                <Text style={styles.assetIcon}>{category.icon}</Text>
-                <View>
-                  <Text style={styles.assetName}>{category.name}</Text>
-                  <Text style={styles.assetSubtitle}>{category.subtitle}</Text>
+                <Text style={[styles.assetIcon, { fontSize: fontSize.title }]}>{category.icon}</Text>
+                <View style={styles.assetTextContainer}>
+                  <Text style={[styles.assetName, { fontSize: fontSize.medium }]} numberOfLines={1}>{category.name}</Text>
+                  <Text style={[styles.assetSubtitle, { fontSize: fontSize.small }]}>{category.subtitle}</Text>
                 </View>
               </View>
               <View style={styles.assetCardRight}>
-                <Text style={styles.assetAmount}>RM {category.total.toFixed(2)}</Text>
-                <MaterialIcons name="chevron-right" size={24} color="#666" />
+                <Text style={[styles.assetAmount, { fontSize: fontSize.medium }]} numberOfLines={1}>RM {category.total.toFixed(2)}</Text>
+                <MaterialIcons name="chevron-right" size={20} color="#666" />
               </View>
             </TouchableOpacity>
           ))}
@@ -176,11 +178,11 @@ const getCategoryIcon = (categoryType) => {
 
 const getCategoryName = (categoryType) => {
   switch (categoryType) {
-    case 'bank': return 'Simpanan Bank';
+    case 'bank': return 'Simpanan';
     case 'investment': return 'Pelaburan';
     case 'property': return 'Hartanah';
     case 'income': return 'Pendapatan';
-    case 'others': return 'LainLain';
+    case 'others': return 'Lain-Lain';
     default: return 'Tidak Diketahui';
   }
 };
@@ -202,7 +204,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   headerTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
   },
   summaryCard: {
@@ -224,11 +225,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   summaryLabel: {
-    fontSize: 16,
     color: '#666',
   },
   summaryAmount: {
-    fontSize: 18,
     fontWeight: 'bold',
   },
   negativeAmount: {
@@ -238,7 +237,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   sectionTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -249,11 +247,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   assetSummaryLabel: {
-    fontSize: 16,
     color: '#fff',
   },
   assetSummaryAmount: {
-    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
     marginVertical: 10,
@@ -266,7 +262,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   addAssetButtonText: {
-    fontSize: 16,
     fontWeight: 'bold',
     color: '#48BB78',
   },
@@ -290,26 +285,30 @@ const styles = StyleSheet.create({
   assetCardLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
   },
   assetIcon: {
-    fontSize: 24,
-    marginRight: 10,
+    marginRight: 12,
+  },
+  assetTextContainer: {
+    flex: 1,
   },
   assetName: {
-    fontSize: 16,
     fontWeight: 'bold',
   },
   assetSubtitle: {
-    fontSize: 12,
     color: '#666',
+    marginTop: 2,
   },
   assetCardRight: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 0,
   },
   assetAmount: {
-    fontSize: 16,
     fontWeight: 'bold',
-    marginRight: 10,
+    marginRight: 6,
+    textAlign: 'right',
   },
 });
