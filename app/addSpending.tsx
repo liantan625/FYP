@@ -15,6 +15,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
 
 const spendingCategories = [
   { label: "Runcit", value: "groceries" },
@@ -28,6 +29,7 @@ const defaultCurrency = "MYR";
 
 export default function AddSpendingScreen() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
   const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
@@ -96,14 +98,14 @@ export default function AddSpendingScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Perbelanjaan</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Tambah Perbelanjaan</Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView style={styles.container}>
         <View style={styles.form}>
-          <Text style={styles.label}>📅 Tarikh</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📅 Tarikh</Text>
           <TouchableOpacity onPress={showDatePicker} style={styles.inputContainer}>
-            <Text style={styles.input}>{date.toLocaleDateString()}</Text>
+            <Text style={[styles.input, { fontSize: fontSize.medium }]}>{date.toLocaleDateString()}</Text>
             <MaterialIcons name="calendar-today" size={24} color="#666" style={styles.inputIcon} />
           </TouchableOpacity>
           <DateTimePickerModal
@@ -113,41 +115,41 @@ export default function AddSpendingScreen() {
             onCancel={hideDatePicker}
           />
 
-          <Text style={styles.label}>📂 Kategori Perbelanjaan</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📂 Kategori Perbelanjaan</Text>
           <View style={styles.pickerContainer}>
             <RNPickerSelect
               onValueChange={(value) => setCategory(value)}
               items={spendingCategories}
               placeholder={{ label: 'Pilih Jenis Perbelanjaan', value: null }}
-              style={pickerSelectStyles}
+              style={pickerSelectStyles(fontSize.fontScale)}
             />
           </View>
 
-          <Text style={styles.label}>💸 Nama Perbelanjaan</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>💸 Nama Perbelanjaan</Text>
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { fontSize: fontSize.medium }]}
               placeholder="Contoh: Makan Malam"
               value={spendingName}
               onChangeText={setSpendingName}
             />
           </View>
 
-          <Text style={styles.label}>💰 Amaun</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>💰 Amaun</Text>
           <View style={styles.amountContainer}>
-            <Text style={styles.currencyLabel}>{defaultCurrency}</Text>
+            <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>{defaultCurrency}</Text>
             <TextInput
-              style={styles.amountInput}
+              style={[styles.amountInput, { fontSize: fontSize.medium }]}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
             />
           </View>
 
-          <Text style={styles.label}>📝 Penerangan (Pilihan)</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📝 Penerangan (Pilihan)</Text>
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { fontSize: fontSize.medium }]}
               placeholder="Tambah nota..."
               value={description}
               onChangeText={setDescription}
@@ -156,7 +158,7 @@ export default function AddSpendingScreen() {
           </View>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Simpan</Text>
+            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -177,7 +179,6 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   headerTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -188,7 +189,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   label: {
-    fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     padding: 15,
-    fontSize: 16,
   },
   inputIcon: {
     padding: 15,
@@ -224,7 +223,6 @@ const styles = StyleSheet.create({
   },
   currencyLabel: {
     padding: 15,
-    fontSize: 16,
     fontWeight: 'bold',
     backgroundColor: '#f0f0f0',
     borderTopLeftRadius: 10,
@@ -233,7 +231,6 @@ const styles = StyleSheet.create({
   amountInput: {
     flex: 1,
     padding: 15,
-    fontSize: 16,
   },
   textArea: {
     height: 100,
@@ -248,25 +245,24 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
   },
 });
 
-const pickerSelectStyles = StyleSheet.create({
+const pickerSelectStyles = (fontScale: number) => StyleSheet.create({
   inputIOS: {
-    fontSize: 16,
+    fontSize: 16 * fontScale,
     paddingVertical: 15,
     paddingHorizontal: 10,
     color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
+    paddingRight: 30,
   },
   inputAndroid: {
-    fontSize: 16,
+    fontSize: 16 * fontScale,
     paddingHorizontal: 10,
     paddingVertical: 8,
     color: 'black',
-    paddingRight: 30, // to ensure the text is never behind the icon
+    paddingRight: 30,
   },
   placeholder: {
     color: '#666',
