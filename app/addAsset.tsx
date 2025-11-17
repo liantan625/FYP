@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,23 +16,42 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const MOCK_DATA = {
-  assetCategories: [
-    { label: "Simpanan Bank", value: "bank" },
-    { label: "Pelaburan", value: "investment" },
-    { label: "Hartanah", value: "property" },
-    { label: "Pendapatan", value: "income" },
-    { label: "Lain-lain", value: "others" }
-  ],
-  defaultCurrency: "MYR"
-};
+const defaultAssetCategories = [
+  { label: "Simpanan Bank", value: "bank" },
+  { label: "Pelaburan", value: "investment" },
+  { label: "Hartanah", value: "property" },
+  { label: "Pendapatan", value: "income" },
+  { label: "Lain-lain", value: "others" }
+];
+
+const defaultCurrency = "MYR";
 
 export default function AddAssetScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
   const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [assetCategories, setAssetCategories] = useState(defaultAssetCategories);
+
+  // Load custom asset categories on mount
+  useEffect(() => {
+    loadCustomAssetCategories();
+  }, []);
+
+  const loadCustomAssetCategories = async () => {
+    try {
+      const customCategoriesJson = await AsyncStorage.getItem('customAssetCategories');
+      if (customCategoriesJson) {
+        const customCategories = JSON.parse(customCategoriesJson);
+        // Combine default + custom categories
+        setAssetCategories([...defaultAssetCategories, ...customCategories]);
+      }
+    } catch (error) {
+      console.error('Error loading custom asset categories:', error);
+    }
+  };
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -114,7 +133,7 @@ export default function AddAssetScreen() {
           <View style={styles.pickerContainer}>
             <RNPickerSelect
               onValueChange={(value) => setCategory(value)}
-              items={MOCK_DATA.assetCategories}
+              items={assetCategories}
               placeholder={{ label: 'Pilih Aset/Pendapatan', value: null }}
               style={pickerSelectStyles(fontSize.fontScale)}
             />
@@ -132,7 +151,7 @@ export default function AddAssetScreen() {
 
           <Text style={[styles.label, { fontSize: fontSize.medium }]}>💰 Amaun</Text>
           <View style={styles.amountContainer}>
-            <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>{MOCK_DATA.defaultCurrency}</Text>
+            <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>{defaultCurrency}</Text>
             <TextInput
               style={[styles.amountInput, { fontSize: fontSize.medium }]}
               value={amount}

@@ -30,6 +30,9 @@ export default function RootLayout() {
           <Stack.Screen name="notifications" options={{ headerShown: false }} />
           <Stack.Screen name="addAsset" options={{ headerShown: false }} />
           <Stack.Screen name="addSpending" options={{ headerShown: false }} />
+          <Stack.Screen name="addCategory" options={{ headerShown: false }} />
+          <Stack.Screen name="addAssetCategory" options={{ headerShown: false }} />
+          <Stack.Screen name="[category]" options={{ headerShown: false }} />
           <Stack.Screen name="SimpananBank" options={{ headerShown: false }} />
           <Stack.Screen name="Pelaburan" options={{ headerShown: false }} />
           <Stack.Screen name="Hartanah" options={{ headerShown: false }} />
