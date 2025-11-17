@@ -208,7 +208,7 @@ export default function CategoryScreen() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.addButton} onPress={() => Alert.alert('Tambah Kategori Baharu', 'This feature is coming soon!')}>
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/addCategory')}>
           <Text style={[styles.addButtonText, { fontSize: fontSize.medium }]}>+ Tambah Kategori Baharu</Text>
         </TouchableOpacity>
       </ScrollView>

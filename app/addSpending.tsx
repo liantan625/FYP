@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,8 +16,9 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const spendingCategories = [
+const defaultSpendingCategories = [
   { label: "Runcit", value: "groceries" },
   { label: "Sewa", value: "rent" },
   { label: "Perayaan", value: "celebration" },
@@ -32,6 +33,25 @@ export default function AddSpendingScreen() {
   const fontSize = useScaledFontSize();
   const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [spendingCategories, setSpendingCategories] = useState(defaultSpendingCategories);
+
+  // Load custom categories on mount
+  useEffect(() => {
+    loadCustomCategories();
+  }, []);
+
+  const loadCustomCategories = async () => {
+    try {
+      const customCategoriesJson = await AsyncStorage.getItem('customCategories');
+      if (customCategoriesJson) {
+        const customCategories = JSON.parse(customCategoriesJson);
+        // Combine default + custom categories
+        setSpendingCategories([...defaultSpendingCategories, ...customCategories]);
+      }
+    } catch (error) {
+      console.error('Error loading custom categories:', error);
+    }
+  };
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);

@@ -85,7 +85,10 @@ export default function TransactionsScreen() {
 
             setSummary({ totalAssets: totalAssets + totalIncome, totalIncome, totalExpenses });
             setExpenseBreakdown(newExpenseBreakdown);
-            const translatedTransactions = [...assets, ...spendings].map(t => ({...t, category: categoryTranslations[t.category] || t.category })).sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+            const translatedTransactions = [...assets, ...spendings]
+              .map(t => ({...t, category: categoryTranslations[t.category] || t.category }))
+              .filter(t => t.createdAt) // Filter out items without createdAt
+              .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
             setTransactions(translatedTransactions);
           });
 
@@ -154,7 +157,9 @@ return (
             <Text style={[item.type === 'income' ? styles.transactionAmountPositive : styles.transactionAmountNegative, { fontSize: fontSize.medium }]}>
               {item.type === 'income' ? '' : '-'}RM {item.amount.toFixed(2)}
             </Text>
-            <Text style={[styles.transactionDate, { fontSize: fontSize.small }]}>{new Date(item.createdAt.toDate()).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' })}</Text>
+            <Text style={[styles.transactionDate, { fontSize: fontSize.small }]}>
+              {item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' }) : 'N/A'}
+            </Text>
           </View>
         </TouchableOpacity>
       ))}
