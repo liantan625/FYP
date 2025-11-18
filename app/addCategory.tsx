@@ -125,22 +125,24 @@ export default function AddCategoryScreen() {
 
           {/* Color Selection */}
           <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 Pilih Warna</Text>
-          <View style={styles.colorGrid}>
-            {availableColors.map((color) => (
-              <TouchableOpacity
-                key={color.value}
-                style={[
-                  styles.colorButton,
-                  { backgroundColor: color.value },
-                  selectedColor === color.value && styles.colorButtonSelected,
-                ]}
-                onPress={() => setSelectedColor(color.value)}
-              >
-                {selectedColor === color.value && (
-                  <MaterialIcons name="check" size={24} color="#fff" />
-                )}
-              </TouchableOpacity>
-            ))}
+          <View style={styles.colorSection}>
+            <View style={styles.colorGrid}>
+              {availableColors.map((color) => (
+                <TouchableOpacity
+                  key={color.value}
+                  style={[
+                    styles.colorButton,
+                    { backgroundColor: color.value },
+                    selectedColor === color.value && styles.colorButtonSelected,
+                  ]}
+                  onPress={() => setSelectedColor(color.value)}
+                >
+                  {selectedColor === color.value && (
+                    <MaterialIcons name="check" size={24} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Preview */}
@@ -225,19 +227,22 @@ const styles = StyleSheet.create({
   },
   iconText: {
   },
+  colorSection: {
+    paddingBottom: 10,
+    marginBottom: 20,
+  },
   colorGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 20,
   },
   colorButton: {
-    width: '22%',
-    aspectRatio: 1,
+    width: '23%',
+    height: 70,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
     borderWidth: 3,
     borderColor: 'transparent',
   },
