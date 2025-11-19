@@ -14,8 +14,11 @@ import { useRouter } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+
 export default function NotificationsScreen() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<any[]>([]);
 
@@ -108,23 +111,23 @@ export default function NotificationsScreen() {
       style={[styles.notificationItem, item.read ? styles.readItem : styles.unreadItem]}
       onPress={() => Alert.alert(item.title, item.message)}
     >
-      <Text style={styles.notificationIcon}>{getIcon(item.type)}</Text>
+      <Text style={[styles.notificationIcon, { fontSize: fontSize.xlarge }]}>{getIcon(item.type)}</Text>
       <View style={styles.notificationContent}>
-        <Text style={styles.notificationTitle}>{item.title}</Text>
-        <Text style={styles.notificationMessage}>{item.message}</Text>
+        <Text style={[styles.notificationTitle, { fontSize: fontSize.medium }]}>{item.title}</Text>
+        <Text style={[styles.notificationMessage, { fontSize: fontSize.body }]}>{item.message}</Text>
         {item.amount && (
-          <Text style={[styles.notificationAmount, { color: item.type === 'asset' ? '#00D9A8' : '#FF6B6B' }]}>
+          <Text style={[styles.notificationAmount, { fontSize: fontSize.medium, color: item.type === 'asset' ? '#00D9A8' : '#FF6B6B' }]}>
             RM {Math.abs(item.amount).toFixed(2)}
           </Text>
         )}
-        {item.category && <Text style={styles.notificationCategory}>{item.category}</Text>}
+        {item.category && <Text style={[styles.notificationCategory, { fontSize: fontSize.small }]}>{item.category}</Text>}
       </View>
-      <Text style={styles.notificationTime}>{formatTime(item.createdAt)}</Text>
+      <Text style={[styles.notificationTime, { fontSize: fontSize.small }]}>{formatTime(item.createdAt)}</Text>
     </TouchableOpacity>
   );
 
   const renderSectionHeader = ({ section: { title } }: { section: { title: string } }) => (
-    <Text style={styles.sectionHeader}>{title}</Text>
+    <Text style={[styles.sectionHeader, { fontSize: fontSize.body }]}>{title}</Text>
   );
 
   return (
@@ -133,7 +136,7 @@ export default function NotificationsScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifikasi</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Notifikasi</Text>
         <View style={{ width: 24 }} />
       </View>
       {loading ? (

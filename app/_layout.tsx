@@ -17,12 +17,35 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
-export default function RootLayout() {
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { BaseToast, ErrorToast } from 'react-native-toast-message';
+
+function AppLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const fontSize = useScaledFontSize();
+
+  const toastConfig = {
+    success: (props: any) => (
+      <BaseToast
+        {...props}
+        text1Style={{ fontSize: fontSize.medium, fontWeight: 'bold' }}
+        text2Style={{ fontSize: fontSize.body }}
+      />
+    ),
+    error: (props: any) => (
+      <ErrorToast
+        {...props}
+        text1Style={{ fontSize: fontSize.medium, fontWeight: 'bold' }}
+        text2Style={{ fontSize: fontSize.body }}
+      />
+    ),
+  };
 
   useEffect(() => {
     async function configureNotifications() {
@@ -44,9 +67,9 @@ export default function RootLayout() {
           body: "Remember to track your expenses and save for your goals.",
         },
         trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
           hour: 9,
           minute: 0,
-          repeats: true,
         },
       });
     }
@@ -55,51 +78,57 @@ export default function RootLayout() {
   }, []);
 
   return (
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen name="OTP" options={{ headerShown: false }} />
+        <Stack.Screen name="successfulSignUp" options={{ headerShown: false }} />
+        <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
+        <Stack.Screen name="Security" options={{ headerShown: false }} />
+        <Stack.Screen name="Settings" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="addAsset" options={{ headerShown: false }} />
+        <Stack.Screen name="addSpending" options={{ headerShown: false }} />
+        <Stack.Screen name="addCategory" options={{ headerShown: false }} />
+        <Stack.Screen name="addAssetCategory" options={{ headerShown: false }} />
+        <Stack.Screen name="[category]" options={{ headerShown: false }} />
+        <Stack.Screen name="SimpananBank" options={{ headerShown: false }} />
+        <Stack.Screen name="Pelaburan" options={{ headerShown: false }} />
+        <Stack.Screen name="Hartanah" options={{ headerShown: false }} />
+        <Stack.Screen name="LainLain" options={{ headerShown: false }} />
+        <Stack.Screen name="Runcit" options={{ headerShown: false }} />
+        <Stack.Screen name="Sewa" options={{ headerShown: false }} />
+        <Stack.Screen name="Perayaan" options={{ headerShown: false }} />
+        <Stack.Screen name="Hiburan" options={{ headerShown: false }} />
+        <Stack.Screen name="LainLainSpending" options={{ headerShown: false }} />
+        <Stack.Screen name="editSpending/[spendingId]" options={{ headerShown: false }} />
+        <Stack.Screen name="editAsset/[assetId]" options={{ headerShown: false }} />
+        <Stack.Screen name="Pendapatan" options={{ headerShown: false }} />
+        <Stack.Screen name="savingsgoals" options={{ headerShown: false }} />
+        <Stack.Screen name="report" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+      </Stack>
+      <StatusBar style="auto" />
+      <TouchableOpacity
+        style={styles.notificationButton}
+        onPress={() => router.push('/notifications')}
+      >
+        <MaterialIcons name="notifications" size={18} color="white" />
+      </TouchableOpacity>
+      <Toast config={toastConfig} />
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <SettingsProvider>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen name="OTP" options={{ headerShown: false }} />
-          <Stack.Screen name="successfulSignUp" options={{ headerShown: false }} />
-          <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
-          <Stack.Screen name="Security" options={{ headerShown: false }} />
-          <Stack.Screen name="Settings" options={{ headerShown: false }} />
-          <Stack.Screen name="notifications" options={{ headerShown: false }} />
-          <Stack.Screen name="addAsset" options={{ headerShown: false }} />
-          <Stack.Screen name="addSpending" options={{ headerShown: false }} />
-          <Stack.Screen name="addCategory" options={{ headerShown: false }} />
-          <Stack.Screen name="addAssetCategory" options={{ headerShown: false }} />
-          <Stack.Screen name="[category]" options={{ headerShown: false }} />
-          <Stack.Screen name="SimpananBank" options={{ headerShown: false }} />
-          <Stack.Screen name="Pelaburan" options={{ headerShown: false }} />
-          <Stack.Screen name="Hartanah" options={{ headerShown: false }} />
-          <Stack.Screen name="LainLain" options={{ headerShown: false }} />
-          <Stack.Screen name="Runcit" options={{ headerShown: false }} />
-          <Stack.Screen name="Sewa" options={{ headerShown: false }} />
-          <Stack.Screen name="Perayaan" options={{ headerShown: false }} />
-          <Stack.Screen name="Hiburan" options={{ headerShown: false }} />
-          <Stack.Screen name="LainLainSpending" options={{ headerShown: false }} />
-          <Stack.Screen name="editSpending/[spendingId]" options={{ headerShown: false }} />
-          <Stack.Screen name="editAsset/[assetId]" options={{ headerShown: false }} />
-          <Stack.Screen name="Pendapatan" options={{ headerShown: false }} />
-          <Stack.Screen name="savingsgoals" options={{ headerShown: false }} />
-          <Stack.Screen name="report" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        </Stack>
-        <StatusBar style="auto" />
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={() => router.push('/notifications')}
-        >
-          <MaterialIcons name="notifications" size={18} color="white" />
-        </TouchableOpacity>
-        <Toast />
-      </ThemeProvider>
-    </AuthProvider>
+        <AppLayout />
+      </AuthProvider>
     </SettingsProvider>
   );
 }
