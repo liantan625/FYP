@@ -20,25 +20,26 @@ export default function SignUpScreen() {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [idNumber, setIdNumber] = useState('');
+  const [birthday, setBirthday] = useState('');
   const [passcode, setPasscode] = useState('');
   const [repeatPasscode, setRepeatPasscode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (!name || !phoneNumber || !idNumber || !passcode || !repeatPasscode) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!name || !phoneNumber || !idNumber || !birthday || !passcode || !repeatPasscode) {
+      Alert.alert('Ralat', 'Sila isi semua ruangan');
       return;
     }
     if (passcode !== repeatPasscode) {
-      Alert.alert('Error', 'Passcodes do not match');
+      Alert.alert('Ralat', 'Kod laluan tidak sepadan');
       return;
     }
     if (passcode.length !== 6) {
-      Alert.alert('Error', 'Passcode must be 6 digits');
+      Alert.alert('Ralat', 'Kod laluan mestilah 6 digit');
       return;
     }
     if (idNumber.length !== 12 && !/^[A-Z]/.test(idNumber)) {
-      Alert.alert('Error', 'Please enter a valid 12-digit IC number or Passport number');
+      Alert.alert('Ralat', 'Sila masukkan nombor IC 12-digit atau nombor Pasport yang sah');
       return;
     }
   
@@ -49,11 +50,11 @@ export default function SignUpScreen() {
       setConfirmation(confirm);
       router.push({
         pathname: '/(tabs)/OTP',
-        params: { name, phoneNumber: fullPhoneNumber, idNumber, passcode, isSignUp: 'true' },
+        params: { name, phoneNumber: fullPhoneNumber, idNumber, birthday, passcode, isSignUp: 'true' },
       });
     } catch (error) {
       console.error('Error sending OTP:', error);
-      Alert.alert('Error', 'Failed to send OTP. Please try again.');
+      Alert.alert('Ralat', 'Gagal menghantar OTP. Sila cuba lagi.');
     } finally {
       setLoading(false);
     }
@@ -65,12 +66,12 @@ export default function SignUpScreen() {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Start your financial journey</Text>
+        <Text style={styles.title}>Cipta Akaun</Text>
+        <Text style={styles.subtitle}>Mulakan perjalanan kewangan anda</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Full Name"
+          placeholder="Nama Penuh"
           value={name}
           onChangeText={setName}
         />
@@ -79,7 +80,7 @@ export default function SignUpScreen() {
           <Text style={styles.countryCode}>+60</Text>
           <TextInput
             style={styles.phoneInput}
-            placeholder="Phone Number"
+            placeholder="Nombor Telefon"
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             keyboardType="phone-pad"
@@ -88,7 +89,7 @@ export default function SignUpScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="12-digit IC or Passport Number"
+          placeholder="Nombor IC 12-digit atau Pasport"
           value={idNumber}
           onChangeText={setIdNumber}
           autoCapitalize="characters"
@@ -96,7 +97,16 @@ export default function SignUpScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="6-digit Passcode"
+          placeholder="Tarikh Lahir (DD/MM/YYYY)"
+          value={birthday}
+          onChangeText={setBirthday}
+          keyboardType="number-pad"
+          maxLength={10}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Kod Laluan 6-digit"
           value={passcode}
           onChangeText={setPasscode}
           keyboardType="number-pad"
@@ -106,7 +116,7 @@ export default function SignUpScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Repeat 6-digit Passcode"
+          placeholder="Ulang Kod Laluan 6-digit"
           value={repeatPasscode}
           onChangeText={setRepeatPasscode}
           keyboardType="number-pad"
@@ -120,7 +130,7 @@ export default function SignUpScreen() {
           disabled={loading}
         >
           <Text style={styles.buttonText}>
-            {loading ? 'Creating Account...' : 'Sign Up'}
+            {loading ? 'Mencipta Akaun...' : 'Daftar'}
           </Text>
         </TouchableOpacity>
 
@@ -129,7 +139,7 @@ export default function SignUpScreen() {
           style={styles.linkButton}
         >
           <Text style={styles.linkText}>
-            Already have an account? <Text style={styles.linkTextBold}>Sign In</Text>
+            Sudah ada akaun? <Text style={styles.linkTextBold}>Log Masuk</Text>
           </Text>
         </TouchableOpacity>
       </ScrollView>

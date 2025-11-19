@@ -16,6 +16,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 
+// do reminders notification today on 19th November
+
 const MOCK_DATA = {
   user: {
     name: "Ahmad",

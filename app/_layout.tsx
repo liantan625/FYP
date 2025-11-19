@@ -1,18 +1,58 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
+import * as Notifications from 'expo-notifications';
+import { useEffect } from 'react';
 
 import { AuthProvider } from '../context/auth-context';
 import { SettingsProvider } from '../context/settings-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+
+  useEffect(() => {
+    async function configureNotifications() {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        return;
+      }
+
+      // Schedule "Spend Wisely" notification
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Spend Wisely! 💡",
+          body: "Remember to track your expenses and save for your goals.",
+        },
+        trigger: {
+          hour: 9,
+          minute: 0,
+          repeats: true,
+        },
+      });
+    }
+
+    configureNotifications();
+  }, []);
 
   return (
     <SettingsProvider>
@@ -43,6 +83,7 @@ export default function RootLayout() {
           <Stack.Screen name="Hiburan" options={{ headerShown: false }} />
           <Stack.Screen name="LainLainSpending" options={{ headerShown: false }} />
           <Stack.Screen name="editSpending/[spendingId]" options={{ headerShown: false }} />
+          <Stack.Screen name="editAsset/[assetId]" options={{ headerShown: false }} />
           <Stack.Screen name="Pendapatan" options={{ headerShown: false }} />
           <Stack.Screen name="savingsgoals" options={{ headerShown: false }} />
           <Stack.Screen name="report" options={{ headerShown: false }} />
@@ -56,6 +97,7 @@ export default function RootLayout() {
         >
           <MaterialIcons name="notifications" size={18} color="white" />
         </TouchableOpacity>
+        <Toast />
       </ThemeProvider>
     </AuthProvider>
     </SettingsProvider>

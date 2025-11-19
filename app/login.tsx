@@ -26,7 +26,7 @@ export default function LoginScreen() {
 
   const handleSendCode = async () => {
     if (!phoneNumber) {
-      Alert.alert('Error', 'Please enter your phone number');
+      Alert.alert('Ralat', 'Sila masukkan nombor telefon anda');
       return;
     }
 
@@ -34,10 +34,10 @@ export default function LoginScreen() {
     try {
       const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
       setConfirmation(confirmationResult);
-      Alert.alert('Success', 'Verification code sent to your phone.');
+      Alert.alert('Berjaya', 'Kod pengesahan telah dihantar ke telefon anda.');
     } catch (error) {
       console.error('Error sending verification code:', error);
-      Alert.alert('Error', 'Failed to send verification code. Please try again.');
+      Alert.alert('Ralat', 'Gagal menghantar kod pengesahan. Sila cuba lagi.');
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ export default function LoginScreen() {
 
   const handleVerifyCode = async () => {
     if (!passcode) {
-      Alert.alert('Error', 'Please enter the verification code');
+      Alert.alert('Ralat', 'Sila masukkan kod pengesahan');
       return;
     }
 
@@ -55,7 +55,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)/home');
     } catch (error) {
       console.error('Error verifying code:', error);
-      Alert.alert('Error', 'Invalid verification code. Please try again.');
+      Alert.alert('Ralat', 'Kod pengesahan tidak sah. Sila cuba lagi.');
     } finally {
       setLoading(false);
     }
@@ -67,12 +67,12 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+        <Text style={styles.title}>Selamat Kembali</Text>
+        <Text style={styles.subtitle}>Log masuk untuk meneruskan</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Phone Number"
+          placeholder="Nombor Telefon"
           value={phoneNumber}
           onChangeText={(text) => {
             if (text.startsWith('+60')) {
@@ -91,7 +91,7 @@ export default function LoginScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Sending Code...' : 'Send Verification Code'}
+              {loading ? 'Menghantar Kod...' : 'Hantar Kod Pengesahan'}
             </Text>
           </TouchableOpacity>
         )}
@@ -100,7 +100,7 @@ export default function LoginScreen() {
           <>
             <TextInput
               style={styles.input}
-              placeholder="6-digit OTP"
+              placeholder="OTP 6-digit"
               value={passcode}
               onChangeText={setPasscode}
               keyboardType="number-pad"
@@ -112,7 +112,7 @@ export default function LoginScreen() {
               disabled={loading}
             >
               <Text style={styles.buttonText}>
-                {loading ? 'Verifying...' : 'Verify Code'}
+                {loading ? 'Mengesahkan...' : 'Sahkan Kod'}
               </Text>
             </TouchableOpacity>
           </>
@@ -123,7 +123,7 @@ export default function LoginScreen() {
           style={styles.linkButton}
         >
           <Text style={styles.linkText}>
-            Don't have an account? <Text style={styles.linkTextBold}>Sign Up</Text>
+            Tiada akaun? <Text style={styles.linkTextBold}>Daftar</Text>
           </Text>
         </TouchableOpacity>
       </View>

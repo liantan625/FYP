@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -61,7 +62,7 @@ export default function AddAssetScreen() {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (selectedDate) => {
+  const handleConfirm = (selectedDate: Date) => {
     setDate(selectedDate);
     hideDatePicker();
   };
@@ -69,6 +70,7 @@ export default function AddAssetScreen() {
   const [assetName, setAssetName] = useState('');
   const [amount, setAmount] = useState('0.00');
   const [description, setDescription] = useState('');
+  const [isRecurringIncome, setIsRecurringIncome] = useState(false);
 
   const handleSave = async () => {
     const user = auth().currentUser;
@@ -93,10 +95,30 @@ export default function AddAssetScreen() {
           assetName,
           amount: parseFloat(amount),
           description,
+          isRecurringIncome,
           createdAt: firestore.FieldValue.serverTimestamp(),
         });
 
-      Alert.alert('Simpan', 'Aset berjaya disimpan!');
+      // Add notification
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('notifications')
+        .add({
+          title: 'Aset Ditambah',
+          message: `Anda telah menambah aset '${assetName}' bernilai RM ${parseFloat(amount).toFixed(2)}`,
+          type: 'asset',
+          createdAt: firestore.FieldValue.serverTimestamp(),
+          read: false,
+          amount: parseFloat(amount),
+          category: category,
+        });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Simpan',
+        text2: 'Aset berjaya disimpan!',
+      });
       router.back();
     } catch (error) {
       console.error('Error adding asset: ', error);
@@ -170,6 +192,21 @@ export default function AddAssetScreen() {
               multiline
             />
           </View>
+
+          {/* Recurring Income Checkbox */}
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={() => setIsRecurringIncome(!isRecurringIncome)}
+          >
+            <View style={[styles.checkbox, isRecurringIncome && styles.checkboxChecked]}>
+              {isRecurringIncome && (
+                <MaterialIcons name="check" size={20} color="#fff" />
+              )}
+            </View>
+            <Text style={[styles.checkboxLabel, { fontSize: fontSize.medium }]}>
+              🔄 Pendapatan Berulang
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan</Text>
@@ -260,6 +297,35 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#00D9A8',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  checkboxChecked: {
+    backgroundColor: '#00D9A8',
+  },
+  checkboxLabel: {
+    flex: 1,
+    fontWeight: '600',
+    color: '#333',
   },
 });
 

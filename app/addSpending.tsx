@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -61,7 +62,7 @@ export default function AddSpendingScreen() {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (selectedDate) => {
+  const handleConfirm = (selectedDate: Date) => {
     setDate(selectedDate);
     hideDatePicker();
   };
@@ -103,9 +104,27 @@ export default function AddSpendingScreen() {
         });
       console.log('Save successful');
 
-      Alert.alert('Simpan', 'Perbelanjaan berjaya disimpan!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      // Add notification
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('notifications')
+        .add({
+          title: 'Perbelanjaan Direkod',
+          message: `Anda telah merekod perbelanjaan '${spendingName}' bernilai RM ${parseFloat(amount).toFixed(2)}`,
+          type: 'spending',
+          createdAt: firestore.FieldValue.serverTimestamp(),
+          read: false,
+          amount: -parseFloat(amount),
+          category: category,
+        });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Simpan',
+        text2: 'Perbelanjaan berjaya disimpan!',
+      });
+      router.back();
     } catch (error) {
       console.error('Error adding spending: ', error);
       Alert.alert('Error', 'Gagal menyimpan perbelanjaan. Sila cuba lagi.');

@@ -13,11 +13,11 @@ export default function OTPScreen() {
 
   const handleSubmitOtp = async () => {
     if (otp.length !== 6) {
-      Alert.alert('Error', 'Please enter a valid 6-digit OTP.');
+      Alert.alert('Ralat', 'Sila masukkan OTP 6-digit yang sah.');
       return;
     }
     if (!confirmation) {
-      Alert.alert('Error', 'Could not verify OTP. Please try signing up again.');
+      Alert.alert('Ralat', 'Tidak dapat mengesahkan OTP. Sila cuba daftar semula.');
       return;
     }
 
@@ -33,17 +33,18 @@ export default function OTPScreen() {
           name: params.name,
           phoneNumber: params.phoneNumber,
           idNumber: params.idNumber,
+          birthday: params.birthday,
           passcode: params.passcode, // Note: In production, you should hash this!
           createdAt: firestore.FieldValue.serverTimestamp(),
         });
       }
 
-      Alert.alert('Success', 'Phone number verified successfully!', [
+      Alert.alert('Berjaya', 'Nombor telefon berjaya disahkan!', [
         { text: 'OK', onPress: () => router.replace('/successfulSignUp') }
       ]);
     } catch (error) {
       console.error('Error confirming OTP:', error);
-      Alert.alert('Error', 'Invalid OTP. Please try again.');
+      Alert.alert('Ralat', 'OTP tidak sah. Sila cuba lagi.');
     } finally {
       setLoading(false);
     }
@@ -51,11 +52,11 @@ export default function OTPScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>OTP Verification</Text>
-      <Text style={styles.subtitle}>Enter the 6-digit code sent to your phone.</Text>
+      <Text style={styles.title}>Pengesahan OTP</Text>
+      <Text style={styles.subtitle}>Masukkan kod 6-digit yang dihantar ke telefon anda.</Text>
       <TextInput
         style={styles.input}
-        placeholder="6-digit OTP"
+        placeholder="OTP 6-digit"
         value={otp}
         onChangeText={setOtp}
         keyboardType="number-pad"
@@ -67,7 +68,7 @@ export default function OTPScreen() {
         disabled={loading}
       >
         <Text style={styles.buttonText}>
-          {loading ? 'Verifying...' : 'Submit OTP'}
+          {loading ? 'Mengesahkan...' : 'Hantar OTP'}
         </Text>
       </TouchableOpacity>
     </View>

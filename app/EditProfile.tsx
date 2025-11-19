@@ -9,6 +9,7 @@ import auth from '@react-native-firebase/auth';
 export default function EditProfileScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
+  const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,7 +20,9 @@ export default function EditProfileScreen() {
         .doc(user.uid)
         .onSnapshot(documentSnapshot => {
           if (documentSnapshot.exists) {
-            setName(documentSnapshot.data().name);
+            const data = documentSnapshot.data();
+            setName(data.name);
+            setBirthday(data.birthday || '');
           }
           setLoading(false);
         });
@@ -34,6 +37,7 @@ export default function EditProfileScreen() {
       try {
         await firestore().collection('users').doc(user.uid).update({
           name: name,
+          birthday: birthday,
         });
         Alert.alert('Success', 'Profile updated successfully!', [
           { text: 'OK', onPress: () => router.back() }
@@ -62,6 +66,15 @@ export default function EditProfileScreen() {
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
+          />
+          <Text style={styles.label}>Birthday</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Birthday (DD/MM/YYYY)"
+            value={birthday}
+            onChangeText={setBirthday}
+            keyboardType="number-pad"
+            maxLength={10}
           />
         </View>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
