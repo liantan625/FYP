@@ -1,0 +1,14 @@
+{
+  "home": {
+    "welcome": "Selamat Datang, {{name}}!",
+    "savingsGoal": "🎯 Matlamat Simpanan",
+    "progress": "📈 Kemajuan: {{percentage}}%",
+    "greatConsistency": "✅ Hebat Kerana Konsisten!",
+    "retirementAssets": "Aset Persaraan",
+    "expenses": "Perbelanjaan",
+    "monthSummary": "Konklusi Bulan Ini",
+    "totalAssets": "Total Aset",
+    "income": "Pendapatan",
+    "viewFullReport": "📊 Lihat Laporan Penuh"
+  }
+}

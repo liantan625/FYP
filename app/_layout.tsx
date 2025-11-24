@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { AuthProvider } from '../context/auth-context';
 import { SettingsProvider } from '../context/settings-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import '@/i18n/config';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

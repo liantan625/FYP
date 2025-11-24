@@ -11,10 +11,10 @@ import {
   Alert,
   SafeAreaView
 } from 'react-native';
-// import { PieChart } from 'react-native-chart-kit';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 // do reminders notification today on 19th November
 
@@ -59,6 +59,7 @@ const screenWidth = Dimensions.get("window").width;
 export default function HomeScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [userName, setUserName] = useState('');
   const [totalAssets, setTotalAssets] = useState(0);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
@@ -202,12 +203,12 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.headerContainer}>
           
-          <Text style={[styles.headerGreeting, { fontSize: fontSize.large }]}>Selamat Datang, {userName}!</Text>
+          <Text style={[styles.headerGreeting, { fontSize: fontSize.large }]}>{t('home.welcome', { name: userName })}</Text>
           
           {/* Financial Summary Card */}
           <TouchableOpacity style={styles.summaryCard} onPress={() => router.push('/savingsgoals')}>
             <View style={styles.summaryHeader}>
-              <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>🎯 Matlamat Simpanan</Text>
+              <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>{t('home.savingsGoal')}</Text>
               <Text style={[styles.summaryTrendPositive, { fontSize: fontSize.body }]}>↑ +{MOCK_DATA.financial.trend}%</Text>
             </View>
             
@@ -219,7 +220,7 @@ export default function HomeScreen() {
 
             <View style={styles.progressContainer}>
               <View style={styles.progressHeader}>
-                <Text style={[styles.progressTitle, { fontSize: fontSize.body }]}>📈 Kemajuan: {financialSummary.progressPercentage.toFixed(0)}%</Text>
+                <Text style={[styles.progressTitle, { fontSize: fontSize.body }]}>{t('home.progress', { percentage: financialSummary.progressPercentage.toFixed(0) })}</Text>
               </View>
               <View style={styles.progressBarContainer}>
                 <View style={[styles.progressBar, { width: `${financialSummary.progressPercentage}%` }]} />
@@ -228,7 +229,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.messageContainer}>
-              <Text style={[styles.summaryMessage, { fontSize: fontSize.body }]}>✅ {MOCK_DATA.financial.message}</Text>
+              <Text style={[styles.summaryMessage, { fontSize: fontSize.body }]}>{t('home.greatConsistency')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -237,24 +238,24 @@ export default function HomeScreen() {
         <View style={styles.quickActionsContainer}>
           <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardGreen]} onPress={() => router.push('/(tabs)/analysis')}>
             <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>🏦</Text>
-            <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>Aset Persaraan</Text>
+            <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.retirementAssets')}</Text>
             <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#10B981' }]}>RM {financialSummary.totalAssets.toFixed(2)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardRed]} onPress={() => router.push('/(tabs)/category')}>
             <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>💳</Text>
-            <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>Perbelanjaan</Text>
+            <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.expenses')}</Text>
             <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Summary Section */}
         <View style={styles.expenseContainer}>
-          <Text style={[styles.expenseTitle, { fontSize: fontSize.large }]}>Konklusi Bulan Ini</Text>
+          <Text style={[styles.expenseTitle, { fontSize: fontSize.large }]}>{t('home.monthSummary')}</Text>
           
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>🏠</Text>
-              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>Total Aset</Text>
+              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>{t('home.totalAssets')}</Text>
             </View>
             <View style={styles.summaryItemRight}>
               <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#3B82F6' }]}>RM {totalAssets.toFixed(2)}</Text>
@@ -265,7 +266,7 @@ export default function HomeScreen() {
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📥</Text>
-              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>Pendapatan</Text>
+              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>{t('home.income')}</Text>
             </View>
             <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#10B981' }]}>RM {monthlyIncome.toFixed(2)}</Text>
           </View>
@@ -273,13 +274,13 @@ export default function HomeScreen() {
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📤</Text>
-              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>Perbelanjaan</Text>
+              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>{t('home.expenses')}</Text>
             </View>
             <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
           </View>
           
           <TouchableOpacity style={styles.reportButton} onPress={() => router.push('/report')}>
-            <Text style={[styles.reportButtonText, { fontSize: fontSize.medium }]}>📊 Lihat Laporan Penuh</Text>
+            <Text style={[styles.reportButtonText, { fontSize: fontSize.medium }]}>{t('home.viewFullReport')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

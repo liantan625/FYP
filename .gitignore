@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# credentials and secrets (do not commit!)
+**/client_secret*.json
+**/*credentials*.json

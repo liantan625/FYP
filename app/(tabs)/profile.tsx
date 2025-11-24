@@ -25,8 +25,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState('ms');
-  const { fontScale, fontScaleKey, setFontScale } = useSettings();
+  const { fontScale, fontScaleKey, setFontScale, language, setLanguage } = useSettings();
 
   const handleFontSizeChange = async (key: 'small' | 'medium' | 'large') => {
     await setFontScale(key);
@@ -164,15 +163,15 @@ export default function ProfileScreen() {
           <View style={styles.languageButton}>
             <MaterialIcons name="language" size={24 * fontScale} color="#2196F3" style={styles.languageIcon} />
             <RNPickerSelect
-              onValueChange={(value) => setSelectedLanguage(value)}
+              onValueChange={(value) => setLanguage(value)}
               items={[
                 { label: 'Bahasa Melayu', value: 'ms' },
-                { label: '中文', value: 'zh' },
                 { label: 'English', value: 'en' },
-                { label: 'Tamil', value: 'ta' },
+                { label: '中文', value: 'zh' },
+                { label: 'தமிழ்', value: 'ta' },
               ]}
               style={pickerSelectStyles(fontScale)}
-              value={selectedLanguage}
+              value={language}
               placeholder={{}}
             />
           </View>

@@ -1,0 +1,14 @@
+{
+  "home": {
+    "welcome": "Welcome, {{name}}!",
+    "savingsGoal": "🎯 Savings Goal",
+    "progress": "📈 Progress: {{percentage}}%",
+    "greatConsistency": "✅ Great Because Consistent!",
+    "retirementAssets": "Retirement Assets",
+    "expenses": "Expenses",
+    "monthSummary": "This Month's Summary",
+    "totalAssets": "Total Assets",
+    "income": "Income",
+    "viewFullReport": "📊 View Full Report"
+  }
+}
