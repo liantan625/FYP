@@ -10,5 +10,62 @@
     "totalAssets": "Total Aset",
     "income": "Pendapatan",
     "viewFullReport": "📊 Lihat Laporan Penuh"
+  },
+  "profile": {
+    "title": "Profil",
+    "editProfile": "Sunting Profil",
+    "security": "Keselamatan",
+    "settings": "Tetapan",
+    "logout": "Log Keluar",
+    "logoutConfirm": "Anda pasti mahu log keluar?",
+    "cancel": "Batal",
+    "ok": "OK",
+    "language": "Bahasa",
+    "fontSize": "Saiz Tulisan",
+    "fontSizeDescription": "Pilih saiz tulisan yang sesuai untuk penglihatan anda",
+    "sampleText": "Contoh Teks",
+    "error": "Ralat: {{message}}",
+    "userDataNotFound": "Data pengguna tidak dijumpai."
+  },
+  "transactions": {
+    "title": "Transaksi",
+    "allTransactions": "Semua Transaksi",
+    "noTransactions": "Tiada transaksi lagi",
+    "addTransaction": "Tambah Transaksi",
+    "date": "Tarikh",
+    "amount": "Jumlah",
+    "category": "Kategori",
+    "description": "Keterangan"
+  },
+  "analysis": {
+    "title": "Analisis",
+    "overview": "Gambaran Keseluruhan",
+    "byCategory": "Mengikut Kategori",
+    "trends": "Trend",
+    "thisMonth": "Bulan Ini",
+    "lastMonth": "Bulan Lepas",
+    "thisYear": "Tahun Ini"
+  },
+  "category": {
+    "title": "Kategori",
+    "addCategory": "Tambah Kategori",
+    "editCategory": "Sunting Kategori",
+    "deleteCategory": "Padam Kategori",
+    "categoryName": "Nama Kategori",
+    "noCategories": "Tiada kategori lagi"
+  },
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Padam",
+    "edit": "Sunting",
+    "add": "Tambah",
+    "search": "Cari",
+    "filter": "Tapis",
+    "loading": "Memuatkan...",
+    "error": "Ralat",
+    "success": "Berjaya",
+    "confirm": "Sahkan",
+    "back": "Kembali"
   }
 }

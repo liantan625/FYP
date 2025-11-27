@@ -18,10 +18,12 @@ import firestore from '@react-native-firebase/firestore';
 import { useSettings } from '@/context/settings-context';
 import { FontScaleOptions } from '@/constants/theme';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
@@ -41,7 +43,7 @@ export default function ProfileScreen() {
           if (documentSnapshot.exists) {
             setUser(documentSnapshot.data());
           } else {
-            setError('User data not found.');
+            setError(t('profile.userDataNotFound'));
           }
           setLoading(false);
         }, error => {
@@ -57,15 +59,15 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Log Keluar',
-      'Anda pasti mahu log keluar?',
+      t('profile.logout'),
+      t('profile.logoutConfirm'),
       [
         {
-          text: 'Batal',
+          text: t('profile.cancel'),
           style: 'cancel',
         },
         {
-          text: 'OK',
+          text: t('profile.ok'),
           onPress: () => {
             auth().signOut().then(() => {
               router.replace('/login');
@@ -88,7 +90,7 @@ export default function ProfileScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.centered}>
-        <Text style={{ fontSize: fontSize.large, color: '#EF4444' }}>Ralat: {error}</Text>
+        <Text style={{ fontSize: fontSize.large, color: '#EF4444' }}>{t('profile.error', { message: error })}</Text>
       </SafeAreaView>
     );
   }
@@ -100,7 +102,7 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={28} color="black" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Profil</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('profile.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
       
@@ -120,7 +122,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="edit" size={24 * fontScale} color="#2196F3" />
-                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>Sunting Profil</Text>
+                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>{t('profile.editProfile')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -130,7 +132,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="lock" size={24 * fontScale} color="#2196F3" />
-                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>Keselamatan</Text>
+                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>{t('profile.security')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -140,7 +142,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="settings" size={24 * fontScale} color="#2196F3" />
-                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>Tetapan</Text>
+                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>{t('profile.settings')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -150,7 +152,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="logout" size={24 * fontScale} color="#EF4444" />
-                <Text style={[styles.menuButtonText, styles.logoutText, { fontSize: fontSize.large }]}>Log Keluar</Text>
+                <Text style={[styles.menuButtonText, styles.logoutText, { fontSize: fontSize.large }]}>{t('profile.logout')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -159,7 +161,7 @@ export default function ProfileScreen() {
 
         {/* Language Selector */}
         <View style={styles.languageSection}>
-          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Bahasa</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('profile.language')}</Text>
           <View style={styles.languageButton}>
             <MaterialIcons name="language" size={24 * fontScale} color="#2196F3" style={styles.languageIcon} />
             <RNPickerSelect
@@ -179,9 +181,9 @@ export default function ProfileScreen() {
 
         {/* Font Size Selector */}
         <View style={styles.fontSizeSection}>
-          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Saiz Tulisan</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('profile.fontSize')}</Text>
           <Text style={[styles.sectionDescription, { fontSize: fontSize.body }]}>
-            Pilih saiz tulisan yang sesuai untuk penglihatan anda
+            {t('profile.fontSizeDescription')}
           </Text>
           
           {Object.entries(FontScaleOptions).map(([key, { label, value }]) => (
@@ -205,7 +207,7 @@ export default function ProfileScreen() {
                 </Text>
               </View>
               <Text style={[styles.previewText, { fontSize: 16 * value }]}>
-                Contoh Teks
+                {t('profile.sampleText')}
               </Text>
             </TouchableOpacity>
           ))}

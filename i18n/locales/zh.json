@@ -1,0 +1,71 @@
+{
+  "home": {
+    "welcome": "欢迎，{{name}}！",
+    "savingsGoal": "🎯 储蓄目标",
+    "progress": "📈 进度：{{percentage}}%",
+    "greatConsistency": "✅ 坚持得很好！",
+    "retirementAssets": "退休资产",
+    "expenses": "支出",
+    "monthSummary": "本月总结",
+    "totalAssets": "总资产",
+    "income": "收入",
+    "viewFullReport": "📊 查看完整报告"
+  },
+  "profile": {
+    "title": "个人资料",
+    "editProfile": "编辑个人资料",
+    "security": "安全",
+    "settings": "设置",
+    "logout": "登出",
+    "logoutConfirm": "您确定要登出吗？",
+    "cancel": "取消",
+    "ok": "确定",
+    "language": "语言",
+    "fontSize": "字体大小",
+    "fontSizeDescription": "选择适合您视力的字体大小",
+    "sampleText": "示例文本",
+    "error": "错误：{{message}}",
+    "userDataNotFound": "找不到用户数据。"
+  },
+  "transactions": {
+    "title": "交易",
+    "allTransactions": "所有交易",
+    "noTransactions": "尚无交易",
+    "addTransaction": "添加交易",
+    "date": "日期",
+    "amount": "金额",
+    "category": "类别",
+    "description": "描述"
+  },
+  "analysis": {
+    "title": "分析",
+    "overview": "概览",
+    "byCategory": "按类别",
+    "trends": "趋势",
+    "thisMonth": "本月",
+    "lastMonth": "上月",
+    "thisYear": "今年"
+  },
+  "category": {
+    "title": "类别",
+    "addCategory": "添加类别",
+    "editCategory": "编辑类别",
+    "deleteCategory": "删除类别",
+    "categoryName": "类别名称",
+    "noCategories": "尚无类别"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "search": "搜索",
+    "filter": "筛选",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "confirm": "确认",
+    "back": "返回"
+  }
+}

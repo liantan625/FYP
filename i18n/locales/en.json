@@ -10,5 +10,62 @@
     "totalAssets": "Total Assets",
     "income": "Income",
     "viewFullReport": "📊 View Full Report"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "security": "Security",
+    "settings": "Settings",
+    "logout": "Log Out",
+    "logoutConfirm": "Are you sure you want to log out?",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "language": "Language",
+    "fontSize": "Font Size",
+    "fontSizeDescription": "Choose a font size suitable for your vision",
+    "sampleText": "Sample Text",
+    "error": "Error: {{message}}",
+    "userDataNotFound": "User data not found."
+  },
+  "transactions": {
+    "title": "Transactions",
+    "allTransactions": "All Transactions",
+    "noTransactions": "No transactions yet",
+    "addTransaction": "Add Transaction",
+    "date": "Date",
+    "amount": "Amount",
+    "category": "Category",
+    "description": "Description"
+  },
+  "analysis": {
+    "title": "Analysis",
+    "overview": "Overview",
+    "byCategory": "By Category",
+    "trends": "Trends",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "thisYear": "This Year"
+  },
+  "category": {
+    "title": "Categories",
+    "addCategory": "Add Category",
+    "editCategory": "Edit Category",
+    "deleteCategory": "Delete Category",
+    "categoryName": "Category Name",
+    "noCategories": "No categories yet"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back"
   }
 }
