@@ -13,6 +13,8 @@ import {
 import { useRouter } from 'expo-router';
 import auth from '@react-native-firebase/auth';
 import { useAuth } from '../context/auth-context';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -20,16 +22,32 @@ export default function SignUpScreen() {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [idNumber, setIdNumber] = useState('');
-  const [birthday, setBirthday] = useState('');
+  const [birthday, setBirthday] = useState<Date | null>(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [repeatPasscode, setRepeatPasscode] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (selectedDate: Date) => {
+    setBirthday(selectedDate);
+    hideDatePicker();
+  };
 
   const handleSignUp = async () => {
     if (!name || !phoneNumber || !idNumber || !birthday || !passcode || !repeatPasscode) {
       Alert.alert('Ralat', 'Sila isi semua ruangan');
       return;
     }
+    
+    const birthdayString = birthday.toLocaleDateString('en-GB');
     if (passcode !== repeatPasscode) {
       Alert.alert('Ralat', 'Kod laluan tidak sepadan');
       return;
@@ -50,7 +68,7 @@ export default function SignUpScreen() {
       setConfirmation(confirm);
       router.push({
         pathname: '/(tabs)/OTP',
-        params: { name, phoneNumber: fullPhoneNumber, idNumber, birthday, passcode, isSignUp: 'true' },
+        params: { name, phoneNumber: fullPhoneNumber, idNumber, birthday: birthdayString, passcode, isSignUp: 'true' },
       });
     } catch (error) {
       console.error('Error sending OTP:', error);
@@ -95,13 +113,19 @@ export default function SignUpScreen() {
           autoCapitalize="characters"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Tarikh Lahir (DD/MM/YYYY)"
-          value={birthday}
-          onChangeText={setBirthday}
-          keyboardType="number-pad"
-          maxLength={10}
+        <TouchableOpacity onPress={showDatePicker} style={styles.dateInputContainer}>
+          <Text style={[styles.dateInput, !birthday && styles.dateInputPlaceholder]}>
+            {birthday ? birthday.toLocaleDateString('en-GB') : 'Tarikh Lahir (DD/MM/YYYY)'}
+          </Text>
+          <MaterialIcons name="calendar-today" size={24} color="#666" style={styles.dateIcon} />
+        </TouchableOpacity>
+        
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+          maximumDate={new Date()}
         />
 
         <TextInput
@@ -199,6 +223,28 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     paddingVertical: 15,
+  },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+  },
+  dateInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  dateInputPlaceholder: {
+    color: '#999',
+  },
+  dateIcon: {
+    marginLeft: 10,
   },
   button: {
     backgroundColor: '#00D09E',
