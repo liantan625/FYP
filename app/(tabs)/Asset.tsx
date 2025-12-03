@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import {
@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,82 +16,32 @@ import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
-const MOCK_DATA = {
-  summary: {
-    monthlyIncome: 4000.00,
-    foodExpenses: 100.00
-  },
-  retirement: {
-    totalAssets: 7783.00
-  },
-  assetCategories: [
-    {
-      id: 1,
-      type: "bank",
-      icon: "🏦",
-      name: "Simpanan",
-      total: 5500.00,
-      count: 3,
-      subtitle: "3 akaun",
-      items: [
-        { name: "Simpanan Bank", bank: "Maybank", amount: 5500.00 },
-        { name: "Akaun Semasa", bank: "CIMB", amount: 0.00 },
-        { name: "Akaun FD", bank: "Public Bank", amount: 0.00 }
-      ]
-    },
-    {
-      id: 2,
-      type: "investment",
-      icon: "💰",
-      name: "Pelaburan",
-      total: 2283.00,
-      count: 2,
-      subtitle: "2 portfolio",
-      items: [
-        { name: "ASNB", type: "Unit Trust", amount: 2283.00 },
-        { name: "Saham", type: "Stocks", amount: 0.00 }
-      ]
-    },
-    {
-      id: 3,
-      type: "property",
-      icon: "🏠",
-      name: "Hartanah",
-      total: 0.00,
-      count: 0,
-      subtitle: "Tiada aset",
-      items: []
-    }
-  ]
-};
+interface CustomCategory {
+  value: string;
+  label: string;
+  icon: string;
+}
 
-const screenWidth = Dimensions.get("window").width;
+interface AssetCategory {
+  id: string;
+  type: string;
+  icon: string;
+  name: string;
+  total: number;
+  count: number;
+  subtitle: string;
+}
 
 export default function AnalysisScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
   const { t } = useTranslation();
-  const [assetCategories, setAssetCategories] = useState([]);
-  const [customAssetCategories, setCustomAssetCategories] = useState([]);
+  const [assetCategories, setAssetCategories] = useState<AssetCategory[]>([]);
+  const [customAssetCategories, setCustomAssetCategories] = useState<CustomCategory[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
-  // Load custom asset categories on mount
-  useEffect(() => {
-    loadCustomCategories();
-  }, []);
-
-  const loadCustomCategories = async () => {
-    try {
-      const customCategoriesJson = await AsyncStorage.getItem('customAssetCategories');
-      if (customCategoriesJson) {
-        const categories = JSON.parse(customCategoriesJson);
-        setCustomAssetCategories(categories);
-      }
-    } catch (error) {
-      console.error('Error loading custom categories:', error);
-    }
-  };
-
-  const getCategoryIcon = (categoryType) => {
+  // Memoize helper functions to prevent unnecessary re-renders
+  const getCategoryIcon = useCallback((categoryType: string): string => {
     // First check custom categories
     const customCategory = customAssetCategories.find(cat => cat.value === categoryType);
     if (customCategory) {
@@ -108,9 +57,9 @@ export default function AnalysisScreen() {
       case 'others': return '❓';
       default: return '❓';
     }
-  };
+  }, [customAssetCategories]);
 
-  const getCategoryName = (categoryType) => {
+  const getCategoryName = useCallback((categoryType: string): string => {
     // First check custom categories
     const customCategory = customAssetCategories.find(cat => cat.value === categoryType);
     if (customCategory) {
@@ -126,28 +75,72 @@ export default function AnalysisScreen() {
       case 'others': return t('asset.others');
       default: return t('asset.unknown');
     }
-  };
+  }, [customAssetCategories, t]);
+
+  // Load custom asset categories on mount
+  const loadCustomCategories = useCallback(async () => {
+    try {
+      setIsLoadingCategories(true);
+      const customCategoriesJson = await AsyncStorage.getItem('customAssetCategories');
+      if (customCategoriesJson) {
+        const categories = JSON.parse(customCategoriesJson);
+        console.log('Loaded custom categories:', categories);
+        setCustomAssetCategories(categories);
+      }
+    } catch (error) {
+      console.error('Error loading custom categories:', error);
+      Alert.alert(t('common.error'), t('asset.errorLoadingCategories'));
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  }, [t]);
 
   useEffect(() => {
+    loadCustomCategories();
+  }, [loadCustomCategories]);
+
+  // Only start Firestore subscription after custom categories are loaded
+  useEffect(() => {
+    if (isLoadingCategories) {
+      console.log('Waiting for custom categories to load...');
+      return;
+    }
+
     const user = auth().currentUser;
-    if (user) {
-      const unsubscribe = firestore()
-        .collection('users')
-        .doc(user.uid)
-        .collection('assets')
-        .onSnapshot(querySnapshot => {
+    if (!user) {
+      console.error('No authenticated user found');
+      return;
+    }
+
+    console.log('Starting Firestore subscription...');
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('assets')
+      .onSnapshot(
+        querySnapshot => {
+          console.log(`Received ${querySnapshot.size} assets from Firestore`);
           const categoriesMap = new Map();
 
           querySnapshot.forEach(doc => {
             const asset = doc.data();
             const categoryType = asset.category;
 
+            if (!categoryType) {
+              console.warn('Asset missing category:', doc.id);
+              return;
+            }
+
             if (!categoriesMap.has(categoryType)) {
+              const icon = getCategoryIcon(categoryType);
+              const name = getCategoryName(categoryType);
+              console.log(`Creating category: ${categoryType} with icon: ${icon} and name: ${name}`);
+              
               categoriesMap.set(categoryType, {
                 id: categoryType,
                 type: categoryType,
-                icon: getCategoryIcon(categoryType),
-                name: getCategoryName(categoryType),
+                icon: icon,
+                name: name,
                 total: 0,
                 count: 0,
                 subtitle: '',
@@ -155,7 +148,7 @@ export default function AnalysisScreen() {
             }
 
             const categoryData = categoriesMap.get(categoryType);
-            categoryData.total += asset.amount;
+            categoryData.total += asset.amount || 0;
             categoryData.count++;
             categoriesMap.set(categoryType, categoryData);
           });
@@ -176,14 +169,24 @@ export default function AnalysisScreen() {
             };
           });
 
+          console.log('Setting asset categories:', dynamicCategories);
           setAssetCategories(dynamicCategories);
-        });
+        },
+        error => {
+          console.error('Firestore subscription error:', error);
+          Alert.alert(t('common.error'), t('asset.errorLoadingAssets'));
+        }
+      );
 
-      return () => unsubscribe();
-    }
-  }, [customAssetCategories, t]); // Re-run when custom categories or language changes
+    return () => {
+      console.log('Cleaning up Firestore subscription');
+      unsubscribe();
+    };
+  }, [isLoadingCategories, getCategoryIcon, getCategoryName, t]);
 
-  const totalAssets = assetCategories.reduce((sum, category) => sum + category.total, 0);
+  const totalAssets = useMemo(() => {
+    return assetCategories.reduce((sum, category) => sum + category.total, 0);
+  }, [assetCategories]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -212,25 +215,31 @@ export default function AnalysisScreen() {
         {/* Asset List Section */}
         <View style={styles.assetListContainer}>
           <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('asset.yourAssets')}</Text>
-          {assetCategories.map(category => (
-            <TouchableOpacity 
-              key={category.id} 
-              style={styles.assetCard} 
-              onPress={() => router.push(`/${category.type}?category=${category.type}`)}
-            >
-              <View style={styles.assetCardLeft}>
-                <Text style={[styles.assetIcon, { fontSize: fontSize.title }]}>{category.icon}</Text>
-                <View style={styles.assetTextContainer}>
-                  <Text style={[styles.assetName, { fontSize: fontSize.medium }]} numberOfLines={1}>{category.name}</Text>
-                  <Text style={[styles.assetSubtitle, { fontSize: fontSize.small }]}>{category.subtitle}</Text>
+          {isLoadingCategories ? (
+            <Text style={[styles.loadingText, { fontSize: fontSize.medium }]}>{t('common.loading')}</Text>
+          ) : assetCategories.length === 0 ? (
+            <Text style={[styles.emptyText, { fontSize: fontSize.medium }]}>{t('asset.noAssets')}</Text>
+          ) : (
+            assetCategories.map(category => (
+              <TouchableOpacity 
+                key={category.id} 
+                style={styles.assetCard} 
+                onPress={() => router.push(`/${category.type}?category=${category.type}`)}
+              >
+                <View style={styles.assetCardLeft}>
+                  <Text style={[styles.assetIcon, { fontSize: fontSize.title }]}>{category.icon}</Text>
+                  <View style={styles.assetTextContainer}>
+                    <Text style={[styles.assetName, { fontSize: fontSize.medium }]} numberOfLines={1}>{category.name}</Text>
+                    <Text style={[styles.assetSubtitle, { fontSize: fontSize.small }]}>{category.subtitle}</Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.assetCardRight}>
-                <Text style={[styles.assetAmount, { fontSize: fontSize.medium }]} numberOfLines={1}>RM {category.total.toFixed(2)}</Text>
-                <MaterialIcons name="chevron-right" size={20} color="#666" />
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.assetCardRight}>
+                  <Text style={[styles.assetAmount, { fontSize: fontSize.medium }]} numberOfLines={1}>RM {category.total.toFixed(2)}</Text>
+                  <MaterialIcons name="chevron-right" size={20} color="#666" />
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         {/* Add Category Button */}
@@ -376,5 +385,16 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  loadingText: {
+    textAlign: 'center',
+    color: '#666',
+    marginVertical: 20,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#999',
+    marginVertical: 20,
+    fontStyle: 'italic',
   },
 });

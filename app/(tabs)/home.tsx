@@ -241,7 +241,7 @@ export default function HomeScreen() {
             <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.retirementAssets')}</Text>
             <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#10B981' }]}>RM {financialSummary.totalAssets.toFixed(2)}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardRed]} onPress={() => router.push('/(tabs)/category')}>
+          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardRed]} onPress={() => router.push('/(tabs)/spending')}>
             <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>💳</Text>
             <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.expenses')}</Text>
             <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
@@ -255,7 +255,13 @@ export default function HomeScreen() {
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>🏠</Text>
-              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>{t('home.totalAssets')}</Text>
+              <Text 
+                style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {t('home.totalAssets')}
+              </Text>
             </View>
             <View style={styles.summaryItemRight}>
               <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#3B82F6' }]}>RM {totalAssets.toFixed(2)}</Text>
@@ -266,7 +272,13 @@ export default function HomeScreen() {
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📥</Text>
-              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>{t('home.income')}</Text>
+              <Text 
+                style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {t('home.income')}
+              </Text>
             </View>
             <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#10B981' }]}>RM {monthlyIncome.toFixed(2)}</Text>
           </View>
@@ -274,7 +286,13 @@ export default function HomeScreen() {
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📤</Text>
-              <Text style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}>{t('home.expenses')}</Text>
+              <Text 
+                style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {t('home.expenses')}
+              </Text>
             </View>
             <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
           </View>
@@ -471,18 +489,23 @@ const styles = StyleSheet.create({
   summaryItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
   },
   summaryItemEmoji: {
     marginRight: 12,
   },
   summaryItemTitle: {
     color: '#666',
+    flex: 1,
   },
   summaryItemRight: {
     alignItems: 'flex-end',
+    flexShrink: 0,
   },
   summaryItemAmount: {
     fontWeight: 'bold',
+    flexShrink: 0,
   },
   summaryItemTrend: {
     fontWeight: '600',
@@ -502,12 +525,5 @@ const styles = StyleSheet.create({
   },
   quickActionEmoji: {
     marginBottom: 8,
-  },
-  summaryItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  summaryItemEmoji: {
-    marginRight: 12,
   },
 });

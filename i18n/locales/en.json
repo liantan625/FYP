@@ -31,7 +31,12 @@
     "language": "Language",
     "fontSize": "Font Size",
     "fontSizeDescription": "Choose a font size suitable for your vision",
-    "sampleText": "Sample Text",
+    "fontSizeOptions": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "sampleText": "Aa",
     "error": "Error: {{message}}",
     "userDataNotFound": "User data not found."
   },
@@ -160,5 +165,36 @@
     "success": "Success",
     "confirm": "Confirm",
     "back": "Back"
+  },
+  "report": {
+    "title": "Report",
+    "retirementAssets": "Retirement Assets",
+    "income": "Income",
+    "expense": "Expense",
+    "thisMonth": "This Month",
+    "financialTrend": "Financial Trend (6 Months)",
+    "smartAnalysis": "Smart Analysis",
+    "savingsRate": "Savings Rate",
+    "greatJob": "Great job!",
+    "improveSavings": "Can improve",
+    "topSpending": "Top Spending",
+    "expenseBreakdown": "Expense Breakdown",
+    "noExpenseData": "No expense data",
+    "exportPdf": "📄 Export as PDF",
+    "loadingTrend": "Loading trend data...",
+    "totalSpending": "Total Spending",
+    "spendingByCategory": "Spending by Category",
+    "monthlyTrend": "Monthly Spending Trend",
+    "topCategories": "Top Spending Categories",
+    "noData": "No data available",
+    "generatingPdf": "Generating PDF...",
+    "pdfSaved": "PDF Saved",
+    "pdfSavedMessage": "Report saved to {{path}}",
+    "pdfFailed": "Failed to save PDF",
+    "permissionDenied": "Permission Denied",
+    "storagePermissionRequired": "Storage permission is required to save PDF",
+    "sharePdf": "Share PDF",
+    "sharePdfMessage": "Here is your financial report",
+    "shareFailed": "Failed to share PDF"
   }
 }

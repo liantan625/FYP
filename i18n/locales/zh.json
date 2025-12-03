@@ -22,18 +22,27 @@
   "profile": {
     "title": "个人资料",
     "editProfile": "编辑资料",
-    "security": "安全",
     "settings": "设置",
     "logout": "登出",
+    "language": "语言",
+    "darkMode": "深色模式",
+    "notifications": "通知",
+    "help": "帮助与支持",
+    "about": "关于 DuitU",
     "logoutConfirm": "您确定要登出吗？",
     "cancel": "取消",
     "ok": "确定",
-    "language": "语言",
     "fontSize": "字体大小",
     "fontSizeDescription": "选择适合您视力的字体大小",
     "sampleText": "示例文本",
     "error": "错误：{{message}}",
-    "userDataNotFound": "未找到用户数据。"
+    "userDataNotFound": "未找到用户数据。",
+    "fontSizeOptions": {
+      "small": "小",
+      "medium": "中",
+      "large": "大"
+    },
+    "sampleText": "Aa"
   },
   "transactions": {
     "title": "交易",
@@ -160,5 +169,36 @@
     "success": "成功",
     "confirm": "确认",
     "back": "返回"
+  },
+  "report": {
+    "title": "报告",
+    "retirementAssets": "退休资产",
+    "income": "收入",
+    "expense": "支出",
+    "thisMonth": "本月",
+    "financialTrend": "财务趋势（6个月）",
+    "smartAnalysis": "智能分析",
+    "savingsRate": "储蓄率",
+    "greatJob": "太棒了！您的储蓄状况良好。",
+    "improveSavings": "尝试储蓄至少20%的收入。",
+    "topSpending": "最高支出",
+    "expenseBreakdown": "支出明细",
+    "noExpenseData": "本月无支出数据",
+    "exportPdf": "📄 导出 PDF",
+    "loadingTrend": "正在加载趋势数据...",
+    "totalSpending": "总支出",
+    "spendingByCategory": "按类别支出",
+    "monthlyTrend": "每月支出趋势",
+    "topCategories": "最高支出类别",
+    "noData": "无数据",
+    "generatingPdf": "正在生成 PDF...",
+    "pdfSaved": "PDF 已保存",
+    "pdfSavedMessage": "报告已保存至 {{path}}",
+    "pdfFailed": "保存 PDF 失败",
+    "permissionDenied": "权限被拒绝",
+    "storagePermissionRequired": "需要存储权限以保存 PDF",
+    "sharePdf": "分享 PDF",
+    "sharePdfMessage": "这是您的财务报告",
+    "shareFailed": "分享 PDF 失败"
   }
 }

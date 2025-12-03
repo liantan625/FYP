@@ -122,7 +122,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="edit" size={24 * fontScale} color="#2196F3" />
-                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>{t('profile.editProfile')}</Text>
+                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]} numberOfLines={2}>{t('profile.editProfile')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -132,7 +132,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="lock" size={24 * fontScale} color="#2196F3" />
-                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>{t('profile.security')}</Text>
+                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]} numberOfLines={2}>{t('profile.security')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -142,7 +142,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="settings" size={24 * fontScale} color="#2196F3" />
-                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]}>{t('profile.settings')}</Text>
+                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]} numberOfLines={2}>{t('profile.settings')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -152,7 +152,7 @@ export default function ProfileScreen() {
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
                 <MaterialIcons name="logout" size={24 * fontScale} color="#EF4444" />
-                <Text style={[styles.menuButtonText, styles.logoutText, { fontSize: fontSize.large }]}>{t('profile.logout')}</Text>
+                <Text style={[styles.menuButtonText, styles.logoutText, { fontSize: fontSize.large }]} numberOfLines={2}>{t('profile.logout')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
@@ -203,7 +203,7 @@ export default function ProfileScreen() {
                   {fontScaleKey === key && <View style={styles.radioDot} />}
                 </View>
                 <Text style={[styles.fontOptionLabel, { fontSize: fontSize.medium }]}>
-                  {label}
+                  {t(`profile.fontSizeOptions.${key}`)}
                 </Text>
               </View>
               <Text style={[styles.previewText, { fontSize: 16 * value }]}>
@@ -306,10 +306,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    flex: 1,
   },
   menuButtonText: {
     fontWeight: '600',
     color: '#333',
+    flex: 1,
   },
   logoutText: {
     color: '#EF4444',

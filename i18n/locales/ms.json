@@ -20,19 +20,27 @@
   },
   "profile": {
     "title": "Profil",
-    "editProfile": "Sunting Profil",
-    "security": "Keselamatan",
+    "editProfile": "Edit Profil",
     "settings": "Tetapan",
     "logout": "Log Keluar",
+    "language": "Bahasa",
+    "darkMode": "Mod Gelap",
+    "notifications": "Pemberitahuan",
+    "help": "Bantuan & Sokongan",
+    "about": "Tentang DuitU",
     "logoutConfirm": "Anda pasti mahu log keluar?",
     "cancel": "Batal",
     "ok": "OK",
-    "language": "Bahasa",
     "fontSize": "Saiz Tulisan",
     "fontSizeDescription": "Pilih saiz tulisan yang sesuai untuk penglihatan anda",
     "sampleText": "Contoh Teks",
     "error": "Ralat: {{message}}",
-    "userDataNotFound": "Data pengguna tidak dijumpai."
+    "userDataNotFound": "Data pengguna tidak dijumpai.",
+    "fontSizeOptions": {
+      "small": "Kecil",
+      "medium": "Sederhana",
+      "large": "Besar"
+    }
   },
   "transactions": {
     "title": "Transaksi",
@@ -56,7 +64,18 @@
     "investment": "Pelaburan",
     "property": "Hartanah",
     "bank": "Simpanan Bank",
-    "na": "Tiada"
+    "na": "Tiada",
+    "topCategories": "Kategori Perbelanjaan Tertinggi",
+    "noData": "Tiada data tersedia",
+    "generatingPdf": "Menjana PDF...",
+    "pdfSaved": "PDF Disimpan",
+    "pdfSavedMessage": "Laporan disimpan ke {{path}}",
+    "pdfFailed": "Gagal menyimpan PDF",
+    "permissionDenied": "Izin Ditolak",
+    "storagePermissionRequired": "Izin penyimpanan diperlukan untuk menyimpan PDF",
+    "sharePdf": "Kongsi PDF",
+    "sharePdfMessage": "Berikut adalah laporan kewangan anda",
+    "shareFailed": "Gagal berkongsi PDF"
   },
   "analysis": {
     "title": "Analisis",
@@ -159,5 +178,36 @@
     "success": "Berjaya",
     "confirm": "Sahkan",
     "back": "Kembali"
+  },
+  "report": {
+    "title": "Laporan",
+    "retirementAssets": "Aset Persaraan",
+    "income": "Pendapatan",
+    "expense": "Perbelanjaan",
+    "thisMonth": "Bulan Ini",
+    "financialTrend": "Trend Kewangan (6 Bulan)",
+    "smartAnalysis": "Analisis Pintar",
+    "savingsRate": "Kadar Simpanan",
+    "greatJob": "Syabas! Anda menyimpan dengan baik.",
+    "improveSavings": "Cuba simpan sekurang-kurangnya 20% pendapatan.",
+    "topSpending": "Perbelanjaan Tertinggi",
+    "expenseBreakdown": "Pecahan Perbelanjaan",
+    "noExpenseData": "Tiada data perbelanjaan untuk bulan ini",
+    "exportPdf": "📄 Eksport sebagai PDF",
+    "loadingTrend": "Memuatkan data trend...",
+    "totalSpending": "Jumlah Perbelanjaan",
+    "spendingByCategory": "Perbelanjaan Mengikut Kategori",
+    "monthlyTrend": "Trend Perbelanjaan Bulanan",
+    "topCategories": "Kategori Perbelanjaan Tertinggi",
+    "noData": "Tiada data tersedia",
+    "generatingPdf": "Menjana PDF...",
+    "pdfSaved": "PDF Disimpan",
+    "pdfSavedMessage": "Laporan disimpan di {{path}}",
+    "pdfFailed": "Gagal menyimpan PDF",
+    "permissionDenied": "Kebenaran Ditolak",
+    "storagePermissionRequired": "Kebenaran storan diperlukan untuk menyimpan PDF",
+    "sharePdf": "Kongsi PDF",
+    "sharePdfMessage": "Berikut adalah laporan kewangan anda",
+    "shareFailed": "Gagal berkongsi PDF"
   }
 }
