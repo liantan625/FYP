@@ -13,10 +13,12 @@ import { useRouter } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export interface ExpenseCategory {
   id: string;
   name: string;
+  key: string;
   icon: string;
   color: string;
   monthlySpent: number;
@@ -28,14 +30,13 @@ export interface BudgetSummary {
   percentageUsed: number;
 }
 
-
-
 const budgetGoal = 10000.00;
 
 const categoriesData = [
   {
     id: '1',
     name: 'Runcit',
+    key: 'groceries',
     icon: '🛒',
     color: '#4A9EFF',
     monthlySpent: 0,
@@ -44,6 +45,7 @@ const categoriesData = [
   {
     id: '2',
     name: 'Sewa',
+    key: 'rent',
     icon: '🏠',
     color: '#6B9EFF',
     monthlySpent: 0,
@@ -52,6 +54,7 @@ const categoriesData = [
   {
     id: '3',
     name: 'Perayaan',
+    key: 'celebration',
     icon: '🎁',
     color: '#8BB4FF',
     monthlySpent: 0,
@@ -60,6 +63,7 @@ const categoriesData = [
   {
     id: '4',
     name: 'Hiburan',
+    key: 'entertainment',
     icon: '🎟️',
     color: '#4A9EFF',
     monthlySpent: 0,
@@ -67,15 +71,17 @@ const categoriesData = [
   {
     id: '5',
     name: 'Lain-Lain',
+    key: 'others',
     icon: '🤷',
     color: '#6B9EFF',
     monthlySpent: 0,
   },
 ];
 
-export default function CategoryScreen() {
+export default function SpendingScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<ExpenseCategory[]>(categoriesData);
   const [summary, setSummary] = useState<BudgetSummary>({
     totalExpenses: 0,
@@ -90,9 +96,9 @@ export default function CategoryScreen() {
         .doc(user.uid)
         .collection('spendings')
         .onSnapshot(querySnapshot => {
-          const spendingsByCategory = {};
+          const spendingsByCategory: { [key: string]: number } = {};
 
-          const categoryMap = {
+          const categoryMap: { [key: string]: string } = {
             'Runcit': 'groceries',
             'Sewa': 'rent',
             'Perayaan': 'celebration',
@@ -107,10 +113,12 @@ export default function CategoryScreen() {
 
             const mappedCategoryName = Object.keys(categoryMap).find(key => categoryMap[key] === categoryName);
 
-            if (spendingsByCategory[mappedCategoryName]) {
-              spendingsByCategory[mappedCategoryName] += amount;
-            } else {
-              spendingsByCategory[mappedCategoryName] = amount;
+            if (mappedCategoryName) {
+                if (spendingsByCategory[mappedCategoryName]) {
+                spendingsByCategory[mappedCategoryName] += amount;
+                } else {
+                spendingsByCategory[mappedCategoryName] = amount;
+                }
             }
           });
 
@@ -156,7 +164,7 @@ export default function CategoryScreen() {
         break;
     }
     if (screenName) {
-      router.push(screenName);
+      router.push(screenName as any);
     }
   };
 
@@ -169,27 +177,27 @@ export default function CategoryScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Pengurus Perbelanjaan</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('spending.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView style={styles.container}>
         <View style={styles.summaryContainer}>
-          <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>Ringkasan Perbelanjaan</Text>
-          <Text style={[styles.totalSpendingText, { fontSize: fontSize.body }]}>Perbelanjaan: -RM {summary.totalExpenses.toFixed(2)}</Text>
+          <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>{t('spending.summary')}</Text>
+          <Text style={[styles.totalSpendingText, { fontSize: fontSize.body }]}>{t('spending.label')}: -RM {summary.totalExpenses.toFixed(2)}</Text>
           <View style={styles.progressBarContainer}>
-            <View style={[styles.progressBar, { width: `${summary.percentageUsed.toFixed(0)}%` }]} />
+            <View style={[styles.progressBar, { width: `${Math.min(summary.percentageUsed, 100).toFixed(0)}%` }]} />
             <Text style={[styles.progressPercentage, { fontSize: fontSize.small }]}>{summary.percentageUsed.toFixed(0)}%</Text>
           </View>
           <Text style={[styles.progressText, { fontSize: fontSize.small }]}>RM{summary.totalExpenses.toFixed(2)} / RM{budgetGoal.toFixed(2)}</Text>
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Kategori Popular</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('spending.popular')}</Text>
           <View style={styles.popularCategoriesContainer}>
             {popularCategories.map(category => (
               <TouchableOpacity key={category.name} style={styles.popularCategoryCard} onPress={() => handleCategoryPress(category.name)}>
                 <Text style={[styles.popularCategoryIcon, { fontSize: fontSize.heading }]}>{category.icon}</Text>
-                <Text style={[styles.popularCategoryName, { fontSize: fontSize.body }]}>{category.name}</Text>
+                <Text style={[styles.popularCategoryName, { fontSize: fontSize.body }]}>{t(`spending.categories.${category.key}`)}</Text>
                 <Text style={[styles.popularCategoryAmount, { fontSize: fontSize.small }]}>RM{category.monthlySpent.toFixed(2)}</Text>
               </TouchableOpacity>
             ))}
@@ -197,11 +205,11 @@ export default function CategoryScreen() {
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Semua Kategori</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('spending.all')}</Text>
           <View style={styles.allCategoriesContainer}>
             {otherCategories.map(category => (
               <TouchableOpacity key={category.name} style={styles.categoryCard} onPress={() => handleCategoryPress(category.name)}>
-                <Text style={[styles.categoryIcon, { fontSize: fontSize.medium }]}>{category.icon} {category.name}</Text>
+                <Text style={[styles.categoryIcon, { fontSize: fontSize.medium }]}>{category.icon} {t(`spending.categories.${category.key}`)}</Text>
                 <Text style={[styles.categoryAmount, { fontSize: fontSize.large }]}>RM{category.monthlySpent.toFixed(2)}</Text>
               </TouchableOpacity>
             ))}
@@ -209,7 +217,7 @@ export default function CategoryScreen() {
         </View>
 
         <TouchableOpacity style={styles.addButton} onPress={() => router.push('/addCategory')}>
-          <Text style={[styles.addButtonText, { fontSize: fontSize.medium }]}>+ Tambah Kategori Baharu</Text>
+          <Text style={[styles.addButtonText, { fontSize: fontSize.medium }]}>+ {t('spending.addNew')}</Text>
         </TouchableOpacity>
       </ScrollView>
       <TouchableOpacity style={styles.fab} onPress={() => router.push('/addSpending')}>

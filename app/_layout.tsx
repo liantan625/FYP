@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 
 import { AuthProvider } from '../context/auth-context';
 import { SettingsProvider } from '../context/settings-context';
+import { RecaptchaProvider } from '../context/recaptcha-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import '@/i18n/config';
 
@@ -29,6 +30,7 @@ import { BaseToast, ErrorToast } from 'react-native-toast-message';
 function AppLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const pathname = usePathname();
   const fontSize = useScaledFontSize();
 
   const toastConfig = {
@@ -113,12 +115,14 @@ function AppLayout() {
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
-      <TouchableOpacity
-        style={styles.notificationButton}
-        onPress={() => router.push('/notifications')}
-      >
-        <MaterialIcons name="notifications" size={18} color="white" />
-      </TouchableOpacity>
+      {pathname !== '/login' && pathname !== '/signup' && (
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => router.push('/notifications')}
+        >
+          <MaterialIcons name="notifications" size={18} color="white" />
+        </TouchableOpacity>
+      )}
       <Toast config={toastConfig} />
     </ThemeProvider>
   );
@@ -127,9 +131,11 @@ function AppLayout() {
 export default function RootLayout() {
   return (
     <SettingsProvider>
-      <AuthProvider>
-        <AppLayout />
-      </AuthProvider>
+      <RecaptchaProvider>
+        <AuthProvider>
+          <AppLayout />
+        </AuthProvider>
+      </RecaptchaProvider>
     </SettingsProvider>
   );
 }

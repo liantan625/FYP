@@ -236,7 +236,7 @@ export default function HomeScreen() {
 
         {/* Quick Action Cards */}
         <View style={styles.quickActionsContainer}>
-          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardGreen]} onPress={() => router.push('/(tabs)/analysis')}>
+          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardGreen]} onPress={() => router.push('/(tabs)/Asset')}>
             <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>🏦</Text>
             <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.retirementAssets')}</Text>
             <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#10B981' }]}>RM {financialSummary.totalAssets.toFixed(2)}</Text>

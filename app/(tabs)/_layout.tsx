@@ -4,10 +4,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from 'react-i18next';
 //import * as Icons from '@/constants/icon';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -25,35 +27,35 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Rumah',
+          title: t('tabs.home'),
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="analysis"
+        name="Asset"
         options={{
-          title: 'Aset',
+          title: t('tabs.assets'),
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="pie-chart" color={color} />,
         }}
       />
       <Tabs.Screen
         name="transactions"
         options={{
-          title: 'Transaksi',
+          title: t('tabs.transactions'),
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="swap-horiz" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="category"
+        name="spending"
         options={{
-          title: 'Perbelanjaan',
+          title: t('tabs.spending'),
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="widgets" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="person" color={color} />,
         }}
       />

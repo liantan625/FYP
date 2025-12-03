@@ -1,4 +1,12 @@
 {
+  "tabs": {
+    "home": "Home",
+    "assets": "Assets",
+    "transactions": "Transactions",
+    "spending": "Spending",
+    "category": "Categories",
+    "profile": "Profile"
+  },
   "home": {
     "welcome": "Welcome, {{name}}!",
     "savingsGoal": "🎯 Savings Goal",
@@ -35,7 +43,21 @@
     "date": "Date",
     "amount": "Amount",
     "category": "Category",
-    "description": "Description"
+    "description": "Description",
+    "headerTitle": "Transactions",
+    "expensesChartTitle": "Expenses",
+    "transactionsListTitle": "Transactions",
+    "total": "Total",
+    "groceries": "Groceries",
+    "rent": "Rent",
+    "celebration": "Celebration",
+    "entertainment": "Entertainment",
+    "others": "Others",
+    "income": "Income",
+    "investment": "Investment",
+    "property": "Property",
+    "bank": "Bank Savings",
+    "na": "N/A"
   },
   "analysis": {
     "title": "Analysis",
@@ -46,6 +68,26 @@
     "lastMonth": "Last Month",
     "thisYear": "This Year"
   },
+  "asset": {
+    "title": "Retirement Fund Analysis",
+    "totalAssets": "Total Retirement Assets",
+    "yourAssets": "Your Assets",
+    "addAsset": "Add Asset",
+    "addNewCategory": "Add New Category",
+    "bank": "Savings",
+    "investment": "Investment",
+    "property": "Property",
+    "income": "Income",
+    "others": "Others",
+    "unknown": "Unknown",
+    "subtitles": {
+      "account": "account",
+      "accounts": "accounts",
+      "portfolio": "portfolio",
+      "portfolios": "portfolios",
+      "noAssets": "No assets"
+    }
+  },
   "category": {
     "title": "Categories",
     "addCategory": "Add Category",
@@ -53,6 +95,57 @@
     "deleteCategory": "Delete Category",
     "categoryName": "Category Name",
     "noCategories": "No categories yet"
+  },
+  "spending": {
+    "title": "Spending Manager",
+    "summary": "Spending Summary",
+    "label": "Spending",
+    "popular": "Popular Categories",
+    "all": "All Categories",
+    "addNew": "Add New Category",
+    "categories": {
+      "groceries": "Groceries",
+      "rent": "Rent",
+      "celebration": "Celebration",
+      "entertainment": "Entertainment",
+      "others": "Others"
+    }
+  },
+  "login": {
+    "tagline": "Manage your finances with ease",
+    "phoneNumberPlaceholder": "Phone Number (+60...)",
+    "sendCode": "Send Code",
+    "sendingCode": "Sending...",
+    "otpPlaceholder": "Verification Code",
+    "verifyCode": "Verify Code",
+    "verifying": "Verifying...",
+    "noAccount": "Don't have an account?",
+    "signupLink": "Sign Up",
+    "enterPhoneNumber": "Please enter a phone number",
+    "codeSent": "Verification code sent!",
+    "codeSendFailed": "Failed to send verification code",
+    "enterVerificationCode": "Please enter the verification code",
+    "invalidCode": "Invalid code. Please try again."
+  },
+  "signup": {
+    "title": "Create Account",
+    "subtitle": "Join us and start managing your finances",
+    "fullName": "Full Name",
+    "phoneNumber": "Phone Number",
+    "idNumber": "ID Number",
+    "birthDate": "Date of Birth",
+    "passcode": "6-digit Passcode",
+    "repeatPasscode": "Repeat Passcode",
+    "register": "Register",
+    "creatingAccount": "Creating Account...",
+    "alreadyHaveAccount": "Already have an account?",
+    "login": "Log In",
+    "fillAllFields": "Please fill in all fields",
+    "passcodeMismatch": "Passcodes do not match",
+    "passcodeLength": "Passcode must be 6 digits",
+    "invalidId": "Invalid ID Number format",
+    "recaptchaNotReady": "reCAPTCHA is not ready. Please try again in a moment.",
+    "otpFailed": "Failed to send OTP. Please try again."
   },
   "common": {
     "save": "Save",

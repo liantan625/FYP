@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 const MOCK_DATA = {
   summary: {
@@ -70,6 +71,7 @@ const screenWidth = Dimensions.get("window").width;
 export default function AnalysisScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [assetCategories, setAssetCategories] = useState([]);
   const [customAssetCategories, setCustomAssetCategories] = useState([]);
 
@@ -117,12 +119,12 @@ export default function AnalysisScreen() {
     
     // Fallback to default categories
     switch (categoryType) {
-      case 'bank': return 'Simpanan';
-      case 'investment': return 'Pelaburan';
-      case 'property': return 'Hartanah';
-      case 'income': return 'Pendapatan';
-      case 'others': return 'Lain-Lain';
-      default: return 'Tidak Diketahui';
+      case 'bank': return t('asset.bank');
+      case 'investment': return t('asset.investment');
+      case 'property': return t('asset.property');
+      case 'income': return t('asset.income');
+      case 'others': return t('asset.others');
+      default: return t('asset.unknown');
     }
   };
 
@@ -158,17 +160,28 @@ export default function AnalysisScreen() {
             categoriesMap.set(categoryType, categoryData);
           });
 
-          const dynamicCategories = Array.from(categoriesMap.values()).map(category => ({
-            ...category,
-            subtitle: `${category.count} ${category.type === 'bank' ? 'akaun' : 'portfolio'}`,
-          }));
+          const dynamicCategories = Array.from(categoriesMap.values()).map(category => {
+            let subtitle = '';
+            if (category.count === 0) {
+              subtitle = t('asset.subtitles.noAssets');
+            } else if (category.type === 'bank') {
+              subtitle = `${category.count} ${category.count === 1 ? t('asset.subtitles.account') : t('asset.subtitles.accounts')}`;
+            } else {
+              subtitle = `${category.count} ${category.count === 1 ? t('asset.subtitles.portfolio') : t('asset.subtitles.portfolios')}`;
+            }
+
+            return {
+              ...category,
+              subtitle,
+            };
+          });
 
           setAssetCategories(dynamicCategories);
         });
 
       return () => unsubscribe();
     }
-  }, [customAssetCategories]); // Re-run when custom categories change
+  }, [customAssetCategories, t]); // Re-run when custom categories or language changes
 
   const totalAssets = assetCategories.reduce((sum, category) => sum + category.total, 0);
 
@@ -180,7 +193,7 @@ export default function AnalysisScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Analisis Dana Persaraan</Text>
+          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('asset.title')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -188,17 +201,17 @@ export default function AnalysisScreen() {
         {/* Asset Summary Section */}
         <View style={styles.assetSummaryContainer}>
           <View style={styles.assetSummaryCard}>
-            <Text style={[styles.assetSummaryLabel, { fontSize: fontSize.medium }]}>Jumlah Aset Persaraan</Text>
+            <Text style={[styles.assetSummaryLabel, { fontSize: fontSize.medium }]}>{t('asset.totalAssets')}</Text>
             <Text style={[styles.assetSummaryAmount, { fontSize: fontSize.heading }]}>RM {totalAssets.toFixed(2)}</Text>
             <TouchableOpacity style={styles.addAssetButton} onPress={() => router.push('/addAsset')}>
-              <Text style={[styles.addAssetButtonText, { fontSize: fontSize.medium }]}>Tambah Aset</Text>
+              <Text style={[styles.addAssetButtonText, { fontSize: fontSize.medium }]}>{t('asset.addAsset')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Asset List Section */}
         <View style={styles.assetListContainer}>
-          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Jenis Aset</Text>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('asset.yourAssets')}</Text>
           {assetCategories.map(category => (
             <TouchableOpacity 
               key={category.id} 
@@ -222,7 +235,7 @@ export default function AnalysisScreen() {
 
         {/* Add Category Button */}
         <TouchableOpacity style={styles.addButton} onPress={() => router.push('/addAssetCategory')}>
-          <Text style={[styles.addButtonText, { fontSize: fontSize.medium }]}>+ Tambah Kategori Baharu</Text>
+          <Text style={[styles.addButtonText, { fontSize: fontSize.medium }]}>+ {t('asset.addNewCategory')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

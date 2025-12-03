@@ -15,24 +15,23 @@ import { useRouter } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 const screenWidth = Dimensions.get("window").width;
-
-const categoryTranslations = {
-  'groceries': 'Runcit',
-  'rent': 'Sewa',
-  'celebration': 'Perayaan',
-  'entertainment': 'Hiburan',
-  'others': 'Lain-Lain',
-  'income': 'Pendapatan',
-  'investment': 'Pelaburan',
-  'property': 'Hartanah',
-  'bank': 'Simpanan Bank'
-};
 
 export default function TransactionsScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t, i18n } = useTranslation();
+  
+  const dateLocales: { [key: string]: string } = {
+    ms: 'ms-MY',
+    zh: 'zh-CN',
+    ta: 'ta-IN',
+    en: 'en-US'
+  };
+  const dateLocale = dateLocales[i18n.language] || 'en-US';
+
   const [summary, setSummary] = useState({
     totalAssets: 0,
     totalIncome: 0,
@@ -61,12 +60,13 @@ export default function TransactionsScreen() {
           .doc(user.uid)
           .collection('spendings')
           .onSnapshot(spendingsSnapshot => {
+            if (!spendingsSnapshot) return; // Add null check
             const spendings = spendingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'expense' }));
             const totalExpenses = spendings.reduce((sum, spending) => sum + spending.amount, 0);
 
             const expenseBreakdownMap = new Map();
             spendings.forEach(spending => {
-              const categoryName = categoryTranslations[spending.category] || spending.category;
+              const categoryName = t(`transactions.${spending.category}`, { defaultValue: spending.category });
               if (expenseBreakdownMap.has(categoryName)) {
                 expenseBreakdownMap.set(categoryName, expenseBreakdownMap.get(categoryName) + spending.amount);
               } else {
@@ -86,8 +86,8 @@ export default function TransactionsScreen() {
             setSummary({ totalAssets: totalAssets + totalIncome, totalIncome, totalExpenses });
             setExpenseBreakdown(newExpenseBreakdown);
             const translatedTransactions = [...assets, ...spendings]
-              .map(t => ({...t, category: categoryTranslations[t.category] || t.category }))
-              .filter(t => t.createdAt) // Filter out items without createdAt
+              .map(item => ({...item, category: t(`transactions.${item.category}`, { defaultValue: item.category }) }))
+              .filter(item => item.createdAt) // Filter out items without createdAt
               .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
             setTransactions(translatedTransactions);
           });
@@ -104,12 +104,12 @@ return (
       <TouchableOpacity onPress={() => router.back()}>
         <MaterialIcons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
-      <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Transaksi</Text>
+      <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('transactions.headerTitle')}</Text>
       <View style={{ width: 24 }} />
     </View>
     <ScrollView>
     <View style={styles.chartContainer}>
-    <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Perbelanjaan</Text>
+    <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('transactions.expensesChartTitle')}</Text>
     <PieChart
       data={expenseBreakdown}
       width={screenWidth - 160}
@@ -137,9 +137,9 @@ return (
     </View>
   </View>
 <View style={styles.transactionsContainer}>
-      <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>Transaksi</Text>
+      <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('transactions.transactionsListTitle')}</Text>
       {transactions.map(item => (
-        <TouchableOpacity key={item.id} style={styles.transactionCard} onPress={() => Alert.alert(item.category, `Jumlah: RM ${item.amount.toFixed(2)}`)}>
+        <TouchableOpacity key={item.id} style={styles.transactionCard} onPress={() => Alert.alert(item.category, `${t('transactions.total')}: RM ${item.amount.toFixed(2)}`)}>
           <View style={styles.transactionLeft}>
             <Text style={[styles.transactionIcon, { fontSize: fontSize.title }]}>{item.type === 'income' ? '📈' : '📉'}</Text>
             <View style={styles.transactionTextContainer}>
@@ -158,7 +158,7 @@ return (
               {item.type === 'income' ? '' : '-'}RM {item.amount.toFixed(2)}
             </Text>
             <Text style={[styles.transactionDate, { fontSize: fontSize.small }]}>
-              {item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' }) : 'N/A'}
+              {item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' }) : t('transactions.na')}
             </Text>
           </View>
         </TouchableOpacity>

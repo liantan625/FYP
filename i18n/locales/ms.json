@@ -1,4 +1,11 @@
 {
+  "tabs": {
+    "home": "Rumah",
+    "assets": "Aset",
+    "transactions": "Transaksi",
+    "spending": "Perbelanjaan",
+    "profile": "Profil"
+  },
   "home": {
     "welcome": "Selamat Datang, {{name}}!",
     "savingsGoal": "🎯 Matlamat Simpanan",
@@ -35,7 +42,21 @@
     "date": "Tarikh",
     "amount": "Jumlah",
     "category": "Kategori",
-    "description": "Keterangan"
+    "description": "Keterangan",
+    "headerTitle": "Transaksi",
+    "expensesChartTitle": "Perbelanjaan",
+    "transactionsListTitle": "Transaksi",
+    "total": "Jumlah",
+    "groceries": "Runcit",
+    "rent": "Sewa",
+    "celebration": "Perayaan",
+    "entertainment": "Hiburan",
+    "others": "Lain-Lain",
+    "income": "Pendapatan",
+    "investment": "Pelaburan",
+    "property": "Hartanah",
+    "bank": "Simpanan Bank",
+    "na": "Tiada"
   },
   "analysis": {
     "title": "Analisis",
@@ -46,6 +67,26 @@
     "lastMonth": "Bulan Lepas",
     "thisYear": "Tahun Ini"
   },
+  "asset": {
+    "title": "Analisis Dana Persaraan",
+    "totalAssets": "Jumlah Aset Persaraan",
+    "yourAssets": "Aset Anda",
+    "addAsset": "Tambah Aset",
+    "addNewCategory": "Tambah Kategori Baru",
+    "bank": "Simpanan",
+    "investment": "Pelaburan",
+    "property": "Hartanah",
+    "income": "Pendapatan",
+    "others": "Lain-lain",
+    "unknown": "Tidak Diketahui",
+    "subtitles": {
+      "account": "akaun",
+      "accounts": "akaun",
+      "portfolio": "portfolio",
+      "portfolios": "portfolio",
+      "noAssets": "Tiada aset"
+    }
+  },
   "category": {
     "title": "Kategori",
     "addCategory": "Tambah Kategori",
@@ -53,6 +94,57 @@
     "deleteCategory": "Padam Kategori",
     "categoryName": "Nama Kategori",
     "noCategories": "Tiada kategori lagi"
+  },
+  "spending": {
+    "title": "Pengurus Perbelanjaan",
+    "summary": "Ringkasan Perbelanjaan",
+    "label": "Perbelanjaan",
+    "popular": "Kategori Popular",
+    "all": "Semua Kategori",
+    "addNew": "Tambah Kategori Baru",
+    "categories": {
+      "groceries": "Runcit",
+      "rent": "Sewa",
+      "celebration": "Perayaan",
+      "entertainment": "Hiburan",
+      "others": "Lain-Lain"
+    }
+  },
+  "login": {
+    "tagline": "Urus kewangan anda dengan mudah",
+    "phoneNumberPlaceholder": "Nombor Telefon (+60...)",
+    "sendCode": "Hantar Kod",
+    "sendingCode": "Menghantar...",
+    "otpPlaceholder": "Kod Pengesahan",
+    "verifyCode": "Sahkan Kod",
+    "verifying": "Mengesahkan...",
+    "noAccount": "Tiada akaun?",
+    "signupLink": "Daftar",
+    "enterPhoneNumber": "Sila masukkan nombor telefon",
+    "codeSent": "Kod pengesahan dihantar!",
+    "codeSendFailed": "Gagal menghantar kod pengesahan",
+    "enterVerificationCode": "Sila masukkan kod pengesahan",
+    "invalidCode": "Kod tidak sah. Sila cuba lagi."
+  },
+  "signup": {
+    "title": "Cipta Akaun",
+    "subtitle": "Sertai kami dan mula urus kewangan anda",
+    "fullName": "Nama Penuh",
+    "phoneNumber": "Nombor Telefon",
+    "idNumber": "Nombor Kad Pengenalan",
+    "birthDate": "Tarikh Lahir",
+    "passcode": "Kod Laluan 6-digit",
+    "repeatPasscode": "Ulang Kod Laluan",
+    "register": "Daftar",
+    "creatingAccount": "Mencipta Akaun...",
+    "alreadyHaveAccount": "Sudah mempunyai akaun?",
+    "login": "Log Masuk",
+    "fillAllFields": "Sila isi semua ruang",
+    "passcodeMismatch": "Kod laluan tidak sepadan",
+    "passcodeLength": "Kod laluan mesti 6 digit",
+    "invalidId": "Format Nombor Kad Pengenalan tidak sah",
+    "recaptchaNotReady": "reCAPTCHA belum bersedia. Sila cuba sebentar lagi.",
+    "otpFailed": "Gagal menghantar OTP. Sila cuba lagi."
   },
   "common": {
     "save": "Simpan",

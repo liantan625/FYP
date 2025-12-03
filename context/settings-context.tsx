@@ -13,6 +13,8 @@ interface SettingsContextType {
   language: LanguageKey;
   setLanguage: (lang: LanguageKey) => Promise<void>;
   isLoading: boolean;
+  fontSize: FontScaleKey;
+  setFontSize: (size: FontScaleKey) => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | null>(null);
@@ -20,10 +22,11 @@ const SettingsContext = createContext<SettingsContextType | null>(null);
 const FONT_SCALE_KEY = '@font_scale_preference';
 const LANGUAGE_KEY = '@language_preference';
 
-export function SettingsProvider({ children }: { children: React.ReactNode }) {
+export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
   const [fontScaleKey, setFontScaleKey] = useState<FontScaleKey>('medium');
   const [language, setLanguageState] = useState<LanguageKey>('ms');
   const [isLoading, setIsLoading] = useState(true);
+  const [fontSize, setFontSizeState] = useState<FontScaleKey>('medium');
 
   useEffect(() => {
     loadSettings();
@@ -31,9 +34,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const loadSettings = async () => {
     try {
-      const [savedFontScale, savedLanguage] = await Promise.all([
+      const [savedFontScale, savedLanguage, savedFontSize] = await Promise.all([
         AsyncStorage.getItem(FONT_SCALE_KEY),
         AsyncStorage.getItem(LANGUAGE_KEY),
+        AsyncStorage.getItem('fontSize'),
       ]);
       
       if (savedFontScale && (savedFontScale === 'small' || savedFontScale === 'medium' || savedFontScale === 'large')) {
@@ -43,6 +47,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ms' || savedLanguage === 'zh' || savedLanguage === 'ta')) {
         setLanguageState(savedLanguage as LanguageKey);
         i18n.changeLanguage(savedLanguage);
+      }
+
+      if (savedFontSize && (savedFontSize === 'small' || savedFontSize === 'medium' || savedFontSize === 'large')) {
+        setFontSizeState(savedFontSize as FontScaleKey);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -70,10 +78,19 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setFontSize = async (size: FontScaleKey) => {
+    try {
+      await AsyncStorage.setItem('fontSize', size);
+      setFontSizeState(size);
+    } catch (error) {
+      console.error('Error saving font size:', error);
+    }
+  };
+
   const fontScale = FontScaleOptions[fontScaleKey].value;
 
   return (
-    <SettingsContext.Provider value={{ fontScale, fontScaleKey, setFontScale, language, setLanguage, isLoading }}>
+    <SettingsContext.Provider value={{ fontScale, fontScaleKey, setFontScale, language, setLanguage, isLoading, fontSize, setFontSize }}>
       {children}
     </SettingsContext.Provider>
   );

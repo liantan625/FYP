@@ -7,37 +7,106 @@ import {
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Modal,
+  Image,
+  ActivityIndicator,
+  Animated
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import auth from '@react-native-firebase/auth';
-
-// For more information on setting up Firebase Phone Authentication, see:
-// https://firebase.google.com/docs/auth/react-native/phone-auth
-
-//import { signIn } from '../src/services/authService';
+import { useRecaptcha } from '../context/recaptcha-context';
+import { RecaptchaAction } from '@google-cloud/recaptcha-enterprise-react-native';
+import { useTranslation } from 'react-i18next';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useSettings } from '../context/settings-context';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { client, isReady } = useRecaptcha();
+  const { t, i18n } = useTranslation();
+  const fontSize = useScaledFontSize();
+  const { fontScaleKey, setFontScale } = useSettings();
   const [phoneNumber, setPhoneNumber] = useState('+60');
   const [passcode, setPasscode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [confirmation, setConfirmation] = useState(null);
+  const [confirmation, setConfirmation] = useState<any>(null);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
+
+  const instructions = ['Change Language', 'Tukar Bahasa', '更換語言', 'மொழி மாற்றம்'];
+  const [instructionIndex, setInstructionIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const loopAnimation = () => {
+      Animated.sequence([
+        Animated.delay(2000),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setInstructionIndex((prev) => (prev + 1) % instructions.length);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start(loopAnimation);
+      });
+    };
+
+    loopAnimation();
+  }, []);
+
+  const changeLanguage = async (lang: string) => {
+    await i18n.changeLanguage(lang);
+    await AsyncStorage.setItem('user-language', lang);
+    setShowLanguageModal(false);
+  };
+
+  const toggleFontSizeMenu = () => {
+    setShowFontSizeMenu(!showFontSizeMenu);
+  };
+
+  const handleFontSizeChange = (size: 'small' | 'medium' | 'large') => {
+    setFontScale(size);
+    setShowFontSizeMenu(false);
+  };
+
+  const languages = [
+    { code: 'en', label: 'English' },
+    { code: 'ms', label: 'Bahasa Melayu' },
+    { code: 'zh', label: '中文' },
+    { code: 'ta', label: 'தமிழ்' },
+  ];
 
   const handleSendCode = async () => {
     if (!phoneNumber) {
-      Alert.alert('Ralat', 'Sila masukkan nombor telefon anda');
+      Alert.alert(t('common.error'), t('login.enterPhoneNumber'));
       return;
     }
 
     setLoading(true);
     try {
+      if (__DEV__) {
+        console.log('Dev mode: Skipping reCAPTCHA, verification is disabled');
+      } else if (isReady && client) {
+        console.log('Executing reCAPTCHA for LOGIN...');
+        const token = await client.execute(RecaptchaAction.LOGIN());
+        console.log('reCAPTCHA Token received:', token);
+      }
+
       const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
       setConfirmation(confirmationResult);
-      Alert.alert('Berjaya', 'Kod pengesahan telah dihantar ke telefon anda.');
+      Alert.alert(t('common.success'), t('login.codeSent'));
     } catch (error) {
       console.error('Error sending verification code:', error);
-      Alert.alert('Ralat', 'Gagal menghantar kod pengesahan. Sila cuba lagi.');
+      Alert.alert(t('common.error'), t('login.codeSendFailed'));
     } finally {
       setLoading(false);
     }
@@ -45,7 +114,7 @@ export default function LoginScreen() {
 
   const handleVerifyCode = async () => {
     if (!passcode) {
-      Alert.alert('Ralat', 'Sila masukkan kod pengesahan');
+      Alert.alert(t('common.error'), t('login.enterVerificationCode'));
       return;
     }
 
@@ -55,24 +124,67 @@ export default function LoginScreen() {
       router.replace('/(tabs)/home');
     } catch (error) {
       console.error('Error verifying code:', error);
-      Alert.alert('Ralat', 'Kod pengesahan tidak sah. Sila cuba lagi.');
+      Alert.alert(t('common.error'), t('login.invalidCode'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <View style={styles.content}>
-        <Text style={styles.title}>Selamat Kembali</Text>
-        <Text style={styles.subtitle}>Log masuk untuk meneruskan</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setShowLanguageModal(true)} style={styles.languageButtonContainer}>
+          <MaterialIcons name="language" size={24} color="#00D9A8" />
+          <Animated.Text style={[styles.languageButtonText, { opacity: fadeAnim }]}>
+            {instructions[instructionIndex]}
+          </Animated.Text>
+        </TouchableOpacity>
+        <View style={styles.fontSizeContainer}>
+          <TouchableOpacity onPress={toggleFontSizeMenu} style={styles.fontSizeButton}>
+            <MaterialIcons name="format-size" size={24} color="#333" />
+          </TouchableOpacity>
+          {showFontSizeMenu && (
+            <View style={styles.fontSizeMenu}>
+              <TouchableOpacity
+                style={[styles.fontSizeOption, fontScaleKey === 'small' && styles.activeFontSize]}
+                onPress={() => handleFontSizeChange('small')}
+              >
+                <Text style={{ fontSize: fontSize.small }}>A</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.fontSizeOption, fontScaleKey === 'medium' && styles.activeFontSize]}
+                onPress={() => handleFontSizeChange('medium')}
+              >
+                <Text style={{ fontSize: fontSize.medium }}>A</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.fontSizeOption, fontScaleKey === 'large' && styles.activeFontSize]}
+                onPress={() => handleFontSizeChange('large')}
+              >
+                <Text style={{ fontSize: fontSize.large }}>A</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.content}
+      >
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={[styles.appName, { fontSize: fontSize.heading }]}>DuitU</Text>
+          <Text style={[styles.tagline, { fontSize: fontSize.body }]}>{t('login.tagline')}</Text>
+        </View>
 
         <TextInput
-          style={styles.input}
-          placeholder="Nombor Telefon"
+          style={[styles.input, { fontSize: fontSize.body }]}
+          placeholder={t('login.phoneNumberPlaceholder')}
           value={phoneNumber}
           onChangeText={(text) => {
             if (text.startsWith('+60')) {
@@ -90,8 +202,8 @@ export default function LoginScreen() {
             onPress={handleSendCode}
             disabled={loading}
           >
-            <Text style={styles.buttonText}>
-              {loading ? 'Menghantar Kod...' : 'Hantar Kod Pengesahan'}
+            <Text style={[styles.buttonText, { fontSize: fontSize.medium }]}>
+              {loading ? t('login.sendingCode') : t('login.sendCode')}
             </Text>
           </TouchableOpacity>
         )}
@@ -99,8 +211,8 @@ export default function LoginScreen() {
         {confirmation && (
           <>
             <TextInput
-              style={styles.input}
-              placeholder="OTP 6-digit"
+              style={[styles.input, { fontSize: fontSize.body }]}
+              placeholder={t('login.otpPlaceholder')}
               value={passcode}
               onChangeText={setPasscode}
               keyboardType="number-pad"
@@ -111,8 +223,8 @@ export default function LoginScreen() {
               onPress={handleVerifyCode}
               disabled={loading}
             >
-              <Text style={styles.buttonText}>
-                {loading ? 'Mengesahkan...' : 'Sahkan Kod'}
+              <Text style={[styles.buttonText, { fontSize: fontSize.medium }]}>
+                {loading ? t('login.verifying') : t('login.verifyCode')}
               </Text>
             </TouchableOpacity>
           </>
@@ -122,12 +234,51 @@ export default function LoginScreen() {
           onPress={() => router.push('/signup')}
           style={styles.linkButton}
         >
-          <Text style={styles.linkText}>
-            Tiada akaun? <Text style={styles.linkTextBold}>Daftar</Text>
+          <Text style={[styles.linkText, { fontSize: fontSize.small }]}>
+            {t('login.noAccount')}{' '}
+            <Text style={[styles.linkTextBold, { fontSize: fontSize.small }]}>{t('login.signupLink')}</Text>
           </Text>
         </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+
+      <Modal
+        visible={showLanguageModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowLanguageModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={[styles.modalTitle, { fontSize: fontSize.large }]}>{t('profile.language')}</Text>
+            {languages.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageOption,
+                  i18n.language === lang.code && styles.selectedLanguage
+                ]}
+                onPress={() => changeLanguage(lang.code)}
+              >
+                <Text style={[
+                  styles.languageText,
+                  { fontSize: fontSize.medium },
+                  i18n.language === lang.code && styles.selectedLanguageText
+                ]}>
+                  {lang.label}
+                </Text>
+                {i18n.language === lang.code && (
+                  <MaterialIcons name="check" size={24} color="#00D9A8" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
@@ -136,21 +287,102 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
+    zIndex: 10,
+  },
+  languageButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 25,
+    backgroundColor: '#F0FDF9',
+    borderWidth: 1,
+    borderColor: '#00D9A8',
+  },
+  languageButtonText: {
+    marginLeft: 8,
+    color: '#00D9A8',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  languageButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#F0FDF9',
+  },
+  instructionText: {
+    marginLeft: 12,
+    color: '#00D9A8',
+    fontWeight: '500',
+  },
+  fontSizeContainer: {
+    position: 'relative',
+    alignItems: 'flex-end',
+  },
+  fontSizeReminder: {
+    fontSize: 10,
+    color: '#666',
+    marginBottom: 4,
+  },
+  fontSizeButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  fontSizeMenu: {
+    position: 'absolute',
+    top: 45,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 5,
+    flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 20,
+  },
+  fontSizeOption: {
+    padding: 10,
+    marginHorizontal: 2,
+    borderRadius: 5,
+    minWidth: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeFontSize: {
+    backgroundColor: '#e0e0e0',
+  },
   content: {
     flex: 1,
+    padding: 24,
     justifyContent: 'center',
-    paddingHorizontal: 30,
   },
-  title: {
-    fontSize: 32,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+  },
+  appName: {
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#333',
   },
-  subtitle: {
-    fontSize: 16,
+  tagline: {
     color: '#666',
-    marginBottom: 40,
   },
   input: {
     backgroundColor: '#f5f5f5',
@@ -184,5 +416,43 @@ const styles = StyleSheet.create({
   linkTextBold: {
     color: '#3299FF',
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  languageOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  selectedLanguage: {
+    backgroundColor: '#F0FDF9',
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
+  },
+  languageText: {
+    color: '#333',
+  },
+  selectedLanguageText: {
+    color: '#00D9A8',
+    fontWeight: 'bold',
   },
 });
