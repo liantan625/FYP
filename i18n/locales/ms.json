@@ -20,6 +20,7 @@
   },
   "profile": {
     "title": "Profil",
+    "security":"Keselamatan",
     "editProfile": "Edit Profil",
     "settings": "Tetapan",
     "logout": "Log Keluar",
@@ -112,7 +113,14 @@
     "editCategory": "Sunting Kategori",
     "deleteCategory": "Padam Kategori",
     "categoryName": "Nama Kategori",
-    "noCategories": "Tiada kategori lagi"
+    "noCategories": "Tiada kategori lagi",
+      "groceries": "Runcit",
+      "rent": "Sewa",
+      "celebration": "Perayaan",
+      "entertainment": "Hiburan",
+      "others": "Lain-Lain",
+      "subtext":"Huraian"
+    
   },
   "spending": {
     "title": "Pengurus Perbelanjaan",

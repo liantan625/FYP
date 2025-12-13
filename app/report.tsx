@@ -8,7 +8,7 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { PieChart, LineChart } from 'react-native-chart-kit';
+import { PieChart, LineChart, BarChart } from 'react-native-chart-kit';
 import { useTranslation } from 'react-i18next';
 
 const screenWidth = Dimensions.get('window').width;
@@ -21,6 +21,52 @@ const categoryDetails = {
   'others': { icon: '🤷', subtextKey: 'categorySubtext.others', color: '#f3f4f6', chartColor: '#8395A7', legendFontColor: '#7F7F7F', legendFontSize: 12 },
 };
 
+const epfSavingsData: { [key: number]: { basic: number; adequate: number; enhanced: number } } = {
+  18: { basic: 1400, adequate: 1500, enhanced: 2500 },
+  19: { basic: 1700, adequate: 1800, enhanced: 3100 },
+  20: { basic: 2200, adequate: 2300, enhanced: 3900 },
+  21: { basic: 2800, adequate: 3000, enhanced: 5000 },
+  22: { basic: 5800, adequate: 6400, enhanced: 10800 },
+  23: { basic: 9200, adequate: 10100, enhanced: 16700 },
+  24: { basic: 12300, adequate: 14100, enhanced: 24300 },
+  25: { basic: 15900, adequate: 19000, enhanced: 30700 },
+  26: { basic: 19800, adequate: 23400, enhanced: 40900 },
+  27: { basic: 23800, adequate: 28600, enhanced: 51200 },
+  28: { basic: 28300, adequate: 34500, enhanced: 62800 },
+  29: { basic: 33000, adequate: 40700, enhanced: 72800 },
+  30: { basic: 38000, adequate: 47500, enhanced: 85400 },
+  31: { basic: 43400, adequate: 54800, enhanced: 99100 },
+  32: { basic: 49100, adequate: 62700, enhanced: 114000 },
+  33: { basic: 55100, adequate: 71200, enhanced: 129000 },
+  34: { basic: 61400, adequate: 80300, enhanced: 147000 },
+  35: { basic: 68100, adequate: 90000, enhanced: 165000 },
+  36: { basic: 75100, adequate: 100000, enhanced: 185000 },
+  37: { basic: 82600, adequate: 111000, enhanced: 206000 },
+  38: { basic: 90400, adequate: 123000, enhanced: 229000 },
+  39: { basic: 98600, adequate: 136000, enhanced: 253000 },
+  40: { basic: 107000, adequate: 149000, enhanced: 279000 },
+  41: { basic: 116000, adequate: 164000, enhanced: 305000 },
+  42: { basic: 125000, adequate: 179000, enhanced: 336000 },
+  43: { basic: 135000, adequate: 195000, enhanced: 368000 },
+  44: { basic: 145000, adequate: 213000, enhanced: 402000 },
+  45: { basic: 156000, adequate: 231000, enhanced: 438000 },
+  46: { basic: 167000, adequate: 250000, enhanced: 476000 },
+  47: { basic: 179000, adequate: 271000, enhanced: 516000 },
+  48: { basic: 191000, adequate: 292000, enhanced: 559000 },
+  49: { basic: 204000, adequate: 315000, enhanced: 606000 },
+  50: { basic: 217000, adequate: 339000, enhanced: 652000 },
+  51: { basic: 231000, adequate: 364000, enhanced: 703000 },
+  52: { basic: 246000, adequate: 390000, enhanced: 757000 },
+  53: { basic: 261000, adequate: 417000, enhanced: 813000 },
+  54: { basic: 277000, adequate: 446000, enhanced: 873000 },
+  55: { basic: 294000, adequate: 476000, enhanced: 935000 },
+  56: { basic: 312000, adequate: 508000, enhanced: 1000000 },
+  57: { basic: 330000, adequate: 541000, enhanced: 1070000 },
+  58: { basic: 349000, adequate: 576000, enhanced: 1140000 },
+  59: { basic: 369000, adequate: 612000, enhanced: 1220000 },
+  60: { basic: 390000, adequate: 650000, enhanced: 1300000 },
+};
+
 export default function ReportScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -31,10 +77,11 @@ export default function ReportScreen() {
   const [expenseCategories, setExpenseCategories] = useState<any[]>([]);
   const [trendData, setTrendData] = useState<any>({
     labels: [],
-    datasets: [{ data: [] }, { data: [] }]
+    datasets: [{ data: [0] }, { data: [0] }]
   });
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [userAge, setUserAge] = useState<number | null>(null);
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -170,6 +217,10 @@ export default function ReportScreen() {
           const incomeData = Array.from(monthlyData.values()).map((d: any) => d.income);
           const expenseData = Array.from(monthlyData.values()).map((d: any) => d.expense);
 
+          console.log('Chart Labels:', labels);
+          console.log('Income Data:', incomeData);
+          console.log('Expense Data:', expenseData);
+
           setTrendData({
             labels,
             datasets: [
@@ -185,6 +236,22 @@ export default function ReportScreen() {
       };
 
       fetchTrendData();
+
+      const fetchUserAge = async () => {
+        try {
+          const userDoc = await firestore().collection('users').doc(user.uid).get();
+          if (userDoc.exists) {
+            const userData = userDoc.data();
+            if (userData && userData.age) {
+              setUserAge(userData.age);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user age:", error);
+        }
+      };
+
+      fetchUserAge();
 
       return () => {
         allAssetsUnsubscribe();
@@ -404,6 +471,44 @@ export default function ReportScreen() {
             )}
           </View>
 
+          {userAge && epfSavingsData[userAge] && (
+            <View>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {t('report.epfComparison')}
+                </Text>
+              </View>
+              <View style={[styles.chartCard, { backgroundColor: colors.card }]}>
+                <BarChart
+                  data={{
+                    labels: [t('report.basic'), t('report.adequate'), t('report.enhanced')],
+                    datasets: [
+                      {
+                        data: [
+                          epfSavingsData[userAge].basic,
+                          epfSavingsData[userAge].adequate,
+                          epfSavingsData[userAge].enhanced,
+                        ],
+                      },
+                    ],
+                  }}
+                  width={screenWidth - 80}
+                  height={220}
+                  chartConfig={{
+                    backgroundColor: colors.card,
+                    backgroundGradientFrom: colors.card,
+                    backgroundGradientTo: colors.card,
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                    style: { borderRadius: 16 },
+                  }}
+                  style={{ marginVertical: 8, borderRadius: 16 }}
+                />
+              </View>
+            </View>
+          )}
+
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {t('report.expenseBreakdown')}
@@ -420,7 +525,7 @@ export default function ReportScreen() {
                   legendFontColor: c.legendFontColor,
                   legendFontSize: c.legendFontSize
                 }))}
-                width={screenWidth - 80}
+                width={screenWidth - 100}
                 height={220}
                 chartConfig={{
                   color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -472,11 +577,19 @@ export default function ReportScreen() {
             onPress={generatePDF}
             disabled={isGeneratingPdf}
           >
+          
             {isGeneratingPdf ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.exportButtonText}>{t('report.exportPdf')}</Text>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.exportButton, { backgroundColor: '#10b981', marginTop: 12 }]}
+            onPress={() => {}}
+          >
+            <Text style={styles.exportButtonText}>Eksport Sebagai CSV</Text>
           </TouchableOpacity>
 
           <View style={styles.bottomSpacing} />

@@ -82,7 +82,7 @@ function AppLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
@@ -113,6 +113,10 @@ function AppLayout() {
         <Stack.Screen name="report" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen name="calculator" options={{ headerShown: false }} />
+        <Stack.Screen name="expert" options={{ headerShown: false }} />
+        <Stack.Screen name="reminders" options={{ headerShown: false }} />
+        <Stack.Screen name="tips" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
       {pathname !== '/login' && pathname !== '/signup' && (

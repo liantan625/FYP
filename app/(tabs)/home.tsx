@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import {
@@ -9,14 +9,13 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
-  SafeAreaView
+  SafeAreaView,
+  Animated
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import { useTranslation } from 'react-i18next';
-
-// do reminders notification today on 19th November
 
 const MOCK_DATA = {
   user: {
@@ -56,6 +55,13 @@ const MOCK_DATA = {
 
 const screenWidth = Dimensions.get("window").width;
 
+const TIPS_DATA = [
+  "💡 Simpan sekurang-kurangnya 20% pendapatan bulanan",
+  "💡 Elakkan hutang kad kredit yang tinggi",
+  "💡 Buat bajet bulanan dan patuhi",
+  "💡 Mulakan dana kecemasan 3-6 bulan perbelanjaan",
+];
+
 export default function HomeScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
@@ -64,12 +70,28 @@ export default function HomeScreen() {
   const [totalAssets, setTotalAssets] = useState(0);
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [monthlyBudget, setMonthlyBudget] = useState(0);
   const [financialSummary, setFinancialSummary] = useState({
     netAmount: 0,
     totalAssets: 0,
     goal: 0,
     progressPercentage: 0,
   });
+
+  // Calculate spending status
+  const getSpendingStatus = () => {
+    const budget = monthlyBudget > 0 ? monthlyBudget : monthlyIncome * 0.7; // Default 70% of income as budget
+    const remaining = budget - totalExpenses;
+    const isOverBudget = remaining < 0;
+    
+    return {
+      isOverBudget,
+      amount: Math.abs(remaining),
+      budget,
+    };
+  };
+
+  const spendingStatus = getSpendingStatus();
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -81,6 +103,9 @@ export default function HomeScreen() {
           documentSnapshot => {
             if (documentSnapshot.exists) {
               setUserName(documentSnapshot.data().name);
+              if (documentSnapshot.data().monthlyBudget) {
+                setMonthlyBudget(documentSnapshot.data().monthlyBudget);
+              }
             }
           },
           error => {
@@ -248,6 +273,95 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Tools Section - 2x2 Grid */}
+        <View style={styles.toolsContainer}>
+          <View style={styles.sectionHeader}>
+            <MaterialIcons name="handyman" size={24} color="#1F293B" style={styles.sectionIcon} />
+            <Text style={[styles.toolsSectionTitle, { fontSize: fontSize.large }]}>Alat Kewangan</Text>
+          </View>
+          
+          {/* Row 1: Kalkulator & Tanya Pakar (Killer Features) */}
+          <View style={styles.toolsRow}>
+            <TouchableOpacity 
+              style={[styles.toolCard, styles.toolCardPrimary]} 
+              onPress={() => router.push('/calculator')}
+            >
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="calculate" size={32} color="#fff" />
+              </View>
+              <View>
+                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>Kalkulator</Text>
+                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>Kira Tarikh Persaraan</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.toolCard, styles.toolCardSecondary]} 
+              onPress={() => router.push('/expert')}
+            >
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="support-agent" size={32} color="#fff" />
+              </View>
+              <View>
+                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>Tanya Pakar</Text>
+                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>Nasihat Kewangan</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          
+          {/* Row 2: Peringatan (Status Widget) & Tips (Auto-scroll Banner) */}
+          <View style={styles.toolsRow}>
+            {/* Spending Reminder Status Widget */}
+            <TouchableOpacity 
+              style={[
+                styles.toolCardSmall, 
+                spendingStatus.isOverBudget ? styles.toolCardDanger : styles.toolCardSuccess
+              ]} 
+              onPress={() => router.push('/reminders')}
+            >
+              <View style={styles.smallIconContainer}>
+                <MaterialIcons 
+                  name={spendingStatus.isOverBudget ? "warning" : "check-circle"} 
+                  size={24} 
+                  color="rgba(255,255,255,0.9)" 
+                />
+              </View>
+              <View>
+                <Text style={[
+                  styles.statusTitle, 
+                  { fontSize: fontSize.small }
+                ]}>
+                  {spendingStatus.isOverBudget ? 'Lebihan Belanja' : 'Terkawal'}
+                </Text>
+                {spendingStatus.isOverBudget && (
+                  <Text style={[styles.statusAmount, { fontSize: fontSize.small }]}>
+                    RM {spendingStatus.amount.toFixed(2)}
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+            
+            {/* Tips Static Banner */}
+            <TouchableOpacity 
+              style={[styles.toolCardSmall, styles.toolCardTips]} 
+              onPress={() => router.push('/tips')}
+            >
+              <View style={styles.smallIconContainer}>
+                <MaterialIcons name="lightbulb" size={24} color="rgba(255,255,255,0.9)" />
+              </View>
+              <Text 
+                style={[
+                  styles.tipsText, 
+                  { fontSize: fontSize.small }
+                ]}
+                numberOfLines={3}
+              >
+                {TIPS_DATA[0].replace('💡 ', '')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Summary Section */}
         <View style={styles.expenseContainer}>
           <Text style={[styles.expenseTitle, { fontSize: fontSize.large }]}>{t('home.monthSummary')}</Text>
@@ -302,6 +416,15 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Floating AI Chat Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/expert')}
+        activeOpacity={0.8}
+      >
+        <MaterialIcons name="smart-toy" size={28} color="#fff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -525,5 +648,129 @@ const styles = StyleSheet.create({
   },
   quickActionEmoji: {
     marginBottom: 8,
+  },
+  // Tools Section Styles
+  toolsContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  sectionIcon: {
+    marginRight: 10,
+  },
+  toolsSectionTitle: {
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  toolsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  toolCard: {
+    width: '48%',
+    borderRadius: 20,
+    padding: 16,
+    justifyContent: 'space-between',
+    height: 160,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  toolCardPrimary: {
+    backgroundColor: '#1E293B', // Slate 800
+  },
+  toolCardSecondary: {
+    backgroundColor: '#1E3A8A', // Blue 900
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  toolCardTitle: {
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  toolCardSubtitle: {
+    color: '#94A3B8', // Slate 400
+  },
+  toolCardSmall: {
+    width: '48%',
+    borderRadius: 20,
+    padding: 16,
+    justifyContent: 'space-between',
+    height: 140,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  toolCardSuccess: {
+    backgroundColor: '#065F46', // Emerald 800
+    borderWidth: 0,
+  },
+  toolCardDanger: {
+    backgroundColor: '#991B1B', // Red 800
+    borderWidth: 0,
+  },
+  toolCardTips: {
+    backgroundColor: '#B45309', // Amber 700
+    borderWidth: 0,
+  },
+  smallIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  statusTitle: {
+    fontWeight: '600',
+    color: '#fff',
+  },
+  statusAmount: {
+    fontWeight: 'bold',
+    color: '#FECACA', // Light red text
+    marginTop: 2,
+  },
+  tipsText: {
+    color: '#fff',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  tipsMore: {
+    display: 'none',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#2563EB', // Blue 600
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+    zIndex: 100,
   },
 });

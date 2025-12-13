@@ -49,6 +49,7 @@ const SavingsGoalScreen: React.FC = () => {
         .collection('users')
         .doc(user.uid)
         .collection('savings_goals')
+        .where('status', '==', 'active')
         .onSnapshot(querySnapshot => {
           const goalsData = [];
           querySnapshot.forEach(doc => {
@@ -546,7 +547,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     right: 20,
-    bottom: 20,
+    bottom: 90,
     backgroundColor: '#00D9A8',
     borderRadius: 28,
     elevation: 8,
