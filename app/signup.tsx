@@ -164,16 +164,18 @@ export default function SignUpScreen() {
       // TODO: Send token to your backend for verification before proceeding
       // For now, we proceed with phone authentication
       
-      // Clean the phone number: remove non-digits and leading 0
-      const cleanedPhone = phoneNumber.replace(/\D/g, '').replace(/^0+/, '');
-      const fullPhoneNumber = `+60${cleanedPhone}`;
+      // phoneNumber already contains +60 prefix from the input
+      // Just ensure it's clean and properly formatted
+      const fullPhoneNumber = phoneNumber.startsWith('+') 
+        ? phoneNumber 
+        : `+${phoneNumber}`;
       
       console.log(`Attempting sign in with: ${fullPhoneNumber}`);
 
       const confirm = await auth().signInWithPhoneNumber(fullPhoneNumber);
       setConfirmation(confirm);
       router.push({
-        pathname: '/(tabs)/OTP',
+        pathname: '/OTP',
         params: { name, phoneNumber: fullPhoneNumber, idNumber, birthday: birthdayString, passcode, isSignUp: 'true' },
       });
     } catch (error) {

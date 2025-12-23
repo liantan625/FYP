@@ -22,6 +22,7 @@
   "profile": {
     "title": "个人资料",
     "editProfile": "编辑资料",
+    "security":"安全",
     "settings": "设置",
     "logout": "登出",
     "language": "语言",

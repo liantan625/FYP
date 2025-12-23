@@ -90,14 +90,19 @@ export default function SpendingScreen() {
 
   useEffect(() => {
     const user = auth().currentUser;
-    if (user) {
-      const unsubscribe = firestore()
-        .collection('users')
-        .doc(user.uid)
-        .collection('spendings')
-        .onSnapshot(querySnapshot => {
-          const spendingsByCategory: { [key: string]: number } = {};
+    if (!user) return;
 
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('spendings')
+      .onSnapshot(
+        querySnapshot => {
+          const spendingsByCategory: { [key: string]: number } = {};
           const categoryMap: { [key: string]: string } = {
             'Runcit': 'groceries',
             'Sewa': 'rent',
@@ -106,21 +111,32 @@ export default function SpendingScreen() {
             'Lain-Lain': 'others',
           };
 
-          querySnapshot.forEach(doc => {
-            const spending = doc.data();
-            const categoryName = spending.category;
-            const amount = spending.amount;
+          let monthlyTotal = 0;
 
-            const mappedCategoryName = Object.keys(categoryMap).find(key => categoryMap[key] === categoryName);
+          if (querySnapshot && !querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+              const spending = doc.data();
+              const categoryName = spending.category;
+              const amount = spending.amount;
+              const docDate = spending?.date?.toDate ? spending.date.toDate() : new Date(spending?.date);
 
-            if (mappedCategoryName) {
+              const mappedCategoryName = Object.keys(categoryMap).find(key => categoryMap[key] === categoryName);
+
+              if (mappedCategoryName) {
                 if (spendingsByCategory[mappedCategoryName]) {
-                spendingsByCategory[mappedCategoryName] += amount;
+                  spendingsByCategory[mappedCategoryName] += amount;
                 } else {
-                spendingsByCategory[mappedCategoryName] = amount;
+                  spendingsByCategory[mappedCategoryName] = amount;
                 }
-            }
-          });
+              }
+
+              if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                monthlyTotal += amount;
+              }
+            });
+          }
+
+          console.log('Spendings by Category:', spendingsByCategory, 'Monthly Total:', monthlyTotal);
 
           const updatedCategories = categoriesData.map(category => ({
             ...category,
@@ -136,10 +152,13 @@ export default function SpendingScreen() {
             totalExpenses,
             percentageUsed: (totalExpenses / budgetGoal) * 100,
           }));
-        });
+        },
+        error => {
+          console.error("Error fetching spendings: ", error);
+        }
+      );
 
-      return () => unsubscribe();
-    }
+    return () => unsubscribe();
   }, []);
 
   const handleCategoryPress = (categoryName: string) => {

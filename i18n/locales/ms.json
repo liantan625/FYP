@@ -37,6 +37,7 @@
     "sampleText": "Contoh Teks",
     "error": "Ralat: {{message}}",
     "userDataNotFound": "Data pengguna tidak dijumpai.",
+
     "fontSizeOptions": {
       "small": "Kecil",
       "medium": "Sederhana",

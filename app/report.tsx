@@ -14,11 +14,11 @@ import { useTranslation } from 'react-i18next';
 const screenWidth = Dimensions.get('window').width;
 
 const categoryDetails = {
-  'groceries': { icon: '🛒', subtextKey: 'categorySubtext.groceries', color: '#fce7f3', chartColor: '#FF9F43', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-  'rent': { icon: '🏠', subtextKey: 'categorySubtext.rent', color: '#fef3c7', chartColor: '#54A0FF', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-  'celebration': { icon: '🎁', subtextKey: 'categorySubtext.celebration', color: '#e0e7ff', chartColor: '#5F27CD', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-  'entertainment': { icon: '🎉', subtextKey: 'categorySubtext.entertainment', color: '#dbeafe', chartColor: '#FF6B6B', legendFontColor: '#7F7F7F', legendFontSize: 12 },
-  'others': { icon: '🤷', subtextKey: 'categorySubtext.others', color: '#f3f4f6', chartColor: '#8395A7', legendFontColor: '#7F7F7F', legendFontSize: 12 },
+  'groceries': { icon: '🛒', subtextKey: 'category.groceries', color: '#fce7f3', chartColor: '#FF9F43', legendFontColor: '#7F7F7F', legendFontSize: 12 },
+  'rent': { icon: '🏠', subtextKey: 'category.rent', color: '#fef3c7', chartColor: '#54A0FF', legendFontColor: '#7F7F7F', legendFontSize: 12 },
+  'celebration': { icon: '🎁', subtextKey: 'category.celebration', color: '#e0e7ff', chartColor: '#5F27CD', legendFontColor: '#7F7F7F', legendFontSize: 12 },
+  'entertainment': { icon: '🎉', subtextKey: 'category.entertainment', color: '#dbeafe', chartColor: '#FF6B6B', legendFontColor: '#7F7F7F', legendFontSize: 12 },
+  'others': { icon: '🤷', subtextKey: 'category.others', color: '#f3f4f6', chartColor: '#8395A7', legendFontColor: '#7F7F7F', legendFontSize: 12 },
 };
 
 const epfSavingsData: { [key: number]: { basic: number; adequate: number; enhanced: number } } = {
@@ -88,7 +88,7 @@ export default function ReportScreen() {
     if (user) {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
       const allAssetsUnsubscribe = firestore()
         .collection('users')
@@ -97,11 +97,14 @@ export default function ReportScreen() {
         .onSnapshot(
           assetsSnapshot => {
             let total = 0;
-            if (assetsSnapshot) {
+            if (assetsSnapshot && !assetsSnapshot.empty) {
               assetsSnapshot.forEach(doc => {
-                total += doc.data().amount;
+                const data = doc.data();
+                const amount = parseFloat(data?.amount) || 0;
+                total += amount;
               });
             }
+            console.log('Report - Total Assets:', total);
             setTotalAssets(total);
           },
           error => console.error("Error fetching all assets: ", error)
@@ -111,17 +114,22 @@ export default function ReportScreen() {
         .collection('users')
         .doc(user.uid)
         .collection('assets')
-        .where('date', '>=', startOfMonth)
-        .where('date', '<=', endOfMonth)
         .where('category', '==', 'income')
         .onSnapshot(
           assetsSnapshot => {
             let totalIncome = 0;
-            if (assetsSnapshot) {
+            if (assetsSnapshot && !assetsSnapshot.empty) {
               assetsSnapshot.forEach(doc => {
-                totalIncome += doc.data().amount;
+                const data = doc.data();
+                const docDate = data?.date?.toDate ? data.date.toDate() : new Date(data?.date);
+                // Check if the asset is from this month
+                if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                  const amount = parseFloat(data?.amount) || 0;
+                  totalIncome += amount;
+                }
               });
             }
+            console.log('Report - Monthly Income:', totalIncome);
             setIncome(totalIncome);
           },
           error => console.error("Error fetching monthly income: ", error)
@@ -131,24 +139,28 @@ export default function ReportScreen() {
         .collection('users')
         .doc(user.uid)
         .collection('spendings')
-        .where('date', '>=', startOfMonth)
-        .where('date', '<=', endOfMonth)
         .onSnapshot(
           spendingsSnapshot => {
             let totalExpenses = 0;
             const expenseBreakdownMap = new Map();
-            if (spendingsSnapshot) {
+            if (spendingsSnapshot && !spendingsSnapshot.empty) {
               spendingsSnapshot.forEach(doc => {
                 const spending = doc.data();
-                totalExpenses += spending.amount;
-                const categoryKey = spending.category;
-                if (expenseBreakdownMap.has(categoryKey)) {
-                  expenseBreakdownMap.set(categoryKey, expenseBreakdownMap.get(categoryKey) + spending.amount);
-                } else {
-                  expenseBreakdownMap.set(categoryKey, spending.amount);
+                const docDate = spending?.date?.toDate ? spending.date.toDate() : new Date(spending?.date);
+                // Check if the spending is from this month
+                if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                  const amount = parseFloat(spending?.amount) || 0;
+                  totalExpenses += amount;
+                  const categoryKey = spending.category;
+                  if (expenseBreakdownMap.has(categoryKey)) {
+                    expenseBreakdownMap.set(categoryKey, expenseBreakdownMap.get(categoryKey) + amount);
+                  } else {
+                    expenseBreakdownMap.set(categoryKey, amount);
+                  }
                 }
               });
             }
+            console.log('Report - Total Expenses:', totalExpenses);
             setExpenses(totalExpenses);
 
             const categories = Array.from(expenseBreakdownMap, ([key, amount]) => {
@@ -517,25 +529,28 @@ export default function ReportScreen() {
 
           <View style={[styles.categoriesCard, { backgroundColor: colors.card }]}>
             {expenseCategories.length > 0 ? (
-              <PieChart
-                data={expenseCategories.map((c: any) => ({
-                  name: c.name,
-                  amount: c.amount,
-                  color: c.chartColor,
-                  legendFontColor: c.legendFontColor,
-                  legendFontSize: c.legendFontSize
-                }))}
-                width={screenWidth - 100}
-                height={220}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor={"amount"}
-                backgroundColor={"transparent"}
-                paddingLeft={"15"}
-                center={[10, 0]}
-                absolute
-              />
+              <View style={{ alignItems: 'center', marginRight: 10 }}>
+                <PieChart
+                  data={expenseCategories.map((c: any) => ({
+                    name: c.name,
+                    amount: c.amount,
+                    color: c.chartColor,
+                    legendFontColor: c.legendFontColor,
+                    legendFontSize: 10
+                  }))}
+                  width={screenWidth - 100}  // Increased width to prevent legend cutoff
+                  height={160}
+                  chartConfig={{
+                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  }}
+                  accessor={"amount"}
+                  backgroundColor={"transparent"}
+                  paddingLeft={"35"}
+                  center={[-15, 0]}
+                  absolute
+                  hasLegend={true}
+                />
+              </View>
             ) : (
               <Text style={{ textAlign: 'center', padding: 20, color: '#999' }}>{t('report.noExpenseData')}</Text>
             )}

@@ -63,6 +63,7 @@ const TIPS_DATA = [
 ];
 
 export default function HomeScreen() {
+
   const router = useRouter();
   const fontSize = useScaledFontSize();
   const { t } = useTranslation();
@@ -95,131 +96,147 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const user = auth().currentUser;
-    if (user) {
-      const userUnsubscribe = firestore()
-        .collection('users')
-        .doc(user.uid)
-        .onSnapshot(
-          documentSnapshot => {
-            if (documentSnapshot.exists) {
-              setUserName(documentSnapshot.data().name);
-              if (documentSnapshot.data().monthlyBudget) {
-                setMonthlyBudget(documentSnapshot.data().monthlyBudget);
-              }
+    if (!user) return;
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    // Fetch user data
+    const userUnsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .onSnapshot(
+        documentSnapshot => {
+          if (documentSnapshot.exists) {
+            const data = documentSnapshot.data();
+            setUserName(data?.name || '');
+            if (data?.monthlyBudget) {
+              setMonthlyBudget(data.monthlyBudget);
             }
-          },
-          error => {
-            console.error("Error fetching user data: ", error);
           }
-        );
+        },
+        error => {
+          console.error("Error fetching user data: ", error);
+        }
+      );
 
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-      const allAssetsUnsubscribe = firestore()
-        .collection('users')
-        .doc(user.uid)
-        .collection('assets')
-        .onSnapshot(
-          assetsSnapshot => {
-            let total = 0;
-            if (assetsSnapshot) {
-              assetsSnapshot.forEach(doc => {
-                total += doc.data().amount;
-              });
-            }
-            setTotalAssets(total);
-          },
-          error => {
-            console.error("Error fetching all assets: ", error);
-          }
-        );
-
-      const monthlyIncomeUnsubscribe = firestore()
-        .collection('users')
-        .doc(user.uid)
-        .collection('assets')
-        .where('date', '>=', startOfMonth)
-        .where('date', '<=', endOfMonth)
-        .where('category', '==', 'income')
-        .onSnapshot(
-          assetsSnapshot => {
-            let total = 0;
-            if (assetsSnapshot) {
-              assetsSnapshot.forEach(doc => {
-                total += doc.data().amount;
-              });
-            }
-            setMonthlyIncome(total);
-          },
-          error => {
-            console.error("Error fetching monthly income: ", error);
-          }
-        );
-
-      const spendingsUnsubscribe = firestore()
-        .collection('users')
-        .doc(user.uid)
-        .collection('spendings')
-        .where('date', '>=', startOfMonth)
-        .where('date', '<=', endOfMonth)
-        .onSnapshot(
-          spendingsSnapshot => {
-            let currentMonthExpenses = 0;
-            if (spendingsSnapshot) {
-              spendingsSnapshot.forEach(doc => {
-                currentMonthExpenses += doc.data().amount;
-              });
-            }
-            setTotalExpenses(currentMonthExpenses);
-          },
-          error => {
-            console.error("Error fetching spendings: ", error);
-          }
-        );
-
-      const savingsUnsubscribe = firestore()
-        .collection('users')
-        .doc(user.uid)
-        .collection('savings_goals')
-        .onSnapshot(
-          querySnapshot => {
-            let netAmount = 0;
-            let totalAssets = 0;
-            let goal = 0;
-
-            if (querySnapshot) {
-              querySnapshot.forEach(doc => {
-                const goalData = doc.data();
-                netAmount += goalData.currentAmount;
-                totalAssets += goalData.currentAmount;
-                goal += goalData.targetAmount;
-              });
-            }
-
-            const progressPercentage = goal > 0 ? (totalAssets / goal) * 100 : 0;
-
-            setFinancialSummary({
-              netAmount,
-              totalAssets,
-              goal,
-              progressPercentage,
+    // Fetch ALL assets (total assets)
+    const allAssetsUnsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('assets')
+      .onSnapshot(
+        assetsSnapshot => {
+          let total = 0;
+          if (assetsSnapshot && !assetsSnapshot.empty) {
+            assetsSnapshot.forEach(doc => {
+              const amount = doc.data()?.amount || 0;
+              total += amount;
             });
-          },
-          error => {
-            console.error("Error fetching savings goals: ", error);
           }
-        );
+          console.log('Total Assets:', total);
+          setTotalAssets(total);
+        },
+        error => {
+          console.error("Error fetching all assets: ", error);
+        }
+      );
 
-      return () => {
-        userUnsubscribe();
-        allAssetsUnsubscribe();
-        monthlyIncomeUnsubscribe();
-        spendingsUnsubscribe();
-        savingsUnsubscribe();
-      };
-    }
+    // Fetch monthly income (assets added this month with category 'income')
+    const monthlyIncomeUnsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('assets')
+      .where('category', '==', 'income')
+      .onSnapshot(
+        assetsSnapshot => {
+          let total = 0;
+          if (assetsSnapshot && !assetsSnapshot.empty) {
+            assetsSnapshot.forEach(doc => {
+              const data = doc.data();
+              const docDate = data?.date?.toDate ? data.date.toDate() : new Date(data?.date);
+              // Check if the asset is from this month
+              if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                total += data?.amount || 0;
+              }
+            });
+          }
+          console.log('Monthly Income:', total);
+          setMonthlyIncome(total);
+        },
+        error => {
+          console.error("Error fetching monthly income: ", error);
+        }
+      );
+
+    // Fetch monthly spendings
+    const spendingsUnsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('spendings')
+      .onSnapshot(
+        spendingsSnapshot => {
+          let currentMonthExpenses = 0;
+          if (spendingsSnapshot && !spendingsSnapshot.empty) {
+            spendingsSnapshot.forEach(doc => {
+              const data = doc.data();
+              const docDate = data?.date?.toDate ? data.date.toDate() : new Date(data?.date);
+              // Check if the spending is from this month
+              if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                currentMonthExpenses += data?.amount || 0;
+              }
+            });
+          }
+          console.log('Total Expenses:', currentMonthExpenses);
+          setTotalExpenses(currentMonthExpenses);
+        },
+        error => {
+          console.error("Error fetching spendings: ", error);
+        }
+      );
+
+    // Fetch savings goals (only active ones)
+    const savingsUnsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('savings_goals')
+      .where('status', '==', 'active')
+      .onSnapshot(
+        querySnapshot => {
+          let totalSaved = 0;
+          let totalGoal = 0;
+
+          if (querySnapshot && !querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+              const goalData = doc.data();
+              totalSaved += goalData?.currentAmount || 0;
+              totalGoal += goalData?.targetAmount || 0;
+            });
+          }
+
+          const progressPercentage = totalGoal > 0 ? (totalSaved / totalGoal) * 100 : 0;
+
+          console.log('Active Savings Goals - Saved:', totalSaved, 'Goal:', totalGoal);
+          setFinancialSummary({
+            netAmount: totalSaved,
+            totalAssets: totalSaved,
+            goal: totalGoal,
+            progressPercentage,
+          });
+        },
+        error => {
+          console.error("Error fetching savings goals: ", error);
+        }
+      );
+
+    return () => {
+      userUnsubscribe();
+      allAssetsUnsubscribe();
+      monthlyIncomeUnsubscribe();
+      spendingsUnsubscribe();
+      savingsUnsubscribe();
+    };
   }, []);
 
   return (
@@ -234,7 +251,6 @@ export default function HomeScreen() {
           <TouchableOpacity style={styles.summaryCard} onPress={() => router.push('/savingsgoals')}>
             <View style={styles.summaryHeader}>
               <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>{t('home.savingsGoal')}</Text>
-              <Text style={[styles.summaryTrendPositive, { fontSize: fontSize.body }]}>↑ +{MOCK_DATA.financial.trend}%</Text>
             </View>
             
             <View style={styles.summaryAmountContainer}>
@@ -264,7 +280,7 @@ export default function HomeScreen() {
           <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardGreen]} onPress={() => router.push('/(tabs)/Asset')}>
             <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>🏦</Text>
             <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.retirementAssets')}</Text>
-            <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#10B981' }]}>RM {financialSummary.totalAssets.toFixed(2)}</Text>
+            <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#10B981' }]}>RM {totalAssets.toFixed(2)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardRed]} onPress={() => router.push('/(tabs)/spending')}>
             <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>💳</Text>

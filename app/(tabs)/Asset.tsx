@@ -39,6 +39,8 @@ export default function AnalysisScreen() {
   const [assetCategories, setAssetCategories] = useState<AssetCategory[]>([]);
   const [customAssetCategories, setCustomAssetCategories] = useState<CustomCategory[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [assets, setAssets] = useState([]);
+  const [totalAssets, setTotalAssets] = useState(0);
 
   // Memoize helper functions to prevent unnecessary re-renders
   const getCategoryIcon = useCallback((categoryType: string): string => {
@@ -184,9 +186,45 @@ export default function AnalysisScreen() {
     };
   }, [isLoadingCategories, getCategoryIcon, getCategoryName, t]);
 
-  const totalAssets = useMemo(() => {
-    return assetCategories.reduce((sum, category) => sum + category.total, 0);
-  }, [assetCategories]);
+  useEffect(() => {
+    const user = auth().currentUser;
+    if (user) {
+      const unsubscribe = firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('assets')
+        .onSnapshot(
+          querySnapshot => {
+            const assetsList: Asset[] = [];
+            let total = 0;
+            if (querySnapshot && !querySnapshot.empty) {
+              querySnapshot.forEach(documentSnapshot => {
+                const data = documentSnapshot.data();
+                const amount = data?.amount || 0;
+                total += amount;
+                assetsList.push({
+                  id: documentSnapshot.id,
+                  date: data?.date?.toDate ? data.date.toDate() : new Date(data?.date),
+                  category: data?.category || '',
+                  assetName: data?.assetName || '',
+                  amount: amount,
+                  description: data?.description || '',
+                  isRecurringIncome: data?.isRecurringIncome || false,
+                });
+              });
+            }
+            console.log('Assets List:', assetsList.length, 'Total:', total);
+            setAssets(assetsList);
+            setTotalAssets(total);
+          },
+          error => {
+            console.error("Error fetching assets: ", error);
+          }
+        );
+
+      return () => unsubscribe();
+    }
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
