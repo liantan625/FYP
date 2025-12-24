@@ -349,9 +349,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    paddingTop: Platform.OS === 'android' ? 40 : 15, // Handle status bar area if needed
+    padding: 20,
   },
   headerBtn: {
     padding: 5,
@@ -366,7 +364,7 @@ const styles = StyleSheet.create({
   summaryWrapper: {
     backgroundColor: '#00D9A8',
     paddingBottom: 40,
-    paddingTop: 40, // Add top padding so card doesn't hit header
+    paddingTop: 35, // Add top padding so card doesn't hit header
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },

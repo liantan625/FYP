@@ -119,7 +119,7 @@ function AppLayout() {
         <Stack.Screen name="tips" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
-      {pathname !== '/login' && pathname !== '/signup' && (
+      {pathname === '/home' && (
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={() => router.push('/notifications')}

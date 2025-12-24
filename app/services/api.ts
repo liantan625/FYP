@@ -9,9 +9,9 @@ const getBaseUrl = () => {
   // If we are in development, use local IP
   if (__DEV__) {
     if (Platform.OS === 'android') {
-      return 'http://10.0.2.2:8000';
+      return 'https://uvicorn-main-production-3f09.up.railway.app';
     }
-    return 'http://127.0.0.1:8000';
+    return 'https://uvicorn-main-production-3f09.up.railway.app';
   }
   // Otherwise use the production URL
   return 'https://uvicorn-main-production-3f09.up.railway.app';
