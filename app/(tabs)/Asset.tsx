@@ -56,8 +56,8 @@ export default function AnalysisScreen() {
       case 'investment': return '💰';
       case 'property': return '🏠';
       case 'income': return '💵';
-      case 'others': return '❓';
-      default: return '❓';
+      case 'others': return '📦'; // Changed from ❓ to 📦 for better UI
+      default: return '📦'; // Use a generic box for unknown types
     }
   }, [customAssetCategories]);
 
@@ -75,7 +75,9 @@ export default function AnalysisScreen() {
       case 'property': return t('asset.property');
       case 'income': return t('asset.income');
       case 'others': return t('asset.others');
-      default: return t('asset.unknown');
+      default: 
+        // If it's a slug, capitalize it (e.g., "emas" -> "Emas")
+        return categoryType.charAt(0).toUpperCase() + categoryType.slice(1).replace(/_/g, ' ');
     }
   }, [customAssetCategories, t]);
 

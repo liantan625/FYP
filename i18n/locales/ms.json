@@ -130,6 +130,12 @@
     "popular": "Kategori Popular",
     "all": "Semua Kategori",
     "addNew": "Tambah Kategori Baru",
+    "budgetHealth": "Kesihatan Bajet",
+    "dailyAverage": "Purata Harian",
+    "daysLeft": "Hari Tinggal",
+    "onTrack": "Dalam Kawalan",
+    "warning": "Amaran",
+    "critical": "Kritikal",
     "categories": {
       "groceries": "Runcit",
       "rent": "Sewa",

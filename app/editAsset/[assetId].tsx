@@ -122,9 +122,7 @@ export default function EditAssetScreen() {
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Kemaskini Aset</Text>
-        <TouchableOpacity onPress={handleDelete}>
-          <MaterialIcons name="delete" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 24 }} />
       </View>
       <ScrollView style={styles.container}>
         <View style={styles.form}>
@@ -160,6 +158,10 @@ export default function EditAssetScreen() {
 
           <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
             <Text style={styles.saveButtonText}>Kemaskini</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+            <Text style={styles.deleteButtonText}>Padam Aset</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -241,6 +243,20 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  deleteButton: {
+    backgroundColor: '#FF5252',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: '#FF5252',
+  },
+  deleteButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',

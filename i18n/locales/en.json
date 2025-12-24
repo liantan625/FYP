@@ -108,6 +108,12 @@
     "popular": "Popular Categories",
     "all": "All Categories",
     "addNew": "Add New Category",
+    "budgetHealth": "Budget Health",
+    "dailyAverage": "Daily Average",
+    "daysLeft": "Days Left",
+    "onTrack": "On Track",
+    "warning": "Warning",
+    "critical": "Critical",
     "categories": {
       "groceries": "Groceries",
       "rent": "Rent",
