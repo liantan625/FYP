@@ -143,8 +143,10 @@ export default function LoginScreen() {
       const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
       setConfirmation(confirmationResult);
       Alert.alert(t('common.success'), t('login.codeSent'));
-    } catch (error) {
-      console.error('Error sending verification code:', error);
+    } catch (error: any) {
+      console.error('OTP Send Error Details:', error);
+      console.error('Error Code:', error.code);
+      console.error('Error Message:', error.message);
       Alert.alert(t('common.error'), t('login.codeSendFailed'));
     } finally {
       setLoading(false);
