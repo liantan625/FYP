@@ -3,11 +3,14 @@
 # dependencies
 node_modules/
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# Firebase configuration
+google-services.json
+android/app/google-services.json
+
+# Expo config
+.expo/*
+dist/*
+node_modules/*
 
 # Native
 .kotlin/
