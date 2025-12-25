@@ -14,20 +14,16 @@
       },
       "oauth_client": [
         {
-          "client_id": "157329778221-ns44bj4top6kln45u32jm3oudrp926i5.apps.googleusercontent.com",
+          "client_id": "157329778221-uev0kcv4l0eaheoetd03asbbio8jk5qi.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.duitu.fypcode",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+            "certificate_hash": "b3044df22aaf08ac7574c90d05fd65f4268b2d16"
           }
         },
         {
-          "client_id": "157329778221-ns44bj4top6kln45u32jm3oudrp926i5.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.duitu.fypcode",
-            "certificate_hash": "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c"
-          }
+          "client_id": "157329778221-vmp8sr7sgajonvq8dcpd7tsr3ao6s2g3.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
@@ -37,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "157329778221-vmp8sr7sgajonvq8dcpd7tsr3ao6s2g3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "157329778221-af1hep6knjo3uslvmcg97s70srs9serd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.duitu.fypcode"
+              }
+            }
+          ]
         }
       }
     }

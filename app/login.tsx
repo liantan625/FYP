@@ -10,7 +10,6 @@ import {
   Platform,
   Modal,
   Image,
-  ActivityIndicator,
   Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,7 +21,9 @@ import { useTranslation } from 'react-i18next';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/settings-context';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -42,6 +43,13 @@ export default function LoginScreen() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    // Configure Google Sign-In
+    GoogleSignin.configure({
+      webClientId: '157329778221-vmp8sr7sgajonvq8dcpd7tsr3ao6s2g3.apps.googleusercontent.com',
+      offlineAccess: true,
+      scopes: ['profile', 'email'],
+    });
+
     const loopAnimation = () => {
       Animated.sequence([
         Animated.delay(2000),
@@ -84,6 +92,37 @@ export default function LoginScreen() {
     { code: 'zh', label: '中文' },
     { code: 'ta', label: 'தமிழ்' },
   ];
+
+  const onGoogleButtonPress = async () => {
+    try {
+      setLoading(true);
+      // Check if your device supports Google Play
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      
+      // Get the users ID token
+      const signInResult = await GoogleSignin.signIn();
+      const idToken = signInResult.data?.idToken;
+      
+      if (!idToken) {
+        throw new Error('No ID token found');
+      }
+
+      // Create a Google credential with the token
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+      // Sign-in the user with the credential
+      await auth().signInWithCredential(googleCredential);
+      
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      console.error('Error Code:', error.code);
+      console.error('Error Message:', error.message);
+      Alert.alert(t('common.error'), `Google Sign-In failed: ${error.code}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSendCode = async () => {
     if (!phoneNumber) {
@@ -229,6 +268,28 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </>
         )}
+
+        <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={onGoogleButtonPress}
+          disabled={loading}
+        >
+          <Image 
+            source={{ uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' }} 
+            // Using a simple Material Icon for now as a reliable asset, or you can add a google logo asset
+          />
+          <Ionicons name="logo-google" size={24} color="#DB4437" style={{ marginRight: 10 }} /> 
+          {/* Note: g-translate is just a placeholder icon, usually you'd use a real Google logo image asset */}
+          <Text style={[styles.googleButtonText, { fontSize: fontSize.medium }]}>
+            Sign in with Google
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => router.push('/signup')}
@@ -403,6 +464,36 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e0e0e0',
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    color: '#999',
+    fontWeight: 'bold',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginBottom: 10,
+  },
+  googleButtonText: {
+    color: '#333',
     fontWeight: '600',
   },
   linkButton: {
