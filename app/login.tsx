@@ -37,10 +37,21 @@ export default function LoginScreen() {
   const [confirmation, setConfirmation] = useState<any>(null);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   const instructions = ['Change Language', 'Tukar Bahasa', '更換語言', 'மொழி மாற்றம்'];
   const [instructionIndex, setInstructionIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [countdown]);
 
   useEffect(() => {
     // Configure Google Sign-In
@@ -125,6 +136,7 @@ export default function LoginScreen() {
   };
 
   const handleSendCode = async () => {
+    console.log('Starting handleSendCode...');
     if (!phoneNumber) {
       Alert.alert(t('common.error'), t('login.enterPhoneNumber'));
       return;
@@ -136,12 +148,23 @@ export default function LoginScreen() {
         console.log('Dev mode: Skipping reCAPTCHA, verification is disabled');
       } else if (isReady && client) {
         console.log('Executing reCAPTCHA for LOGIN...');
-        const token = await client.execute(RecaptchaAction.LOGIN());
-        console.log('reCAPTCHA Token received:', token);
+        try {
+          const token = await client.execute(RecaptchaAction.LOGIN());
+          console.log('reCAPTCHA Token received:', token);
+        } catch (recaptchaError) {
+          console.error('reCAPTCHA Execution Error:', recaptchaError);
+          // Don't block flow, let Firebase try anyway
+        }
+      } else {
+        console.log('reCAPTCHA client not ready or not initialized');
       }
 
+      console.log('Calling auth().signInWithPhoneNumber...');
       const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
+      console.log('signInWithPhoneNumber returned result:', confirmationResult);
+      
       setConfirmation(confirmationResult);
+      setCountdown(30); // Start 30s cooldown
       Alert.alert(t('common.success'), t('login.codeSent'));
     } catch (error: any) {
       console.error('OTP Send Error Details:', error);
@@ -149,6 +172,7 @@ export default function LoginScreen() {
       console.error('Error Message:', error.message);
       Alert.alert(t('common.error'), t('login.codeSendFailed'));
     } finally {
+      console.log('handleSendCode finally block reached');
       setLoading(false);
     }
   };
@@ -266,6 +290,16 @@ export default function LoginScreen() {
             >
               <Text style={[styles.buttonText, { fontSize: fontSize.medium }]}>
                 {loading ? t('login.verifying') : t('login.verifyCode')}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, styles.resendButton, countdown > 0 && styles.disabledButton]}
+              onPress={handleSendCode}
+              disabled={loading || countdown > 0}
+            >
+              <Text style={[styles.buttonText, { fontSize: fontSize.medium }]}>
+                {countdown > 0 ? `Resend Code (${countdown}s)` : 'Resend Code'}
               </Text>
             </TouchableOpacity>
           </>
@@ -467,6 +501,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  resendButton: {
+    backgroundColor: '#333', // Darker color to distinguish from verify button
+    marginTop: 10,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   dividerContainer: {
     flexDirection: 'row',
