@@ -6,10 +6,9 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import { PieChart, LineChart, BarChart } from 'react-native-chart-kit';
 import { useTranslation } from 'react-i18next';
+import { generatePDF, generateCSV } from './services/reportGenerator';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -75,11 +74,14 @@ export default function ReportScreen() {
   const [income, setIncome] = useState(0);
   const [expenses, setExpenses] = useState(0);
   const [expenseCategories, setExpenseCategories] = useState<any[]>([]);
+  const [incomeList, setIncomeList] = useState<any[]>([]);
+  const [expenseList, setExpenseList] = useState<any[]>([]);
   const [trendData, setTrendData] = useState<any>({
     labels: [],
     datasets: [{ data: [0] }, { data: [0] }]
   });
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isGeneratingCsv, setIsGeneratingCsv] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [userAge, setUserAge] = useState<number | null>(null);
 
@@ -118,6 +120,7 @@ export default function ReportScreen() {
         .onSnapshot(
           assetsSnapshot => {
             let totalIncome = 0;
+            const currentMonthIncomes: any[] = [];
             if (assetsSnapshot && !assetsSnapshot.empty) {
               assetsSnapshot.forEach(doc => {
                 const data = doc.data();
@@ -126,11 +129,18 @@ export default function ReportScreen() {
                 if (docDate >= startOfMonth && docDate <= endOfMonth) {
                   const amount = parseFloat(data?.amount) || 0;
                   totalIncome += amount;
+                  currentMonthIncomes.push({
+                    ...data,
+                    date: docDate,
+                    type: 'Income',
+                    category: 'Income'
+                  });
                 }
               });
             }
             console.log('Report - Monthly Income:', totalIncome);
             setIncome(totalIncome);
+            setIncomeList(currentMonthIncomes);
           },
           error => console.error("Error fetching monthly income: ", error)
         );
@@ -143,6 +153,8 @@ export default function ReportScreen() {
           spendingsSnapshot => {
             let totalExpenses = 0;
             const expenseBreakdownMap = new Map();
+            const currentMonthExpenses: any[] = [];
+
             if (spendingsSnapshot && !spendingsSnapshot.empty) {
               spendingsSnapshot.forEach(doc => {
                 const spending = doc.data();
@@ -152,6 +164,14 @@ export default function ReportScreen() {
                   const amount = parseFloat(spending?.amount) || 0;
                   totalExpenses += amount;
                   const categoryKey = spending.category;
+
+                  currentMonthExpenses.push({
+                    ...spending,
+                    date: docDate,
+                    type: 'Expense',
+                    category: categoryKey
+                  });
+
                   if (expenseBreakdownMap.has(categoryKey)) {
                     expenseBreakdownMap.set(categoryKey, expenseBreakdownMap.get(categoryKey) + amount);
                   } else {
@@ -162,6 +182,7 @@ export default function ReportScreen() {
             }
             console.log('Report - Total Expenses:', totalExpenses);
             setExpenses(totalExpenses);
+            setExpenseList(currentMonthExpenses);
 
             const categories = Array.from(expenseBreakdownMap, ([key, amount]) => {
               const details = (categoryDetails as any)[key] || { icon: '❓', subtextKey: '', color: '#eee', chartColor: '#ccc', legendFontColor: '#7F7F7F', legendFontSize: 12 };
@@ -273,97 +294,38 @@ export default function ReportScreen() {
     }
   }, [t]);
 
-  const generatePDF = async () => {
+  const handleGeneratePDF = async () => {
     try {
       setIsGeneratingPdf(true);
-
-      const htmlContent = `
-        <html>
-          <head>
-            <style>
-              body { font-family: Helvetica, Arial, sans-serif; padding: 20px; }
-              h1 { color: #4CAF50; text-align: center; }
-              h2 { color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 20px; }
-              .summary-card { background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-              .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-              .label { font-weight: bold; color: #666; }
-              .value { font-weight: bold; }
-              .income { color: #4CAF50; }
-              .expense { color: #F44336; }
-              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
-            </style>
-          </head>
-          <body>
-            <h1>DuitU ${t('report.title')}</h1>
-            <p>${t('report.thisMonth')}: ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
-            
-            <div class="summary-card">
-              <h2>${t('report.smartAnalysis')}</h2>
-              <div class="row">
-                <span class="label">${t('report.income')}:</span>
-                <span class="value income">RM ${income.toFixed(2)}</span>
-              </div>
-              <div class="row">
-                <span class="label">${t('report.expense')}:</span>
-                <span class="value expense">RM ${expenses.toFixed(2)}</span>
-              </div>
-              <div class="row">
-                <span class="label">${t('report.savingsRate')}:</span>
-                <span class="value">${((income - expenses) / income * 100).toFixed(1)}%</span>
-              </div>
-            </div>
-
-            <h2>${t('report.expenseBreakdown')}</h2>
-            <table>
-              <tr>
-                <th>${t('report.category')}</th>
-                <th>${t('report.amount')}</th>
-                <th>%</th>
-              </tr>
-              ${expenseCategories.map(item => `
-                <tr>
-                  <td>${item.name}</td>
-                  <td>RM ${item.amount.toFixed(2)}</td>
-                  <td>${item.percentage.toFixed(1)}%</td>
-                </tr>
-              `).join('')}
-            </table>
-
-            <h2>${t('report.monthlyTrend')}</h2>
-            <table>
-              <tr>
-                <th>${t('report.month')}</th>
-                <th>${t('report.income')}</th>
-                <th>${t('report.expense')}</th>
-              </tr>
-              ${trendData.labels.map((label: string, index: number) => `
-                <tr>
-                  <td>${label}</td>
-                  <td>RM ${trendData.datasets[0].data[index].toFixed(2)}</td>
-                  <td>RM ${trendData.datasets[1].data[index].toFixed(2)}</td>
-                </tr>
-              `).join('')}
-            </table>
-          </body>
-        </html>
-      `;
-
-      const { uri } = await Print.printToFileAsync({
-        html: htmlContent,
-        base64: false
-      });
-
-      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
-
-      Alert.alert(t('report.pdfSaved'), t('report.pdfSavedMessage', { path: uri }));
-
+      const month = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      await generatePDF({
+        income,
+        expenses,
+        expenseCategories,
+        trendData,
+        month
+      }, t);
+      Alert.alert(t('report.pdfSaved'), t('report.pdfSavedMessage', { path: 'PDF Generated' }));
     } catch (error) {
-      console.error('Error generating PDF:', error);
       Alert.alert(t('report.pdfFailed'), (error as Error).message);
     } finally {
       setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleGenerateCSV = async () => {
+    try {
+      setIsGeneratingCsv(true);
+      const allTransactions = [...incomeList, ...expenseList];
+      if (allTransactions.length === 0) {
+        Alert.alert(t('common.info'), t('report.noDataToExport'));
+        return;
+      }
+      await generateCSV(allTransactions);
+    } catch (error) {
+      Alert.alert("Error", "Failed to generate CSV");
+    } finally {
+      setIsGeneratingCsv(false);
     }
   };
 
@@ -589,7 +551,7 @@ export default function ReportScreen() {
 
           <TouchableOpacity
             style={[styles.exportButton, { backgroundColor: colors.primary }]}
-            onPress={generatePDF}
+            onPress={handleGeneratePDF}
             disabled={isGeneratingPdf}
           >
           
@@ -602,9 +564,14 @@ export default function ReportScreen() {
 
           <TouchableOpacity
             style={[styles.exportButton, { backgroundColor: '#10b981', marginTop: 12 }]}
-            onPress={() => {}}
+            onPress={handleGenerateCSV}
+            disabled={isGeneratingCsv}
           >
-            <Text style={styles.exportButtonText}>Eksport Sebagai CSV</Text>
+            {isGeneratingCsv ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.exportButtonText}>Eksport Sebagai CSV</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.bottomSpacing} />
