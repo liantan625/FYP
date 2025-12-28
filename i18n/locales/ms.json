@@ -178,7 +178,8 @@
     "passcodeLength": "Kod laluan mesti 6 digit",
     "invalidId": "Format Nombor Kad Pengenalan tidak sah",
     "recaptchaNotReady": "reCAPTCHA belum bersedia. Sila cuba sebentar lagi.",
-    "otpFailed": "Gagal menghantar OTP. Sila cuba lagi."
+    "otpFailed": "Gagal menghantar OTP. Sila cuba lagi."    
+
   },
   "common": {
     "save": "Simpan",

@@ -17,42 +17,6 @@ import { useRouter } from 'expo-router';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import { useTranslation } from 'react-i18next';
 
-const MOCK_DATA = {
-  user: {
-    name: "Ahmad",
-  },
-  financial: {
-    netAmount: 6595.60,
-    totalAssets: 7783.00,
-    totalExpenses: 1187.40,
-    trend: 5.2,
-    goal: 20000.00,
-    progressPercentage: 39,
-    message: "Hebat Kerana Konsisten!"
-  },
-  quickActions: {
-    retirement: {
-      title: "Dana Persaraan",
-      amount: 5000.00,
-      change: 2.5
-    },
-    monthly: {
-      title: "Pendapatan Bulan Ini",
-      income: 4000.00,
-      expenses: 1187.40
-    }
-  },
-  expenses: {
-    period: "Oktober 2025",
-    categories: [
-      { name: "Makanan", amount: 600, percentage: 50, color: "#00D9A8" },
-      { name: "Perubatan", amount: 300, percentage: 25, color: "#FF6B6B" },
-      { name: "Sewa", amount: 287, percentage: 25, color: "#FFD93D" }
-    ],
-    total: 1187.00
-  }
-};
-
 const screenWidth = Dimensions.get("window").width;
 
 const TIPS_DATA = [
@@ -395,7 +359,6 @@ export default function HomeScreen() {
             </View>
             <View style={styles.summaryItemRight}>
               <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#3B82F6' }]}>RM {totalAssets.toFixed(2)}</Text>
-              <Text style={[styles.summaryItemTrend, { fontSize: fontSize.small, color: '#10B981' }]}>↑ +2.5%</Text>
             </View>
           </View>
           

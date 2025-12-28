@@ -88,6 +88,7 @@ function AppLayout() {
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="OTP" options={{ headerShown: false }} />
         <Stack.Screen name="successfulSignUp" options={{ headerShown: false }} />
+        <Stack.Screen name="completeProfile" options={{ headerShown: false }} />
         <Stack.Screen name="EditProfile" options={{ headerShown: false }} />
         <Stack.Screen name="Security" options={{ headerShown: false }} />
         <Stack.Screen name="Settings" options={{ headerShown: false }} />

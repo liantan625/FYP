@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import { useRecaptcha } from '../context/recaptcha-context';
 import { RecaptchaAction } from '@google-cloud/recaptcha-enterprise-react-native';
 import { useTranslation } from 'react-i18next';
@@ -122,9 +123,24 @@ export default function LoginScreen() {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
 
       // Sign-in the user with the credential
-      await auth().signInWithCredential(googleCredential);
+      const userCredential = await auth().signInWithCredential(googleCredential);
+      const user = userCredential.user;
+
+      // Check if user exists in Firestore and has completed profile
+      const userDoc = await firestore().collection('users').doc(user.uid).get();
       
-      router.replace('/(tabs)/home');
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        if (userData?.name && userData?.idNumber && userData?.birthday) {
+          router.replace('/(tabs)/home');
+        } else {
+           // User exists but profile incomplete
+           router.replace('/completeProfile');
+        }
+      } else {
+        // New user, go to complete profile
+        router.replace('/completeProfile');
+      }
     } catch (error: any) {
       console.error('Google Sign-In Error:', error);
       console.error('Error Code:', error.code);

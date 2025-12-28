@@ -1,15 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useAuth } from '../context/auth-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 export default function OTPScreen() {
   const router = useRouter();
-  const { confirmation } = useAuth();
+  const { confirmation, setConfirmation } = useAuth();
   const params = useLocalSearchParams();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleResendOtp = async () => {
+    if (timer > 0 || isResending) return;
+
+    setIsResending(true);
+    try {
+      const phoneNumber = params.phoneNumber as string;
+      console.log(`Resending OTP to: ${phoneNumber}`);
+      const confirm = await auth().signInWithPhoneNumber(phoneNumber);
+      setConfirmation(confirm);
+      setTimer(60);
+      Alert.alert('Berjaya', 'Kod OTP baharu telah dihantar.');
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+      Alert.alert('Ralat', 'Gagal menghantar semula OTP. Sila cuba lagi kemudian.');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleSubmitOtp = async () => {
     if (otp.length !== 6) {
@@ -71,6 +103,18 @@ export default function OTPScreen() {
           {loading ? 'Mengesahkan...' : 'Hantar OTP'}
         </Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.resendContainer}
+        onPress={handleResendOtp}
+        disabled={timer > 0 || isResending}
+      >
+        <Text style={[styles.resendText, (timer > 0 || isResending) && styles.resendTextDisabled]}>
+          {timer > 0 
+            ? `Hantar semula dalam ${timer}s` 
+            : isResending ? 'Menghantar...' : 'Hantar semula OTP'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -121,5 +165,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  resendContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  resendText: {
+    color: '#00D09E',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  resendTextDisabled: {
+    color: '#a9a9a9',
   },
 });
