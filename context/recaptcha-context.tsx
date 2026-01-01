@@ -11,7 +11,7 @@ const RecaptchaContext = createContext<RecaptchaContextType>({
   isReady: false,
 });
 
-const RECAPTCHA_SITE_KEY = '6Ld5yxosAAAAAFv866aoBS4b8QcXKCUWOk0kzn-x';
+const RECAPTCHA_SITE_KEY = '6Lf3dDYsAAAAABZRqye0Yqo0bxoXgHUyLMfdJdA-';
 
 export function RecaptchaProvider({ children }: { children: React.ReactNode }) {
   const [client, setClient] = useState<any | null>(null);

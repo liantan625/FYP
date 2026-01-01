@@ -110,11 +110,11 @@ export default function LoginScreen() {
       setLoading(true);
       // Check if your device supports Google Play
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      
+
       // Get the users ID token
       const signInResult = await GoogleSignin.signIn();
       const idToken = signInResult.data?.idToken;
-      
+
       if (!idToken) {
         throw new Error('No ID token found');
       }
@@ -128,14 +128,14 @@ export default function LoginScreen() {
 
       // Check if user exists in Firestore and has completed profile
       const userDoc = await firestore().collection('users').doc(user.uid).get();
-      
+
       if (userDoc.exists) {
         const userData = userDoc.data();
         if (userData?.name && userData?.idNumber && userData?.birthday) {
           router.replace('/(tabs)/home');
         } else {
-           // User exists but profile incomplete
-           router.replace('/completeProfile');
+          // User exists but profile incomplete
+          router.replace('/completeProfile');
         }
       } else {
         // New user, go to complete profile
@@ -178,7 +178,7 @@ export default function LoginScreen() {
       console.log('Calling auth().signInWithPhoneNumber...');
       const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
       console.log('signInWithPhoneNumber returned result:', confirmationResult);
-      
+
       setConfirmation(confirmationResult);
       setCountdown(30); // Start 30s cooldown
       Alert.alert(t('common.success'), t('login.codeSent'));
@@ -201,8 +201,24 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      await confirmation.confirm(passcode);
-      router.replace('/(tabs)/home');
+      const credential = await confirmation.confirm(passcode);
+      const user = credential.user;
+
+      // Check if user exists in Firestore and has completed profile
+      const userDoc = await firestore().collection('users').doc(user.uid).get();
+
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        if (userData?.name && userData?.idNumber && userData?.birthday) {
+          router.replace('/(tabs)/home');
+        } else {
+          // User exists but profile incomplete
+          router.replace('/completeProfile');
+        }
+      } else {
+        // New user, go to complete profile
+        router.replace('/completeProfile');
+      }
     } catch (error) {
       console.error('Error verifying code:', error);
       Alert.alert(t('common.error'), t('login.invalidCode'));
@@ -322,9 +338,9 @@ export default function LoginScreen() {
         )}
 
         <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.dividerLine} />
         </View>
 
         <TouchableOpacity
@@ -332,11 +348,11 @@ export default function LoginScreen() {
           onPress={onGoogleButtonPress}
           disabled={loading}
         >
-          <Image 
-            source={{ uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' }} 
-            // Using a simple Material Icon for now as a reliable asset, or you can add a google logo asset
+          <Image
+            source={{ uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' }}
+          // Using a simple Material Icon for now as a reliable asset, or you can add a google logo asset
           />
-          <Ionicons name="logo-google" size={24} color="#DB4437" style={{ marginRight: 10 }} /> 
+          <Ionicons name="logo-google" size={24} color="#DB4437" style={{ marginRight: 10 }} />
           {/* Note: g-translate is just a placeholder icon, usually you'd use a real Google logo image asset */}
           <Text style={[styles.googleButtonText, { fontSize: fontSize.medium }]}>
             Sign in with Google

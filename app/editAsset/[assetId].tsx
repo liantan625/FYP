@@ -54,6 +54,17 @@ export default function EditAssetScreen() {
       return;
     }
 
+    if (!assetName || assetName.trim() === '') {
+      Alert.alert('Ralat', 'Sila masukkan nama aset.');
+      return;
+    }
+
+    const parsedAmount = parseFloat(amount);
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      Alert.alert('Ralat', 'Sila masukkan amaun yang sah (lebih besar daripada 0.00).');
+      return;
+    }
+
     try {
       await firestore()
         .collection('users')

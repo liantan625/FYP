@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import { useAuth } from '../context/auth-context';
 import { useRecaptcha } from '../context/recaptcha-context';
 import { RecaptchaAction } from '@google-cloud/recaptcha-enterprise-react-native';
@@ -134,7 +135,7 @@ export default function SignUpScreen() {
       Alert.alert(t('common.error'), t('signup.fillAllFields'));
       return;
     }
-    
+
     const birthdayString = birthday.toLocaleDateString('en-GB');
     if (passcode !== repeatPasscode) {
       Alert.alert(t('common.error'), t('signup.passcodeMismatch'));
@@ -153,7 +154,7 @@ export default function SignUpScreen() {
       Alert.alert(t('common.error'), t('signup.recaptchaNotReady'));
       return;
     }
-  
+
     setLoading(true);
     try {
       // Execute reCAPTCHA for SIGNUP action
@@ -161,15 +162,27 @@ export default function SignUpScreen() {
       const token = await client.execute(RecaptchaAction.SIGNUP());
       console.log('reCAPTCHA Token received:', token);
 
+      // Check for unique ID
+      const usersSnapshot = await firestore()
+        .collection('users')
+        .where('idNumber', '==', idNumber)
+        .get();
+
+      if (!usersSnapshot.empty) {
+        Alert.alert(t('common.error'), 'Nombor kad pengenalan ini telah didaftarkan.');
+        setLoading(false);
+        return;
+      }
+
       // TODO: Send token to your backend for verification before proceeding
       // For now, we proceed with phone authentication
-      
+
       // phoneNumber already contains +60 prefix from the input
       // Just ensure it's clean and properly formatted
-      const fullPhoneNumber = phoneNumber.startsWith('+') 
-        ? phoneNumber 
+      const fullPhoneNumber = phoneNumber.startsWith('+')
+        ? phoneNumber
         : `+${phoneNumber}`;
-      
+
       console.log(`Attempting sign in with: ${fullPhoneNumber}`);
 
       const confirm = await auth().signInWithPhoneNumber(fullPhoneNumber);
@@ -197,7 +210,7 @@ export default function SignUpScreen() {
         </TouchableOpacity>
         <View style={styles.fontSizeContainer}>
           <TouchableOpacity onPress={toggleFontSizeMenu} style={styles.fontSizeButton}>
-                     <MaterialIcons name="format-size" size={24} color="#333" />
+            <MaterialIcons name="format-size" size={24} color="#333" />
           </TouchableOpacity>
           {showFontSizeMenu && (
             <View style={styles.fontSizeMenu}>
@@ -273,7 +286,7 @@ export default function SignUpScreen() {
             </Text>
             <MaterialIcons name="calendar-today" size={24} color="#666" style={styles.dateIcon} />
           </TouchableOpacity>
-          
+
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"

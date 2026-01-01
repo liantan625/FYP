@@ -7,8 +7,11 @@ import {
   Alert,
   TouchableOpacity,
   Image,
-  ScrollView
+  ScrollView,
+  Modal,
+  Platform
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,6 +31,19 @@ export default function ProfileScreen() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const { fontScale, fontScaleKey, setFontScale, language, setLanguage } = useSettings();
+  const [isLanguagePickerVisible, setLanguagePickerVisible] = useState(false);
+
+  const languages = [
+    { label: 'Bahasa Melayu', value: 'ms' },
+    { label: 'English', value: 'en' },
+    { label: '中文', value: 'zh' },
+    { label: 'தமிழ்', value: 'ta' },
+  ];
+
+  const getSelectedLanguageLabel = () => {
+    const selected = languages.find(l => l.value === language);
+    return selected ? selected.label : 'Select Language';
+  };
 
   const handleFontSizeChange = async (key: 'small' | 'medium' | 'large') => {
     await setFontScale(key);
@@ -105,7 +121,7 @@ export default function ProfileScreen() {
         <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('profile.title')}</Text>
         <View style={{ width: 28 }} />
       </View>
-      
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Profile Info */}
         <View style={styles.profileContainer}>
@@ -164,18 +180,49 @@ export default function ProfileScreen() {
           <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('profile.language')}</Text>
           <View style={styles.languageButton}>
             <MaterialIcons name="language" size={24 * fontScale} color="#2196F3" style={styles.languageIcon} />
-            <RNPickerSelect
-              onValueChange={(value) => setLanguage(value)}
-              items={[
-                { label: 'Bahasa Melayu', value: 'ms' },
-                { label: 'English', value: 'en' },
-                { label: '中文', value: 'zh' },
-                { label: 'தமிழ்', value: 'ta' },
-              ]}
-              style={pickerSelectStyles(fontScale)}
-              value={language}
-              placeholder={{}}
-            />
+            {Platform.OS === 'ios' ? (
+              <>
+                <TouchableOpacity
+                  style={{ flex: 1 }}
+                  onPress={() => setLanguagePickerVisible(true)}
+                >
+                  <Text style={[pickerSelectStyles(fontScale).inputIOS, { paddingVertical: 12 }]}>
+                    {getSelectedLanguageLabel()}
+                  </Text>
+                </TouchableOpacity>
+                <Modal
+                  visible={isLanguagePickerVisible}
+                  transparent={true}
+                  animationType="slide"
+                >
+                  <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                      <View style={styles.modalHeader}>
+                        <TouchableOpacity onPress={() => setLanguagePickerVisible(false)}>
+                          <Text style={styles.doneButtonText}>Selesai</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Picker
+                        selectedValue={language}
+                        onValueChange={(itemValue) => setLanguage(itemValue)}
+                      >
+                        {languages.map((item) => (
+                          <Picker.Item key={item.value} label={item.label} value={item.value} />
+                        ))}
+                      </Picker>
+                    </View>
+                  </View>
+                </Modal>
+              </>
+            ) : (
+              <RNPickerSelect
+                onValueChange={(value) => setLanguage(value)}
+                items={languages}
+                style={pickerSelectStyles(fontScale)}
+                value={language}
+                placeholder={{}}
+              />
+            )}
           </View>
         </View>
 
@@ -185,7 +232,7 @@ export default function ProfileScreen() {
           <Text style={[styles.sectionDescription, { fontSize: fontSize.body }]}>
             {t('profile.fontSizeDescription')}
           </Text>
-          
+
           {Object.entries(FontScaleOptions).map(([key, { label, value }]) => (
             <TouchableOpacity
               key={key}
@@ -409,6 +456,29 @@ const styles = StyleSheet.create({
   previewText: {
     color: '#666',
     fontWeight: '500',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  doneButtonText: {
+    color: '#2196F3',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

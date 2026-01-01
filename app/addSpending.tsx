@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  Alert
+  Alert,
+  Modal,
+  Platform
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -70,6 +73,12 @@ export default function AddSpendingScreen() {
   const [spendingName, setSpendingName] = useState('');
   const [amount, setAmount] = useState('0.00');
   const [description, setDescription] = useState('');
+  const [isPickerVisible, setPickerVisible] = useState(false);
+
+  const getSelectedCategoryLabel = () => {
+    const selected = spendingCategories.find(c => c.value === category);
+    return selected ? selected.label : 'Pilih Jenis Perbelanjaan';
+  };
 
   const handleSave = async () => {
     console.log('handleSave called');
@@ -81,9 +90,19 @@ export default function AddSpendingScreen() {
     }
     console.log('User UID:', user.uid);
 
-    if (!category || !spendingName || !amount) {
-      console.log('Missing fields:', { category, spendingName, amount });
-      Alert.alert('Error', 'Please fill in all required fields.');
+    if (!category) {
+      Alert.alert('Ralat', 'Sila pilih kategori perbelanjaan.');
+      return;
+    }
+
+    if (!spendingName || spendingName.trim() === '') {
+      Alert.alert('Ralat', 'Sila masukkan nama perbelanjaan.');
+      return;
+    }
+
+    const parsedAmount = parseFloat(amount);
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      Alert.alert('Ralat', 'Sila masukkan amaun yang sah (lebih besar daripada 0.00).');
       return;
     }
     console.log('All fields filled');
@@ -155,14 +174,60 @@ export default function AddSpendingScreen() {
           />
 
           <Text style={[styles.label, { fontSize: fontSize.medium }]}>📂 Kategori Perbelanjaan</Text>
-          <View style={styles.pickerContainer}>
-            <RNPickerSelect
-              onValueChange={(value) => setCategory(value)}
-              items={spendingCategories}
-              placeholder={{ label: 'Pilih Jenis Perbelanjaan', value: null }}
-              style={pickerSelectStyles(fontSize.fontScale)}
-            />
-          </View>
+          {Platform.OS === 'ios' ? (
+            <>
+              <TouchableOpacity
+                style={styles.pickerContainer}
+                onPress={() => setPickerVisible(true)}
+              >
+                <Text
+                  style={[
+                    styles.input,
+                    {
+                      fontSize: fontSize.medium,
+                      color: category ? '#000' : '#666',
+                      paddingVertical: 15
+                    }
+                  ]}
+                >
+                  {getSelectedCategoryLabel()}
+                </Text>
+              </TouchableOpacity>
+              <Modal
+                visible={isPickerVisible}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                      <TouchableOpacity onPress={() => setPickerVisible(false)}>
+                        <Text style={styles.doneButtonText}>Selesai</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Picker
+                      selectedValue={category}
+                      onValueChange={(itemValue) => setCategory(itemValue)}
+                    >
+                      <Picker.Item label="Pilih Jenis Perbelanjaan" value={null} />
+                      {spendingCategories.map((item) => (
+                        <Picker.Item key={item.value} label={item.label} value={item.value} />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+              </Modal>
+            </>
+          ) : (
+            <View style={styles.pickerContainer}>
+              <RNPickerSelect
+                onValueChange={(value) => setCategory(value)}
+                items={spendingCategories}
+                placeholder={{ label: 'Pilih Jenis Perbelanjaan', value: null }}
+                style={pickerSelectStyles(fontSize.fontScale)}
+              />
+            </View>
+          )}
 
           <Text style={[styles.label, { fontSize: fontSize.medium }]}>💸 Nama Perbelanjaan</Text>
           <View style={styles.inputContainer}>
@@ -285,6 +350,29 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  doneButtonText: {
+    color: '#00D9A8',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

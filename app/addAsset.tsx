@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  Alert
+  Alert,
+  Modal,
+  Platform
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -71,6 +74,12 @@ export default function AddAssetScreen() {
   const [amount, setAmount] = useState('0.00');
   const [description, setDescription] = useState('');
   const [isRecurringIncome, setIsRecurringIncome] = useState(false);
+  const [isPickerVisible, setPickerVisible] = useState(false);
+
+  const getSelectedCategoryLabel = () => {
+    const selected = assetCategories.find(c => c.value === category);
+    return selected ? selected.label : 'Pilih Aset/Pendapatan';
+  };
 
   const handleSave = async () => {
     const user = auth().currentUser;
@@ -79,8 +88,19 @@ export default function AddAssetScreen() {
       return;
     }
 
-    if (!category || !assetName || !amount) {
-      Alert.alert('Error', 'Please fill in all required fields.');
+    if (!category) {
+      Alert.alert('Ralat', 'Sila pilih kategori aset.');
+      return;
+    }
+
+    if (!assetName || assetName.trim() === '') {
+      Alert.alert('Ralat', 'Sila masukkan nama aset.');
+      return;
+    }
+
+    const parsedAmount = parseFloat(amount);
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      Alert.alert('Ralat', 'Sila masukkan amaun yang sah (lebih besar daripada 0.00).');
       return;
     }
 
@@ -152,14 +172,60 @@ export default function AddAssetScreen() {
           />
 
           <Text style={[styles.label, { fontSize: fontSize.medium }]}>📂 Kategori Aset</Text>
-          <View style={styles.pickerContainer}>
-            <RNPickerSelect
-              onValueChange={(value) => setCategory(value)}
-              items={assetCategories}
-              placeholder={{ label: 'Pilih Aset/Pendapatan', value: null }}
-              style={pickerSelectStyles(fontSize.fontScale)}
-            />
-          </View>
+          {Platform.OS === 'ios' ? (
+            <>
+              <TouchableOpacity
+                style={styles.pickerContainer}
+                onPress={() => setPickerVisible(true)}
+              >
+                <Text
+                  style={[
+                    styles.input,
+                    {
+                      fontSize: fontSize.medium,
+                      color: category ? '#000' : '#666',
+                      paddingVertical: 15
+                    }
+                  ]}
+                >
+                  {getSelectedCategoryLabel()}
+                </Text>
+              </TouchableOpacity>
+              <Modal
+                visible={isPickerVisible}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                      <TouchableOpacity onPress={() => setPickerVisible(false)}>
+                        <Text style={styles.doneButtonText}>Selesai</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Picker
+                      selectedValue={category}
+                      onValueChange={(itemValue) => setCategory(itemValue)}
+                    >
+                      <Picker.Item label="Pilih Aset/Pendapatan" value={null} />
+                      {assetCategories.map((item) => (
+                        <Picker.Item key={item.value} label={item.label} value={item.value} />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+              </Modal>
+            </>
+          ) : (
+            <View style={styles.pickerContainer}>
+              <RNPickerSelect
+                onValueChange={(value) => setCategory(value)}
+                items={assetCategories}
+                placeholder={{ label: 'Pilih Aset/Pendapatan', value: null }}
+                style={pickerSelectStyles(fontSize.fontScale)}
+              />
+            </View>
+          )}
 
           <Text style={[styles.label, { fontSize: fontSize.medium }]}>🏦 Nama Aset</Text>
           <View style={styles.inputContainer}>
@@ -326,6 +392,29 @@ const styles = StyleSheet.create({
     flex: 1,
     fontWeight: '600',
     color: '#333',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  doneButtonText: {
+    color: '#00D9A8',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

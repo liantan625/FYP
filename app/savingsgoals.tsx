@@ -100,8 +100,31 @@ const SavingsGoalScreen: React.FC = () => {
   };
 
   const handleCreate = () => {
+    const parsedTarget = parseFloat(targetAmount);
+    const parsedCurrent = parseFloat(currentAmount);
+
     if (!goalName || !targetAmount || !targetDate) {
       Alert.alert('Ralat', 'Sila isi semua medan yang diperlukan');
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(targetDate);
+    checkDate.setHours(0, 0, 0, 0);
+
+    if (checkDate < today) {
+      Alert.alert('Ralat', 'Tarikh sasaran tidak boleh berada pada masa lalu');
+      return;
+    }
+
+    if (isNaN(parsedTarget) || parsedTarget <= 0) {
+      Alert.alert('Ralat', 'Sila masukkan jumlah sasaran yang sah (lebih besar daripada 0)');
+      return;
+    }
+
+    if (currentAmount && (isNaN(parsedCurrent) || parsedCurrent < 0)) {
+      Alert.alert('Ralat', 'Sila masukkan jumlah semasa yang sah (0 atau lebih)');
       return;
     }
 
@@ -130,8 +153,31 @@ const SavingsGoalScreen: React.FC = () => {
   };
 
   const handleUpdate = () => {
+    const parsedTarget = parseFloat(targetAmount);
+    const parsedCurrent = parseFloat(currentAmount);
+
     if (!selectedGoal || !goalName || !targetAmount || !targetDate) {
       Alert.alert('Ralat', 'Sila isi semua medan yang diperlukan');
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(targetDate);
+    checkDate.setHours(0, 0, 0, 0);
+
+    if (checkDate < today) {
+      Alert.alert('Ralat', 'Tarikh sasaran tidak boleh berada pada masa lalu');
+      return;
+    }
+
+    if (isNaN(parsedTarget) || parsedTarget <= 0) {
+      Alert.alert('Ralat', 'Sila masukkan jumlah sasaran yang sah (lebih besar daripada 0)');
+      return;
+    }
+
+    if (currentAmount && (isNaN(parsedCurrent) || parsedCurrent < 0)) {
+      Alert.alert('Ralat', 'Sila masukkan jumlah semasa yang sah (0 atau lebih)');
       return;
     }
 
@@ -228,7 +274,7 @@ const SavingsGoalScreen: React.FC = () => {
               <Text style={styles.buttonText}>Kemas Kini</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.closeButton]}              onPress={() => handleClose(goal.id)}
+              style={[styles.button, styles.closeButton]} onPress={() => handleClose(goal.id)}
             >
               <Text style={styles.buttonText}>Tutup</Text>
             </TouchableOpacity>
