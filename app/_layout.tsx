@@ -120,14 +120,6 @@ function AppLayout() {
         <Stack.Screen name="tips" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
-      {pathname === '/home' && (
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={() => router.push('/notifications')}
-        >
-          <MaterialIcons name="notifications" size={18} color="white" />
-        </TouchableOpacity>
-      )}
       <Toast config={toastConfig} />
     </ThemeProvider>
   );
@@ -145,26 +137,4 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  notificationButton: {
-    position: 'absolute',
-    top: 30, // Position at the top
-    right: 10, // Position at the right
-    width: 30, // Smaller width
-    height: 30, // Smaller height
-    borderRadius: 20, // Smaller borderRadius
-    backgroundColor: '#A9A9A9', // Grey background
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    padding: 5, // Add padding
-    margin: 5, // Add margin
-  },
-});
+const styles = StyleSheet.create({});

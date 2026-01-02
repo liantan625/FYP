@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,10 @@ import {
   Switch,
   TextInput,
   Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -16,6 +20,7 @@ import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import { useTranslation } from 'react-i18next';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Reminder {
   id: string;
@@ -39,26 +44,119 @@ export default function RemindersScreen() {
   const fontSize = useScaledFontSize();
   const { t } = useTranslation();
 
-  const [reminders, setReminders] = useState<Reminder[]>([
-    { id: '1', title: 'Bil Elektrik', amount: 150, dueDate: '25', isEnabled: true, category: 'bill' },
-    { id: '2', title: 'Bil Air', amount: 30, dueDate: '20', isEnabled: true, category: 'bill' },
-    { id: '3', title: 'Netflix', amount: 45, dueDate: '15', isEnabled: true, category: 'subscription' },
-    { id: '4', title: 'Simpanan Bulanan', amount: 500, dueDate: '1', isEnabled: true, category: 'savings' },
-  ]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [newReminder, setNewReminder] = useState({
     title: '',
     amount: '',
-    dueDate: '',
+    dueDate: new Date().getDate().toString(),
     category: 'bill',
   });
 
-  const toggleReminder = (id: string) => {
-    setReminders((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, isEnabled: !r.isEnabled } : r))
-    );
+  // Validation errors
+  const [errors, setErrors] = useState<{ title?: string; amount?: string; dueDate?: string }>({});
+
+  // Date picker state
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Fetch reminders from Firebase
+  const fetchReminders = useCallback(async () => {
+    const user = auth().currentUser;
+    if (!user) return;
+
+    try {
+      const snapshot = await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('reminders')
+        .orderBy('dueDate', 'asc')
+        .get();
+
+      const fetchedReminders: Reminder[] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Reminder[];
+
+      setReminders(fetchedReminders);
+    } catch (error) {
+      console.error('Error fetching reminders:', error);
+      Alert.alert('Ralat', 'Gagal memuatkan peringatan');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchReminders();
+  }, [fetchReminders]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchReminders();
+    setRefreshing(false);
+  }, [fetchReminders]);
+
+  // Validation function
+  const validateForm = (): boolean => {
+    const newErrors: { title?: string; amount?: string; dueDate?: string } = {};
+
+    if (!newReminder.title.trim()) {
+      newErrors.title = 'Nama peringatan diperlukan';
+    } else if (newReminder.title.trim().length < 2) {
+      newErrors.title = 'Nama mestilah sekurang-kurangnya 2 aksara';
+    }
+
+    if (!newReminder.amount.trim()) {
+      newErrors.amount = 'Jumlah diperlukan';
+    } else {
+      const amount = parseFloat(newReminder.amount);
+      if (isNaN(amount) || amount <= 0) {
+        newErrors.amount = 'Jumlah mestilah nombor positif';
+      } else if (amount > 1000000) {
+        newErrors.amount = 'Jumlah terlalu besar';
+      }
+    }
+
+    if (!newReminder.dueDate.trim()) {
+      newErrors.dueDate = 'Tarikh diperlukan';
+    } else {
+      const day = parseInt(newReminder.dueDate, 10);
+      if (isNaN(day) || day < 1 || day > 31) {
+        newErrors.dueDate = 'Tarikh mestilah antara 1 hingga 31';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  // Toggle reminder enabled status
+  const toggleReminder = async (id: string, currentStatus: boolean) => {
+    const user = auth().currentUser;
+    if (!user) return;
+
+    try {
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .collection('reminders')
+        .doc(id)
+        .update({ isEnabled: !currentStatus });
+
+      setReminders((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, isEnabled: !currentStatus } : r))
+      );
+    } catch (error) {
+      console.error('Error toggling reminder:', error);
+      Alert.alert('Ralat', 'Gagal mengemaskini peringatan');
+    }
+  };
+
+  // Delete reminder
   const deleteReminder = (id: string) => {
     Alert.alert(
       'Padam Peringatan',
@@ -68,30 +166,110 @@ export default function RemindersScreen() {
         {
           text: 'Padam',
           style: 'destructive',
-          onPress: () => setReminders((prev) => prev.filter((r) => r.id !== id)),
+          onPress: async () => {
+            const user = auth().currentUser;
+            if (!user) return;
+
+            try {
+              await firestore()
+                .collection('users')
+                .doc(user.uid)
+                .collection('reminders')
+                .doc(id)
+                .delete();
+
+              setReminders((prev) => prev.filter((r) => r.id !== id));
+            } catch (error) {
+              console.error('Error deleting reminder:', error);
+              Alert.alert('Ralat', 'Gagal memadamkan peringatan');
+            }
+          },
         },
       ]
     );
   };
 
-  const addReminder = () => {
-    if (!newReminder.title || !newReminder.amount || !newReminder.dueDate) {
-      Alert.alert('Ralat', 'Sila isi semua maklumat');
+  // Add or update reminder
+  const saveReminder = async () => {
+    if (!validateForm()) {
       return;
     }
 
-    const reminder: Reminder = {
-      id: Date.now().toString(),
-      title: newReminder.title,
+    const user = auth().currentUser;
+    if (!user) return;
+
+    const reminderData = {
+      title: newReminder.title.trim(),
       amount: parseFloat(newReminder.amount),
       dueDate: newReminder.dueDate,
       isEnabled: true,
       category: newReminder.category,
     };
 
-    setReminders((prev) => [...prev, reminder]);
-    setNewReminder({ title: '', amount: '', dueDate: '', category: 'bill' });
+    try {
+      if (editingReminder) {
+        await firestore()
+          .collection('users')
+          .doc(user.uid)
+          .collection('reminders')
+          .doc(editingReminder.id)
+          .update(reminderData);
+
+        setReminders((prev) =>
+          prev.map((r) =>
+            r.id === editingReminder.id ? { ...r, ...reminderData } : r
+          )
+        );
+      } else {
+        const docRef = await firestore()
+          .collection('users')
+          .doc(user.uid)
+          .collection('reminders')
+          .add(reminderData);
+
+        setReminders((prev) => [...prev, { id: docRef.id, ...reminderData }]);
+      }
+
+      resetForm();
+    } catch (error) {
+      console.error('Error saving reminder:', error);
+      Alert.alert('Ralat', 'Gagal menyimpan peringatan');
+    }
+  };
+
+  const resetForm = () => {
+    setNewReminder({ title: '', amount: '', dueDate: new Date().getDate().toString(), category: 'bill' });
+    setErrors({});
     setShowAddForm(false);
+    setEditingReminder(null);
+    setSelectedDate(new Date());
+  };
+
+  const startEditing = (reminder: Reminder) => {
+    setEditingReminder(reminder);
+    setNewReminder({
+      title: reminder.title,
+      amount: reminder.amount.toString(),
+      dueDate: reminder.dueDate,
+      category: reminder.category,
+    });
+    // Set date picker to the reminder's due date
+    const date = new Date();
+    date.setDate(parseInt(reminder.dueDate, 10));
+    setSelectedDate(date);
+    setErrors({});
+    setShowAddForm(true);
+  };
+
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (date) {
+      setSelectedDate(date);
+      setNewReminder((prev) => ({ ...prev, dueDate: date.getDate().toString() }));
+      setErrors((prev) => ({ ...prev, dueDate: undefined }));
+    }
   };
 
   const getCategoryEmoji = (category: string) => {
@@ -102,20 +280,40 @@ export default function RemindersScreen() {
     .filter((r) => r.isEnabled)
     .reduce((sum, r) => sum + r.amount, 0);
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#48BB78" />
+          <Text style={styles.loadingText}>Memuatkan peringatan...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#333" />
+          <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>⏰ Peringatan</Text>
-        <TouchableOpacity onPress={() => setShowAddForm(true)} style={styles.addButton}>
-          <MaterialIcons name="add" size={24} color="#00D9A8" />
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Peringatan</Text>
+        <TouchableOpacity onPress={() => { resetForm(); setShowAddForm(true); }} style={styles.addButton}>
+          <MaterialIcons name="add" size={24} color="#48BB78" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#48BB78" />
+        }
+      >
         <View style={styles.summaryCard}>
+          <View style={styles.summaryIcon}>
+            <MaterialIcons name="notifications-active" size={32} color="#fff" />
+          </View>
           <Text style={[styles.summaryLabel, { fontSize: fontSize.small }]}>
             Jumlah Peringatan Bulanan
           </Text>
@@ -130,59 +328,83 @@ export default function RemindersScreen() {
         {showAddForm && (
           <View style={styles.addFormCard}>
             <Text style={[styles.formTitle, { fontSize: fontSize.medium }]}>
-              Tambah Peringatan Baru
+              {editingReminder ? 'Kemaskini Peringatan' : 'Tambah Peringatan Baru'}
             </Text>
-            
+
             <TextInput
-              style={[styles.input, { fontSize: fontSize.medium }]}
+              style={[styles.input, errors.title && styles.inputError, { fontSize: fontSize.medium }]}
               placeholder="Nama peringatan"
+              placeholderTextColor="#94A3B8"
               value={newReminder.title}
-              onChangeText={(text) => setNewReminder((prev) => ({ ...prev, title: text }))}
+              onChangeText={(text) => {
+                setNewReminder((prev) => ({ ...prev, title: text }));
+                if (errors.title) setErrors((prev) => ({ ...prev, title: undefined }));
+              }}
             />
-            
+            {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
+
             <TextInput
-              style={[styles.input, { fontSize: fontSize.medium }]}
+              style={[styles.input, errors.amount && styles.inputError, { fontSize: fontSize.medium }]}
               placeholder="Jumlah (RM)"
+              placeholderTextColor="#94A3B8"
               keyboardType="numeric"
               value={newReminder.amount}
-              onChangeText={(text) => setNewReminder((prev) => ({ ...prev, amount: text }))}
+              onChangeText={(text) => {
+                setNewReminder((prev) => ({ ...prev, amount: text }));
+                if (errors.amount) setErrors((prev) => ({ ...prev, amount: undefined }));
+              }}
             />
-            
-            <TextInput
-              style={[styles.input, { fontSize: fontSize.medium }]}
-              placeholder="Tarikh (1-31)"
-              keyboardType="numeric"
-              value={newReminder.dueDate}
-              onChangeText={(text) => setNewReminder((prev) => ({ ...prev, dueDate: text }))}
-            />
+            {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
 
-            <View style={styles.categoryContainer}>
-              {REMINDER_CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              style={[styles.datePickerButton, errors.dueDate && styles.inputError]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <MaterialIcons name="calendar-today" size={20} color="#48BB78" />
+              <Text style={[styles.datePickerText, { fontSize: fontSize.medium }]}>
+                Setiap {newReminder.dueDate} haribulan
+              </Text>
+              <MaterialIcons name="chevron-right" size={20} color="#94A3B8" />
+            </TouchableOpacity>
+            {errors.dueDate && <Text style={styles.errorText}>{errors.dueDate}</Text>}
+
+            <Text style={[styles.categoryLabel, { fontSize: fontSize.small }]}>Kategori</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryScrollContent}
+              style={styles.categoryScroll}
+            >
+              {REMINDER_CATEGORIES.map((cat, index) => (
                 <TouchableOpacity
                   key={cat.id}
                   style={[
                     styles.categoryButton,
                     newReminder.category === cat.id && styles.categoryButtonActive,
+                    index === REMINDER_CATEGORIES.length - 1 && { marginRight: 0 },
                   ]}
                   onPress={() => setNewReminder((prev) => ({ ...prev, category: cat.id }))}
                 >
-                  <Text>{cat.emoji}</Text>
+                  <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                  <Text style={[styles.categoryText, { fontSize: fontSize.tiny }]}>{cat.label}</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
 
             <View style={styles.formButtons}>
               <TouchableOpacity
                 style={[styles.formButton, styles.cancelButton]}
-                onPress={() => setShowAddForm(false)}
+                onPress={resetForm}
               >
                 <Text style={styles.cancelButtonText}>Batal</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.formButton, styles.saveButton]}
-                onPress={addReminder}
+                onPress={saveReminder}
               >
-                <Text style={styles.saveButtonText}>Simpan</Text>
+                <Text style={styles.saveButtonText}>
+                  {editingReminder ? 'Kemaskini' : 'Simpan'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -192,38 +414,97 @@ export default function RemindersScreen() {
           Senarai Peringatan
         </Text>
 
-        {reminders.map((reminder) => (
-          <View key={reminder.id} style={styles.reminderCard}>
-            <View style={styles.reminderLeft}>
-              <Text style={styles.reminderEmoji}>{getCategoryEmoji(reminder.category)}</Text>
-              <View style={styles.reminderInfo}>
-                <Text style={[styles.reminderTitle, { fontSize: fontSize.medium }]}>
-                  {reminder.title}
-                </Text>
-                <Text style={[styles.reminderDue, { fontSize: fontSize.small }]}>
-                  Setiap {reminder.dueDate} haribulan
-                </Text>
+        {reminders.length === 0 ? (
+          <View style={styles.emptyState}>
+            <MaterialIcons name="notifications-off" size={64} color="#CBD5E1" />
+            <Text style={[styles.emptyStateText, { fontSize: fontSize.medium }]}>
+              Tiada peringatan lagi
+            </Text>
+            <Text style={[styles.emptyStateSubtext, { fontSize: fontSize.small }]}>
+              Tekan + untuk menambah peringatan pertama anda
+            </Text>
+          </View>
+        ) : (
+          reminders.map((reminder) => (
+            <TouchableOpacity
+              key={reminder.id}
+              style={[styles.reminderCard, !reminder.isEnabled && styles.reminderCardDisabled]}
+              onPress={() => startEditing(reminder)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.reminderLeft}>
+                <View style={[styles.reminderIconContainer, { backgroundColor: reminder.isEnabled ? '#E8F5E9' : '#F1F5F9' }]}>
+                  <Text style={styles.reminderEmoji}>{getCategoryEmoji(reminder.category)}</Text>
+                </View>
+                <View style={styles.reminderInfo}>
+                  <Text style={[styles.reminderTitle, { fontSize: fontSize.medium }, !reminder.isEnabled && styles.textDisabled]}>
+                    {reminder.title}
+                  </Text>
+                  <Text style={[styles.reminderDue, { fontSize: fontSize.small }]}>
+                    Setiap {reminder.dueDate} haribulan
+                  </Text>
+                </View>
               </View>
-            </View>
-            <View style={styles.reminderRight}>
-              <Text style={[styles.reminderAmount, { fontSize: fontSize.medium }]}>
-                RM {reminder.amount.toFixed(2)}
-              </Text>
-              <View style={styles.reminderActions}>
-                <Switch
-                  value={reminder.isEnabled}
-                  onValueChange={() => toggleReminder(reminder.id)}
-                  trackColor={{ false: '#E2E8F0', true: '#00D9A8' }}
-                  thumbColor="#fff"
-                />
-                <TouchableOpacity onPress={() => deleteReminder(reminder.id)}>
-                  <MaterialIcons name="delete-outline" size={22} color="#EF4444" />
+              <View style={styles.reminderRight}>
+                <Text style={[styles.reminderAmount, { fontSize: fontSize.medium }, !reminder.isEnabled && styles.textDisabled]}>
+                  RM {reminder.amount.toFixed(2)}
+                </Text>
+                <View style={styles.reminderActions}>
+                  <Switch
+                    value={reminder.isEnabled}
+                    onValueChange={() => toggleReminder(reminder.id, reminder.isEnabled)}
+                    trackColor={{ false: '#E2E8F0', true: '#48BB78' }}
+                    thumbColor="#fff"
+                  />
+                  <TouchableOpacity onPress={() => deleteReminder(reminder.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <MaterialIcons name="delete-outline" size={22} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
+
+      {/* Date Picker Modal for iOS */}
+      {Platform.OS === 'ios' && (
+        <Modal
+          visible={showDatePicker}
+          transparent
+          animationType="slide"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={styles.modalCancel}>Batal</Text>
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>Pilih Tarikh</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={styles.modalDone}>Selesai</Text>
                 </TouchableOpacity>
               </View>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                style={{ height: 200 }}
+              />
             </View>
           </View>
-        ))}
-      </ScrollView>
+        </Modal>
+      )}
+
+      {/* Date Picker for Android */}
+      {Platform.OS === 'android' && showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -231,44 +512,74 @@ export default function RemindersScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8FAFC',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#64748B',
+    fontSize: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
   backButton: {
     padding: 8,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
   },
   headerTitle: {
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#1F2937',
   },
   addButton: {
     padding: 8,
+    borderRadius: 12,
+    backgroundColor: '#E8F5E9',
   },
   container: {
     flex: 1,
     padding: 20,
   },
   summaryCard: {
-    backgroundColor: '#00D9A8',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: '#48BB78',
+    borderRadius: 20,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    shadowColor: '#48BB78',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  summaryIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   summaryLabel: {
     color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
   },
   summaryAmount: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: '800',
     marginTop: 8,
   },
   summaryCount: {
@@ -277,18 +588,18 @@ const styles = StyleSheet.create({
   },
   addFormCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   formTitle: {
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 16,
   },
   input: {
@@ -296,30 +607,73 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     borderRadius: 12,
     padding: 14,
-    marginBottom: 12,
+    marginBottom: 4,
+    backgroundColor: '#F8FAFC',
+    color: '#1F2937',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+    borderWidth: 1.5,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 4,
     backgroundColor: '#F8FAFC',
   },
-  categoryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
+  datePickerText: {
+    flex: 1,
+    marginLeft: 10,
+    color: '#1F2937',
+  },
+  categoryLabel: {
+    color: '#64748B',
+    fontWeight: '600',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  categoryScroll: {
+    marginBottom: 20,
+  },
+  categoryScrollContent: {
+    paddingRight: 8,
   },
   categoryButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#F1F5F9',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: '#F1F5F9',
+    marginRight: 12,
+    minWidth: 72,
   },
   categoryButtonActive: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: '#E8F5E9',
     borderWidth: 2,
-    borderColor: '#00D9A8',
+    borderColor: '#48BB78',
+  },
+  categoryEmoji: {
+    fontSize: 22,
+    marginBottom: 6,
+  },
+  categoryText: {
+    color: '#64748B',
+    fontWeight: '600',
   },
   formButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 12,
   },
   formButton: {
     flex: 1,
@@ -329,70 +683,127 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: '#F1F5F9',
-    marginRight: 10,
   },
   cancelButtonText: {
-    color: '#666',
+    color: '#64748B',
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#00D9A8',
-    marginLeft: 10,
+    backgroundColor: '#48BB78',
   },
   saveButtonText: {
     color: '#fff',
     fontWeight: '600',
   },
   sectionTitle: {
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    color: '#64748B',
+    fontWeight: '600',
+    marginTop: 16,
+  },
+  emptyStateSubtext: {
+    color: '#94A3B8',
+    marginTop: 4,
   },
   reminderCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 10,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 2,
+  },
+  reminderCardDisabled: {
+    opacity: 0.6,
   },
   reminderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  reminderEmoji: {
-    fontSize: 28,
+  reminderIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
+  },
+  reminderEmoji: {
+    fontSize: 24,
   },
   reminderInfo: {
     flex: 1,
   },
   reminderTitle: {
     fontWeight: '600',
-    color: '#333',
+    color: '#1F2937',
   },
   reminderDue: {
-    color: '#666',
+    color: '#64748B',
     marginTop: 2,
+  },
+  textDisabled: {
+    color: '#94A3B8',
   },
   reminderRight: {
     alignItems: 'flex-end',
   },
   reminderAmount: {
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#1F2937',
     marginBottom: 8,
   },
   reminderActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  modalCancel: {
+    fontSize: 16,
+    color: '#64748B',
+  },
+  modalDone: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#48BB78',
   },
 });

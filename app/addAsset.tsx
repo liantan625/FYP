@@ -8,7 +8,8 @@ import {
   TextInput,
   Alert,
   Modal,
-  Platform
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Toast from 'react-native-toast-message';
@@ -148,137 +149,198 @@ export default function AddAssetScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Tambah Aset</Text>
-        <TouchableOpacity onPress={() => Alert.alert('No new notifications')}>
-          <MaterialIcons name="notifications" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 44 }} />
       </View>
-      <ScrollView style={styles.container}>
-        <View style={styles.form}>
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📅 Tarikh</Text>
-          <TouchableOpacity onPress={showDatePicker} style={styles.inputContainer}>
-            <Text style={[styles.input, { fontSize: fontSize.medium }]}>{date.toLocaleDateString()}</Text>
-            <MaterialIcons name="calendar-today" size={24} color="#666" style={styles.inputIcon} />
-          </TouchableOpacity>
-          <DateTimePickerModal
-            isVisible={isDatePickerVisible}
-            mode="date"
-            onConfirm={handleConfirm}
-            onCancel={hideDatePicker}
-          />
 
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📂 Kategori Aset</Text>
-          {Platform.OS === 'ios' ? (
-            <>
-              <TouchableOpacity
-                style={styles.pickerContainer}
-                onPress={() => setPickerVisible(true)}
-              >
-                <Text
-                  style={[
-                    styles.input,
-                    {
-                      fontSize: fontSize.medium,
-                      color: category ? '#000' : '#666',
-                      paddingVertical: 15
-                    }
-                  ]}
-                >
-                  {getSelectedCategoryLabel()}
-                </Text>
+      {/* Summary Card */}
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryIconContainer}>
+          <MaterialIcons name="account-balance-wallet" size={28} color="#fff" />
+        </View>
+        <View style={styles.summaryContent}>
+          <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>Rekod Aset Baharu</Text>
+          <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>Tambah simpanan, pelaburan atau pendapatan</Text>
+        </View>
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+          <View style={styles.form}>
+            {/* Date Field */}
+            <View style={styles.fieldContainer}>
+              <View style={styles.labelRow}>
+                <MaterialIcons name="calendar-today" size={20} color="#48BB78" />
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Tarikh</Text>
+              </View>
+              <TouchableOpacity onPress={showDatePicker} style={styles.inputContainer}>
+                <Text style={[styles.inputText, { fontSize: fontSize.medium }]}>{date.toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                <MaterialIcons name="chevron-right" size={24} color="#94A3B8" />
               </TouchableOpacity>
-              <Modal
-                visible={isPickerVisible}
-                transparent={true}
-                animationType="slide"
-              >
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                      <TouchableOpacity onPress={() => setPickerVisible(false)}>
-                        <Text style={styles.doneButtonText}>Selesai</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <Picker
-                      selectedValue={category}
-                      onValueChange={(itemValue) => setCategory(itemValue)}
-                    >
-                      <Picker.Item label="Pilih Aset/Pendapatan" value={null} />
-                      {assetCategories.map((item) => (
-                        <Picker.Item key={item.value} label={item.label} value={item.value} />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-              </Modal>
-            </>
-          ) : (
-            <View style={styles.pickerContainer}>
-              <RNPickerSelect
-                onValueChange={(value) => setCategory(value)}
-                items={assetCategories}
-                placeholder={{ label: 'Pilih Aset/Pendapatan', value: null }}
-                style={pickerSelectStyles(fontSize.fontScale)}
-              />
             </View>
-          )}
-
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🏦 Nama Aset</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, { fontSize: fontSize.medium }]}
-              placeholder="Contoh: Simpanan Bank"
-              value={assetName}
-              onChangeText={setAssetName}
+            <DateTimePickerModal
+              isVisible={isDatePickerVisible}
+              mode="date"
+              onConfirm={handleConfirm}
+              onCancel={hideDatePicker}
             />
-          </View>
 
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>💰 Amaun</Text>
-          <View style={styles.amountContainer}>
-            <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>{defaultCurrency}</Text>
-            <TextInput
-              style={[styles.amountInput, { fontSize: fontSize.medium }]}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📝 Penerangan (Pilihan)</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, styles.textArea, { fontSize: fontSize.medium }]}
-              placeholder="Tambah nota..."
-              value={description}
-              onChangeText={setDescription}
-              multiline
-            />
-          </View>
-
-          {/* Recurring Income Checkbox */}
-          <TouchableOpacity
-            style={styles.checkboxContainer}
-            onPress={() => setIsRecurringIncome(!isRecurringIncome)}
-          >
-            <View style={[styles.checkbox, isRecurringIncome && styles.checkboxChecked]}>
-              {isRecurringIncome && (
-                <MaterialIcons name="check" size={20} color="#fff" />
+            {/* Category Field */}
+            <View style={styles.fieldContainer}>
+              <View style={styles.labelRow}>
+                <MaterialIcons name="folder" size={20} color="#48BB78" />
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Kategori Aset</Text>
+              </View>
+              {Platform.OS === 'ios' ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.inputContainer}
+                    onPress={() => setPickerVisible(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.inputText,
+                        {
+                          fontSize: fontSize.medium,
+                          color: category ? '#1F2937' : '#94A3B8',
+                        }
+                      ]}
+                    >
+                      {getSelectedCategoryLabel()}
+                    </Text>
+                    <MaterialIcons name="chevron-right" size={24} color="#94A3B8" />
+                  </TouchableOpacity>
+                  <Modal
+                    visible={isPickerVisible}
+                    transparent={true}
+                    animationType="slide"
+                  >
+                    <View style={styles.modalOverlay}>
+                      <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                          <Text style={styles.modalTitle}>Pilih Kategori</Text>
+                          <TouchableOpacity onPress={() => setPickerVisible(false)}>
+                            <Text style={styles.doneButtonText}>Selesai</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Picker
+                          selectedValue={category}
+                          onValueChange={(itemValue) => setCategory(itemValue)}
+                        >
+                          <Picker.Item label="Pilih Aset/Pendapatan" value={null} />
+                          {assetCategories.map((item) => (
+                            <Picker.Item key={item.value} label={item.label} value={item.value} />
+                          ))}
+                        </Picker>
+                      </View>
+                    </View>
+                  </Modal>
+                </>
+              ) : (
+                <View style={styles.inputContainer}>
+                  <RNPickerSelect
+                    onValueChange={(value) => setCategory(value)}
+                    items={assetCategories}
+                    placeholder={{ label: 'Pilih Aset/Pendapatan', value: null }}
+                    style={pickerSelectStyles(fontSize.fontScale)}
+                  />
+                </View>
               )}
             </View>
-            <Text style={[styles.checkboxLabel, { fontSize: fontSize.medium }]}>
-              🔄 Pendapatan Berulang
-            </Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            {/* Asset Name Field */}
+            <View style={styles.fieldContainer}>
+              <View style={styles.labelRow}>
+                <MaterialIcons name="label" size={20} color="#48BB78" />
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Nama Aset</Text>
+              </View>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={[styles.textInput, { fontSize: fontSize.medium }]}
+                  placeholder="Contoh: Simpanan Bank"
+                  placeholderTextColor="#94A3B8"
+                  value={assetName}
+                  onChangeText={setAssetName}
+                />
+              </View>
+            </View>
+
+            {/* Amount Field */}
+            <View style={styles.fieldContainer}>
+              <View style={styles.labelRow}>
+                <MaterialIcons name="attach-money" size={20} color="#48BB78" />
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Amaun</Text>
+              </View>
+              <View style={styles.amountContainer}>
+                <View style={styles.currencyBadge}>
+                  <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>{defaultCurrency}</Text>
+                </View>
+                <TextInput
+                  style={[styles.amountInput, { fontSize: fontSize.large }]}
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="numeric"
+                  placeholder="0.00"
+                  placeholderTextColor="#94A3B8"
+                />
+              </View>
+            </View>
+
+            {/* Description Field */}
+            <View style={styles.fieldContainer}>
+              <View style={styles.labelRow}>
+                <MaterialIcons name="notes" size={20} color="#48BB78" />
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Penerangan (Pilihan)</Text>
+              </View>
+              <View style={[styles.inputContainer, styles.textAreaContainer]}>
+                <TextInput
+                  style={[styles.textInput, styles.textArea, { fontSize: fontSize.medium }]}
+                  placeholder="Tambah nota..."
+                  placeholderTextColor="#94A3B8"
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                />
+              </View>
+            </View>
+
+            {/* Recurring Income Checkbox */}
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setIsRecurringIncome(!isRecurringIncome)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.checkbox, isRecurringIncome && styles.checkboxChecked]}>
+                {isRecurringIncome && (
+                  <MaterialIcons name="check" size={18} color="#fff" />
+                )}
+              </View>
+              <View style={styles.checkboxContent}>
+                <Text style={[styles.checkboxLabel, { fontSize: fontSize.medium }]}>
+                  Pendapatan Berulang
+                </Text>
+                <Text style={[styles.checkboxHint, { fontSize: fontSize.small }]}>
+                  Aktifkan jika ini adalah pendapatan bulanan
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Save Button */}
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+              <MaterialIcons name="save" size={22} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan Aset</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -286,134 +348,217 @@ export default function AddAssetScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F8FAFC',
   },
   header: {
-    backgroundColor: '#00D9A8',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#48BB78',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#48BB78',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  summaryIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  summaryContent: {
+    marginLeft: 14,
+    flex: 1,
+  },
+  summaryTitle: {
     color: '#fff',
+    fontWeight: '700',
+  },
+  summarySubtitle: {
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 2,
   },
   container: {
     flex: 1,
   },
   form: {
-    padding: 20,
+    padding: 16,
+  },
+  fieldContainer: {
+    marginBottom: 20,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   label: {
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginLeft: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 20,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    minHeight: 56,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  input: {
+  inputText: {
     flex: 1,
-    padding: 15,
+    color: '#1F2937',
+    paddingVertical: 16,
   },
-  inputIcon: {
-    padding: 15,
-  },
-  amountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  currencyLabel: {
-    padding: 15,
-    fontWeight: 'bold',
-    backgroundColor: '#f0f0f0',
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
-  },
-  amountInput: {
+  textInput: {
     flex: 1,
-    padding: 15,
+    color: '#1F2937',
+    paddingVertical: 16,
+  },
+  textAreaContainer: {
+    alignItems: 'flex-start',
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
   },
-  saveButton: {
-    backgroundColor: '#00D9A8',
-    borderRadius: 12,
-    paddingVertical: 16,
+  amountContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    overflow: 'hidden',
   },
-  saveButtonText: {
+  currencyBadge: {
+    backgroundColor: '#48BB78',
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  currencyLabel: {
+    fontWeight: '700',
     color: '#fff',
-    fontWeight: 'bold',
+  },
+  amountInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontWeight: '600',
+    color: '#1F2937',
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    padding: 15,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
   },
   checkbox: {
     width: 28,
     height: 28,
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#00D9A8',
+    borderColor: '#48BB78',
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   checkboxChecked: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
+  },
+  checkboxContent: {
+    flex: 1,
   },
   checkboxLabel: {
-    flex: 1,
     fontWeight: '600',
-    color: '#333',
+    color: '#1F2937',
   },
-  modalContainer: {
+  checkboxHint: {
+    color: '#64748B',
+    marginTop: 2,
+  },
+  saveButton: {
+    flexDirection: 'row',
+    backgroundColor: '#48BB78',
+    borderRadius: 14,
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#48BB78',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: 15,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#E2E8F0',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
   },
   doneButtonText: {
-    color: '#00D9A8',
-    fontWeight: 'bold',
+    color: '#48BB78',
+    fontWeight: '700',
     fontSize: 16,
   },
 });
@@ -421,19 +566,19 @@ const styles = StyleSheet.create({
 const pickerSelectStyles = (fontScale: number) => StyleSheet.create({
   inputIOS: {
     fontSize: 16 * fontScale,
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    color: 'black',
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+    color: '#1F2937',
     paddingRight: 30,
   },
   inputAndroid: {
     fontSize: 16 * fontScale,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    color: 'black',
+    paddingHorizontal: 0,
+    paddingVertical: 16,
+    color: '#1F2937',
     paddingRight: 30,
   },
   placeholder: {
-    color: '#666',
+    color: '#94A3B8',
   },
 });

@@ -134,16 +134,16 @@ export default function SpendingScreen() {
           // Note: This logic assumes 'categoryName' matches the 'key' or 'name' in our list.
           // Ideally we should match by ID or consistent key.
           // For now, we try to match the 'name' property in categoriesData.
-          
+
           const targetCategory = categoriesData.find(c => c.name === categoryName || c.key === categoryName);
           const effectiveKey = targetCategory ? targetCategory.name : 'Lain-Lain'; // Fallback
 
           if (docDate >= startOfMonth && docDate <= endOfMonth) {
-             if (spendingsByCategory[effectiveKey]) {
-                spendingsByCategory[effectiveKey] += amount;
-              } else {
-                spendingsByCategory[effectiveKey] = amount;
-              }
+            if (spendingsByCategory[effectiveKey]) {
+              spendingsByCategory[effectiveKey] += amount;
+            } else {
+              spendingsByCategory[effectiveKey] = amount;
+            }
             monthlyTotal += amount;
           }
         });
@@ -194,8 +194,8 @@ export default function SpendingScreen() {
     }
   };
 
-  const popularCategories = categories.filter(c => c.isPopular);
-  const otherCategories = categories.filter(c => !c.isPopular);
+  const popularCategories = [...categories].sort((a, b) => b.monthlySpent - a.monthlySpent).slice(0, 3);
+  const otherCategories = [...categories].sort((a, b) => b.monthlySpent - a.monthlySpent).slice(3);
 
   // Budget Health Logic
   const getBudgetHealth = (percentage: number) => {
@@ -208,10 +208,10 @@ export default function SpendingScreen() {
   const chartConfig = {
     backgroundGradientFrom: "#fff",
     backgroundGradientTo: "#fff",
-    color: (opacity = 1) => `rgba(0, 217, 168, ${opacity})`,
-    strokeWidth: 2, 
+    color: (opacity = 1) => `rgba(72, 187, 120, ${opacity})`, // #48BB78
+    strokeWidth: 2,
   };
-  
+
   const chartData = {
     labels: ["Used", "Left"], // optional
     data: [Math.min(summary.percentageUsed / 100, 1)]
@@ -232,54 +232,53 @@ export default function SpendingScreen() {
         <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('spending.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
-      
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00D9A8" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#48BB78" />
         }
       >
         {/* Enhanced Summary Card */}
         <View style={styles.summaryWrapper}>
-            <View style={styles.summaryCard}>
-                <View style={styles.summaryHeader}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.summaryLabel, { fontSize: fontSize.medium }]}>{t('spending.summary')}</Text>
-                        <Text style={[styles.summaryAmount, { fontSize: fontSize.heading }]} numberOfLines={1} adjustsFontSizeToFit>RM{summary.totalExpenses.toFixed(2)}</Text>
-                        <View style={[styles.healthBadge, { backgroundColor: budgetHealth.color + '20' }]}>
-                            <MaterialIcons name={budgetHealth.icon as any} size={14} color={budgetHealth.color} />
-                            <Text style={[styles.healthText, { color: budgetHealth.color, fontSize: fontSize.small }]}> {budgetHealth.label}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.chartContainer}>
-                        <ProgressChart
-                            data={chartData}
-                            width={80}
-                            height={80}
-                            strokeWidth={8}
-                            radius={32}
-                            chartConfig={chartConfig}
-                            hideLegend={true}
-                        />
-                        <Text style={[styles.chartPercentage, { fontSize: fontSize.small }]}>{Math.min(summary.percentageUsed, 100).toFixed(0)}%</Text>
-                    </View>
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.summaryLabel, { fontSize: fontSize.medium }]}>{t('spending.summary')}</Text>
+                <Text style={[styles.summaryAmount, { fontSize: fontSize.heading }]} numberOfLines={1} adjustsFontSizeToFit>RM{summary.totalExpenses.toFixed(2)}</Text>
+                <View style={[styles.healthBadge, { backgroundColor: budgetHealth.color + '20' }]}>
+                  <MaterialIcons name={budgetHealth.icon as any} size={14} color={budgetHealth.color} />
+                  <Text style={[styles.healthText, { color: budgetHealth.color, fontSize: fontSize.small }]}> {budgetHealth.label}</Text>
                 </View>
-
-                <View style={styles.divider} />
-
-                <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                        <Text style={[styles.statLabel, { fontSize: fontSize.small }]}>{t('spending.dailyAverage')}</Text>
-                        <Text style={[styles.statValue, { fontSize: fontSize.medium }]}>RM{dailyAverage.toFixed(2)}</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <Text style={[styles.statLabel, { fontSize: fontSize.small }]}>{t('spending.daysLeft')}</Text>
-                        <Text style={[styles.statValue, { fontSize: fontSize.medium }]}>{daysLeft}</Text>
-                    </View>
-                </View>
+              </View>
+              <View style={styles.chartContainer}>
+                <ProgressChart
+                  data={chartData}
+                  width={80}
+                  height={80}
+                  strokeWidth={8}
+                  radius={32}
+                  chartConfig={chartConfig}
+                  hideLegend={true}
+                />
+                <Text style={[styles.chartPercentage, { fontSize: fontSize.small }]}>{Math.min(summary.percentageUsed, 100).toFixed(0)}%</Text>
+              </View>
             </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={[styles.statLabel, { fontSize: fontSize.small }]}>{t('spending.dailyAverage')}</Text>
+                <Text style={[styles.statValue, { fontSize: fontSize.medium }]}>RM{dailyAverage.toFixed(2)}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statLabel, { fontSize: fontSize.small }]}>{t('spending.daysLeft')}</Text>
+                <Text style={[styles.statValue, { fontSize: fontSize.medium }]}>{daysLeft}</Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         <View style={{ height: 20 }} /> {/* Extra spacing after card */}
@@ -291,7 +290,7 @@ export default function SpendingScreen() {
             {popularCategories.map(category => (
               <TouchableOpacity key={category.name} style={styles.popularCard} onPress={() => handleCategoryPress(category.name)}>
                 <View style={[styles.iconCircle, { backgroundColor: category.color + '20' }]}>
-                    <Text style={[styles.popularIcon, { fontSize: fontSize.large }]}>{category.icon}</Text>
+                  <Text style={[styles.popularIcon, { fontSize: fontSize.large }]}>{category.icon}</Text>
                 </View>
                 <Text style={[styles.popularName, { fontSize: fontSize.medium }]} numberOfLines={1}>{t(`spending.categories.${category.key}`)}</Text>
                 <Text style={[styles.popularAmount, { fontSize: fontSize.small }]}>RM{category.monthlySpent.toFixed(0)}</Text>
@@ -305,24 +304,24 @@ export default function SpendingScreen() {
           <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('spending.all')}</Text>
           <View style={styles.verticalList}>
             {otherCategories.map(category => {
-                const percentOfTotal = summary.totalExpenses > 0 ? (category.monthlySpent / summary.totalExpenses) * 100 : 0;
-                return (
-                    <TouchableOpacity key={category.name} style={styles.listItem} onPress={() => handleCategoryPress(category.name)}>
-                        <View style={styles.listItemLeft}>
-                            <View style={[styles.listIconCircle, { backgroundColor: category.color + '20' }]}>
-                                <Text style={{ fontSize: fontSize.medium }}>{category.icon}</Text>
-                            </View>
-                            <View>
-                                <Text style={[styles.listName, { fontSize: fontSize.medium }]}>{t(`spending.categories.${category.key}`)}</Text>
-                                <Text style={[styles.listPercent, { fontSize: fontSize.small }]}>{percentOfTotal.toFixed(1)}%</Text>
-                            </View>
-                        </View>
-                        <View style={styles.listItemRight}>
-                            <Text style={[styles.listAmount, { fontSize: fontSize.medium }]}>RM{category.monthlySpent.toFixed(2)}</Text>
-                            <MaterialIcons name="chevron-right" size={20} color="#CBD5E0" />
-                        </View>
-                    </TouchableOpacity>
-                );
+              const percentOfTotal = summary.totalExpenses > 0 ? (category.monthlySpent / summary.totalExpenses) * 100 : 0;
+              return (
+                <TouchableOpacity key={category.name} style={styles.listItem} onPress={() => handleCategoryPress(category.name)}>
+                  <View style={styles.listItemLeft}>
+                    <View style={[styles.listIconCircle, { backgroundColor: category.color + '20' }]}>
+                      <Text style={{ fontSize: fontSize.medium }}>{category.icon}</Text>
+                    </View>
+                    <View>
+                      <Text style={[styles.listName, { fontSize: fontSize.medium }]}>{t(`spending.categories.${category.key}`)}</Text>
+                      <Text style={[styles.listPercent, { fontSize: fontSize.small }]}>{percentOfTotal.toFixed(1)}%</Text>
+                    </View>
+                  </View>
+                  <View style={styles.listItemRight}>
+                    <Text style={[styles.listAmount, { fontSize: fontSize.medium }]}>RM{category.monthlySpent.toFixed(2)}</Text>
+                    <MaterialIcons name="chevron-right" size={20} color="#CBD5E0" />
+                  </View>
+                </TouchableOpacity>
+              );
             })}
           </View>
         </View>
@@ -345,7 +344,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7FAFC', // Slightly lighter gray for modern feel
   },
   header: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -362,7 +361,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryWrapper: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     paddingBottom: 40,
     paddingTop: 35, // Add top padding so card doesn't hit header
     borderBottomLeftRadius: 30,
@@ -373,7 +372,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     marginHorizontal: 20,
-    marginTop: -30, 
+    marginTop: -30,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
@@ -471,7 +470,7 @@ const styles = StyleSheet.create({
     elevation: 4, // Increased elevation
     alignItems: 'center',
     marginBottom: 5, // Extra margin for bottom shadow
-    marginLeft:3
+    marginLeft: 3
   },
   iconCircle: {
     width: 48,
@@ -541,7 +540,7 @@ const styles = StyleSheet.create({
   addButton: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#00D9A8',
+    borderColor: '#48BB78',
     borderRadius: 12,
     paddingVertical: 16,
     marginHorizontal: 20,
@@ -550,7 +549,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   addButtonText: {
-    color: '#00D9A8',
+    color: '#48BB78',
     fontWeight: '700',
   },
   fab: {
@@ -561,9 +560,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     right: 25,
     bottom: 25,
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     borderRadius: 30,
-    shadowColor: '#00D9A8',
+    shadowColor: '#48BB78',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,

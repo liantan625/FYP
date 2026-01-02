@@ -48,7 +48,7 @@ export default function HomeScreen() {
     const budget = monthlyBudget > 0 ? monthlyBudget : monthlyIncome * 0.7; // Default 70% of income as budget
     const remaining = budget - totalExpenses;
     const isOverBudget = remaining < 0;
-    
+
     return {
       isOverBudget,
       amount: Math.abs(remaining),
@@ -208,15 +208,20 @@ export default function HomeScreen() {
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.headerContainer}>
-          
-          <Text style={[styles.headerGreeting, { fontSize: fontSize.large }]}>{t('home.welcome', { name: userName })}</Text>
-          
+
+          <View style={styles.headerTopRow}>
+            <Text style={[styles.headerGreeting, { fontSize: fontSize.large }]}>{t('home.welcome', { name: userName })}</Text>
+            <TouchableOpacity onPress={() => router.push('/notifications')}>
+              <MaterialIcons name="notifications" size={28} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
           {/* Financial Summary Card */}
           <TouchableOpacity style={styles.summaryCard} onPress={() => router.push('/savingsgoals')}>
             <View style={styles.summaryHeader}>
               <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>{t('home.savingsGoal')}</Text>
             </View>
-            
+
             <View style={styles.summaryAmountContainer}>
               <Text style={[styles.summaryAmount, { fontSize: fontSize.heading }]}>💵 RM {financialSummary.netAmount.toFixed(2)}</Text>
             </View>
@@ -259,11 +264,11 @@ export default function HomeScreen() {
             <MaterialIcons name="handyman" size={24} color="#1F293B" style={styles.sectionIcon} />
             <Text style={[styles.toolsSectionTitle, { fontSize: fontSize.large }]}>Alat Kewangan</Text>
           </View>
-          
+
           {/* Row 1: Kalkulator & Tanya Pakar (Killer Features) */}
           <View style={styles.toolsRow}>
-            <TouchableOpacity 
-              style={[styles.toolCard, styles.toolCardPrimary]} 
+            <TouchableOpacity
+              style={[styles.toolCard, styles.toolCardPrimary]}
               onPress={() => router.push('/calculator')}
             >
               <View style={styles.iconContainer}>
@@ -274,9 +279,9 @@ export default function HomeScreen() {
                 <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>Kira Tarikh Persaraan</Text>
               </View>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.toolCard, styles.toolCardSecondary]} 
+
+            <TouchableOpacity
+              style={[styles.toolCard, styles.toolCardSecondary]}
               onPress={() => router.push('/expert')}
             >
               <View style={styles.iconContainer}>
@@ -288,27 +293,27 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
           </View>
-          
+
           {/* Row 2: Peringatan (Status Widget) & Tips (Auto-scroll Banner) */}
           <View style={styles.toolsRow}>
             {/* Spending Reminder Status Widget */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                styles.toolCardSmall, 
+                styles.toolCardSmall,
                 spendingStatus.isOverBudget ? styles.toolCardDanger : styles.toolCardSuccess
-              ]} 
+              ]}
               onPress={() => router.push('/reminders')}
             >
               <View style={styles.smallIconContainer}>
-                <MaterialIcons 
-                  name={spendingStatus.isOverBudget ? "warning" : "check-circle"} 
-                  size={24} 
-                  color="rgba(255,255,255,0.9)" 
+                <MaterialIcons
+                  name={spendingStatus.isOverBudget ? "warning" : "check-circle"}
+                  size={24}
+                  color="rgba(255,255,255,0.9)"
                 />
               </View>
               <View>
                 <Text style={[
-                  styles.statusTitle, 
+                  styles.statusTitle,
                   { fontSize: fontSize.small }
                 ]}>
                   {spendingStatus.isOverBudget ? 'Lebihan Belanja' : 'Terkawal'}
@@ -320,18 +325,18 @@ export default function HomeScreen() {
                 )}
               </View>
             </TouchableOpacity>
-            
+
             {/* Tips Static Banner */}
-            <TouchableOpacity 
-              style={[styles.toolCardSmall, styles.toolCardTips]} 
+            <TouchableOpacity
+              style={[styles.toolCardSmall, styles.toolCardTips]}
               onPress={() => router.push('/tips')}
             >
               <View style={styles.smallIconContainer}>
                 <MaterialIcons name="lightbulb" size={24} color="rgba(255,255,255,0.9)" />
               </View>
-              <Text 
+              <Text
                 style={[
-                  styles.tipsText, 
+                  styles.tipsText,
                   { fontSize: fontSize.small }
                 ]}
                 numberOfLines={3}
@@ -345,11 +350,11 @@ export default function HomeScreen() {
         {/* Summary Section */}
         <View style={styles.expenseContainer}>
           <Text style={[styles.expenseTitle, { fontSize: fontSize.large }]}>{t('home.monthSummary')}</Text>
-          
+
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>🏠</Text>
-              <Text 
+              <Text
                 style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -361,11 +366,11 @@ export default function HomeScreen() {
               <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#3B82F6' }]}>RM {totalAssets.toFixed(2)}</Text>
             </View>
           </View>
-          
+
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📥</Text>
-              <Text 
+              <Text
                 style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -375,11 +380,11 @@ export default function HomeScreen() {
             </View>
             <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#10B981' }]}>RM {monthlyIncome.toFixed(2)}</Text>
           </View>
-          
+
           <View style={styles.summaryItem}>
             <View style={styles.summaryItemLeft}>
               <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📤</Text>
-              <Text 
+              <Text
                 style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -389,7 +394,7 @@ export default function HomeScreen() {
             </View>
             <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
           </View>
-          
+
           <TouchableOpacity style={styles.reportButton} onPress={() => router.push('/report')}>
             <Text style={[styles.reportButtonText, { fontSize: fontSize.medium }]}>{t('home.viewFullReport')}</Text>
           </TouchableOpacity>
@@ -417,18 +422,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     padding: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   headerTime: {
     fontWeight: 'bold',
   },
   headerGreeting: {
     fontWeight: 'bold',
-    marginTop: 10,
   },
   summaryCard: {
     backgroundColor: '#fff',
@@ -570,7 +579,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   reportButton: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     borderRadius: 12,
     paddingVertical: 16,
     marginTop: 20,
