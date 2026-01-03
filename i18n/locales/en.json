@@ -235,5 +235,16 @@
     "invalidTarget": "Please enter a valid target amount (greater than 0)",
     "invalidCurrent": "Please enter a valid current amount (0 or more)",
     "loginRequired": "You must be logged in to use this feature"
+  },
+  "about": {
+    "title": "About DuitU",
+    "description": "DuitU is your personal finance companion designed to simplify your financial journey. We help you track assets, manage expenses, and achieve your financial goals with ease.",
+    "version": "Version 1.0.0",
+    "copyright": "© 2024 DuitU. All rights reserved.",
+    "contact": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "website": "Official Website",
+    "developer": "Developed by DuitU Team"
   }
 }

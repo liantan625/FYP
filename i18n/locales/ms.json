@@ -255,5 +255,16 @@
     "invalidTarget": "Sila masukkan jumlah sasaran yang sah (lebih besar daripada 0)",
     "invalidCurrent": "Sila masukkan jumlah semasa yang sah (0 atau lebih)",
     "loginRequired": "Anda mesti log masuk untuk menggunakan ciri ini"
+  },
+  "about": {
+    "title": "Tentang DuitU",
+    "description": "DuitU adalah rakan pengurusan kewangan peribadi anda yang direka untuk memudahkan perjalanan kewangan anda. Kami membantu anda menjejak aset, mengurus perbelanjaan, dan mencapai matlamat kewangan anda dengan mudah.",
+    "version": "Versi 1.0.0",
+    "copyright": "© 2024 DuitU. Hak Cipta Terpelihara.",
+    "contact": "Hubungi Kami",
+    "privacy": "Dasar Privasi",
+    "terms": "Terma Perkhidmatan",
+    "website": "Laman Web Rasmi",
+    "developer": "Dibangunkan oleh Pasukan DuitU"
   }
 }

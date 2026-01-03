@@ -23,13 +23,20 @@ import { FontScaleOptions } from '@/constants/theme';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import { useTranslation } from 'react-i18next';
 
+interface UserData {
+  name: string;
+  idNumber: string;
+  profilePicture?: string;
+  email?: string;
+}
+
 export default function ProfileScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState(null);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { fontScale, fontScaleKey, setFontScale, language, setLanguage } = useSettings();
   const [isLanguagePickerVisible, setLanguagePickerVisible] = useState(false);
 
@@ -57,7 +64,7 @@ export default function ProfileScreen() {
         .doc(currentUser.uid)
         .onSnapshot(documentSnapshot => {
           if (documentSnapshot.exists) {
-            setUser(documentSnapshot.data());
+            setUser(documentSnapshot.data() as UserData);
           } else {
             setError(t('profile.userDataNotFound'));
           }
@@ -154,11 +161,11 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/Settings')}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/about')}>
             <View style={styles.menuButtonContent}>
               <View style={styles.menuButtonLeft}>
-                <MaterialIcons name="settings" size={24 * fontScale} color="#2196F3" />
-                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]} numberOfLines={2}>{t('profile.settings')}</Text>
+                <MaterialIcons name="info-outline" size={24 * fontScale} color="#2196F3" />
+                <Text style={[styles.menuButtonText, { fontSize: fontSize.large }]} numberOfLines={2}>{t('profile.about')}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24 * fontScale} color="#999" />
             </View>
