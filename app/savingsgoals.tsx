@@ -8,6 +8,10 @@ import {
   ScrollView,
   Modal,
   Alert,
+  ActivityIndicator,
+  RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,6 +19,8 @@ import { useRouter } from 'expo-router';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 interface SavingsGoal {
   id: string;
@@ -30,7 +36,12 @@ type ModalMode = 'create' | 'update' | null;
 
 const SavingsGoalScreen: React.FC = () => {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
+
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
@@ -51,16 +62,27 @@ const SavingsGoalScreen: React.FC = () => {
         .collection('savings_goals')
         .where('status', '==', 'active')
         .onSnapshot(querySnapshot => {
-          const goalsData = [];
+          const goalsData: SavingsGoal[] = [];
           querySnapshot.forEach(doc => {
-            goalsData.push({ id: doc.id, ...doc.data() });
+            goalsData.push({ id: doc.id, ...doc.data() } as SavingsGoal);
           });
           setGoals(goalsData);
+          setLoading(false);
+        }, error => {
+          console.error('Error fetching goals:', error);
+          setLoading(false);
         });
 
       return () => unsubscribe();
+    } else {
+      setLoading(false);
     }
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  };
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -70,7 +92,7 @@ const SavingsGoalScreen: React.FC = () => {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (selectedDate) => {
+  const handleConfirm = (selectedDate: Date) => {
     setTargetDate(selectedDate);
     hideDatePicker();
   };
@@ -104,7 +126,7 @@ const SavingsGoalScreen: React.FC = () => {
     const parsedCurrent = parseFloat(currentAmount);
 
     if (!goalName || !targetAmount || !targetDate) {
-      Alert.alert('Ralat', 'Sila isi semua medan yang diperlukan');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.fillRequired'));
       return;
     }
 
@@ -114,23 +136,23 @@ const SavingsGoalScreen: React.FC = () => {
     checkDate.setHours(0, 0, 0, 0);
 
     if (checkDate < today) {
-      Alert.alert('Ralat', 'Tarikh sasaran tidak boleh berada pada masa lalu');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.pastDate'));
       return;
     }
 
     if (isNaN(parsedTarget) || parsedTarget <= 0) {
-      Alert.alert('Ralat', 'Sila masukkan jumlah sasaran yang sah (lebih besar daripada 0)');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.invalidTarget'));
       return;
     }
 
     if (currentAmount && (isNaN(parsedCurrent) || parsedCurrent < 0)) {
-      Alert.alert('Ralat', 'Sila masukkan jumlah semasa yang sah (0 atau lebih)');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.invalidCurrent'));
       return;
     }
 
     const user = auth().currentUser;
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to create a savings goal.');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.loginRequired'));
       return;
     }
 
@@ -142,14 +164,14 @@ const SavingsGoalScreen: React.FC = () => {
         name: goalName,
         targetAmount: parseFloat(targetAmount),
         currentAmount: parseFloat(currentAmount) || 0,
-        targetDate: targetDate.toISOString().split('T')[0], // Store as YYYY-MM-DD
+        targetDate: targetDate.toISOString().split('T')[0],
         createdAt: new Date().toISOString(),
         status: 'active',
       });
 
     setModalVisible(false);
     resetForm();
-    Alert.alert('Berjaya', 'Matlamat simpanan berjaya dicipta!');
+    Alert.alert(t('savingsGoals.success'), t('savingsGoals.goalCreated'));
   };
 
   const handleUpdate = () => {
@@ -157,7 +179,7 @@ const SavingsGoalScreen: React.FC = () => {
     const parsedCurrent = parseFloat(currentAmount);
 
     if (!selectedGoal || !goalName || !targetAmount || !targetDate) {
-      Alert.alert('Ralat', 'Sila isi semua medan yang diperlukan');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.fillRequired'));
       return;
     }
 
@@ -167,23 +189,23 @@ const SavingsGoalScreen: React.FC = () => {
     checkDate.setHours(0, 0, 0, 0);
 
     if (checkDate < today) {
-      Alert.alert('Ralat', 'Tarikh sasaran tidak boleh berada pada masa lalu');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.pastDate'));
       return;
     }
 
     if (isNaN(parsedTarget) || parsedTarget <= 0) {
-      Alert.alert('Ralat', 'Sila masukkan jumlah sasaran yang sah (lebih besar daripada 0)');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.invalidTarget'));
       return;
     }
 
     if (currentAmount && (isNaN(parsedCurrent) || parsedCurrent < 0)) {
-      Alert.alert('Ralat', 'Sila masukkan jumlah semasa yang sah (0 atau lebih)');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.invalidCurrent'));
       return;
     }
 
     const user = auth().currentUser;
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to update a savings goal.');
+      Alert.alert(t('savingsGoals.error'), t('savingsGoals.loginRequired'));
       return;
     }
 
@@ -196,27 +218,27 @@ const SavingsGoalScreen: React.FC = () => {
         name: goalName,
         targetAmount: parseFloat(targetAmount),
         currentAmount: parseFloat(currentAmount) || 0,
-        targetDate: targetDate.toISOString().split('T')[0], // Store as YYYY-MM-DD
+        targetDate: targetDate.toISOString().split('T')[0],
       });
 
     setModalVisible(false);
     resetForm();
-    Alert.alert('Berjaya', 'Matlamat simpanan berjaya dikemas kini!');
+    Alert.alert(t('savingsGoals.success'), t('savingsGoals.goalUpdated'));
   };
 
   const handleClose = (goalId: string) => {
     Alert.alert(
-      'Tutup Matlamat',
-      'Adakah anda pasti mahu menutup matlamat simpanan ini?',
+      t('savingsGoals.closeGoalTitle'),
+      t('savingsGoals.closeGoalMessage'),
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('savingsGoals.cancel'), style: 'cancel' },
         {
-          text: 'Tutup',
+          text: t('savingsGoals.close'),
           style: 'destructive',
           onPress: () => {
             const user = auth().currentUser;
             if (!user) {
-              Alert.alert('Error', 'You must be logged in to close a savings goal.');
+              Alert.alert(t('savingsGoals.error'), t('savingsGoals.loginRequired'));
               return;
             }
 
@@ -229,7 +251,7 @@ const SavingsGoalScreen: React.FC = () => {
                 status: 'closed',
               });
 
-            Alert.alert('Berjaya', 'Matlamat simpanan berjaya ditutup!');
+            Alert.alert(t('savingsGoals.success'), t('savingsGoals.goalClosed'));
           },
         },
       ]
@@ -240,43 +262,83 @@ const SavingsGoalScreen: React.FC = () => {
     return (goal.currentAmount / goal.targetAmount) * 100;
   };
 
+  const getProgressColor = (progress: number): string => {
+    if (progress >= 100) return '#48BB78';
+    if (progress >= 70) return '#48BB78';
+    if (progress >= 40) return '#F59E0B';
+    return '#EF4444';
+  };
+
+  const totalSavings = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+  const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+
   const renderGoalCard = (goal: SavingsGoal) => {
     const progress = calculateProgress(goal);
+    const progressColor = getProgressColor(progress);
     const isClosed = goal.status === 'closed';
 
     return (
       <View key={goal.id} style={[styles.goalCard, isClosed && styles.closedCard]}>
         <View style={styles.goalHeader}>
-          <Text style={styles.goalName}>{goal.name}</Text>
-          {isClosed && <View style={styles.closedBadge}>
-            <Text style={styles.closedBadgeText}>DITUTUP</Text>
-          </View>}
+          <View style={styles.goalIconContainer}>
+            <MaterialIcons name="flag" size={22} color="#48BB78" />
+          </View>
+          <View style={styles.goalTitleContainer}>
+            <Text style={[styles.goalName, { fontSize: fontSize.medium }]} numberOfLines={1}>
+              {goal.name}
+            </Text>
+            <Text style={[styles.targetDate, { fontSize: fontSize.small }]}>
+              {t('savingsGoals.targetDate')}: {goal.targetDate}
+            </Text>
+          </View>
+          {isClosed && (
+            <View style={styles.closedBadge}>
+              <Text style={[styles.closedBadgeText, { fontSize: fontSize.small }]}>
+                {t('savingsGoals.closed')}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.amountContainer}>
-          <Text style={styles.currentAmount}>RM{goal.currentAmount.toFixed(2)}</Text>
-          <Text style={styles.targetAmount}>daripada RM{goal.targetAmount.toFixed(2)}</Text>
+          <Text style={[styles.currentAmount, { fontSize: fontSize.xlarge }]}>
+            RM {goal.currentAmount.toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          </Text>
+          <Text style={[styles.targetAmount, { fontSize: fontSize.small }]}>
+            {t('savingsGoals.of')} RM {goal.targetAmount.toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          </Text>
         </View>
 
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${Math.min(progress, 100)}%` }]} />
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${Math.min(progress, 100)}%`, backgroundColor: progressColor }]} />
+          </View>
+          <Text style={[styles.progressText, { fontSize: fontSize.small, color: progressColor }]}>
+            {progress.toFixed(1)}% {t('savingsGoals.complete')}
+          </Text>
         </View>
-        <Text style={styles.progressText}>{progress.toFixed(1)}% Selesai</Text>
-
-        <Text style={styles.targetDate}>Tarikh Sasaran: {goal.targetDate}</Text>
 
         {!isClosed && (
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, styles.updateButton]}
+              style={styles.updateButton}
               onPress={() => openUpdateModal(goal)}
+              activeOpacity={0.7}
             >
-              <Text style={styles.buttonText}>Kemas Kini</Text>
+              <MaterialIcons name="edit" size={18} color="#3B82F6" />
+              <Text style={[styles.updateButtonText, { fontSize: fontSize.small }]}>
+                {t('savingsGoals.update')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.closeButton]} onPress={() => handleClose(goal.id)}
+              style={styles.closeButton}
+              onPress={() => handleClose(goal.id)}
+              activeOpacity={0.7}
             >
-              <Text style={styles.buttonText}>Tutup</Text>
+              <MaterialIcons name="close" size={18} color="#EF4444" />
+              <Text style={[styles.closeButtonText, { fontSize: fontSize.small }]}>
+                {t('savingsGoals.close')}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -284,101 +346,203 @@ const SavingsGoalScreen: React.FC = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#48BB78" />
+          <Text style={[styles.loadingText, { fontSize: fontSize.medium }]}>{t('common.loading')}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Matlamat Simpanan</Text>
-        <View style={{ width: 24 }} />
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('savingsGoals.title')}</Text>
+        <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      {/* Summary Card */}
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryIconContainer}>
+          <MaterialIcons name="savings" size={28} color="#fff" />
+        </View>
+        <View style={styles.summaryContent}>
+          <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>
+            {t('savingsGoals.summaryTitle')}
+          </Text>
+          <Text style={[styles.summaryAmount, { fontSize: fontSize.xlarge }]}>
+            RM {totalSavings.toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          </Text>
+          <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>
+            {goals.length} {t('savingsGoals.summarySubtitle')}
+          </Text>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#48BB78" />
+        }
+      >
         {goals.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>Tiada matlamat simpanan lagi</Text>
-            <Text style={styles.emptyStateSubtext}>Cipta matlamat pertama anda untuk bermula!</Text>
+            <View style={styles.emptyIconContainer}>
+              <MaterialIcons name="flag" size={48} color="#CBD5E1" />
+            </View>
+            <Text style={[styles.emptyStateText, { fontSize: fontSize.medium }]}>
+              {t('savingsGoals.noGoals')}
+            </Text>
+            <Text style={[styles.emptyStateSubtext, { fontSize: fontSize.small }]}>
+              {t('savingsGoals.noGoalsSubtext')}
+            </Text>
+            <TouchableOpacity style={styles.createFirstButton} onPress={openCreateModal}>
+              <MaterialIcons name="add" size={20} color="#fff" />
+              <Text style={[styles.createFirstButtonText, { fontSize: fontSize.medium }]}>
+                {t('savingsGoals.createGoal')}
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : (
           goals.map(renderGoalCard)
         )}
       </ScrollView>
 
+      {/* Modal */}
       <Modal
         visible={modalVisible}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {modalMode === 'create' ? 'Cipta Matlamat Simpanan' : 'Kemas Kini Matlamat Simpanan'}
-            </Text>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { fontSize: fontSize.large }]}>
+                {modalMode === 'create' ? t('savingsGoals.createGoal') : t('savingsGoals.updateGoal')}
+              </Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
 
-            <Text style={styles.label}>Nama Matlamat *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="cth: Dana Kecemasan, Percutian"
-              value={goalName}
-              onChangeText={setGoalName}
-            />
+            <ScrollView style={styles.modalForm} showsVerticalScrollIndicator={false}>
+              <View style={styles.fieldContainer}>
+                <View style={styles.labelRow}>
+                  <MaterialIcons name="label" size={18} color="#48BB78" />
+                  <Text style={[styles.label, { fontSize: fontSize.medium }]}>
+                    {t('savingsGoals.goalName')} *
+                  </Text>
+                </View>
+                <TextInput
+                  style={[styles.input, { fontSize: fontSize.medium }]}
+                  placeholder={t('savingsGoals.goalNamePlaceholder')}
+                  placeholderTextColor="#94A3B8"
+                  value={goalName}
+                  onChangeText={setGoalName}
+                />
+              </View>
 
-            <Text style={styles.label}>Jumlah Sasaran * (RM)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="0.00"
-              keyboardType="decimal-pad"
-              value={targetAmount}
-              onChangeText={setTargetAmount}
-            />
+              <View style={styles.fieldContainer}>
+                <View style={styles.labelRow}>
+                  <MaterialIcons name="attach-money" size={18} color="#48BB78" />
+                  <Text style={[styles.label, { fontSize: fontSize.medium }]}>
+                    {t('savingsGoals.targetAmount')} * (RM)
+                  </Text>
+                </View>
+                <TextInput
+                  style={[styles.input, { fontSize: fontSize.medium }]}
+                  placeholder="0.00"
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="decimal-pad"
+                  value={targetAmount}
+                  onChangeText={setTargetAmount}
+                />
+              </View>
 
-            <Text style={styles.label}>Jumlah Semasa (RM)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="0.00"
-              keyboardType="decimal-pad"
-              value={currentAmount}
-              onChangeText={setCurrentAmount}
-            />
+              <View style={styles.fieldContainer}>
+                <View style={styles.labelRow}>
+                  <MaterialIcons name="account-balance-wallet" size={18} color="#48BB78" />
+                  <Text style={[styles.label, { fontSize: fontSize.medium }]}>
+                    {t('savingsGoals.currentAmount')} (RM)
+                  </Text>
+                </View>
+                <TextInput
+                  style={[styles.input, { fontSize: fontSize.medium }]}
+                  placeholder="0.00"
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="decimal-pad"
+                  value={currentAmount}
+                  onChangeText={setCurrentAmount}
+                />
+              </View>
 
-            <Text style={styles.label}>Tarikh Sasaran *</Text>
-            <TouchableOpacity onPress={showDatePicker} style={styles.input}>
-              <Text>{targetDate.toLocaleDateString()}</Text>
-            </TouchableOpacity>
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode="date"
-              onConfirm={handleConfirm}
-              onCancel={hideDatePicker}
-            />
+              <View style={styles.fieldContainer}>
+                <View style={styles.labelRow}>
+                  <MaterialIcons name="calendar-today" size={18} color="#48BB78" />
+                  <Text style={[styles.label, { fontSize: fontSize.medium }]}>
+                    {t('savingsGoals.targetDate')} *
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
+                  <Text style={[styles.dateText, { fontSize: fontSize.medium }]}>
+                    {targetDate.toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </Text>
+                  <MaterialIcons name="chevron-right" size={24} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
+                style={styles.cancelButton}
                 onPress={() => {
                   setModalVisible(false);
                   resetForm();
                 }}
               >
-                <Text style={styles.modalButtonText}>Batal</Text>
+                <Text style={[styles.cancelButtonText, { fontSize: fontSize.medium }]}>
+                  {t('savingsGoals.cancel')}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
+                style={styles.saveButton}
                 onPress={modalMode === 'create' ? handleCreate : handleUpdate}
               >
-                <Text style={[styles.modalButtonText, styles.saveButtonText]}>
-                  {modalMode === 'create' ? 'Cipta' : 'Kemas Kini'}
+                <MaterialIcons name="check" size={20} color="#fff" />
+                <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>
+                  {modalMode === 'create' ? t('savingsGoals.create') : t('savingsGoals.update')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+          minimumDate={new Date()}
+        />
       </Modal>
-      <TouchableOpacity style={styles.fab} onPress={openCreateModal}>
-        <MaterialIcons name="add" size={24} color="#fff" />
-      </TouchableOpacity>
+
+      {/* FAB */}
+      {goals.length > 0 && (
+        <TouchableOpacity style={styles.fab} onPress={openCreateModal} activeOpacity={0.8}>
+          <MaterialIcons name="add" size={28} color="#fff" />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
@@ -386,217 +550,339 @@ const SavingsGoalScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#64748B',
   },
   header: {
-    backgroundColor: '#00D9A8',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '700',
+    color: '#1F2937',
   },
-  createButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+  summaryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#48BB78',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#48BB78',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  createButtonText: {
+  summaryIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  summaryContent: {
+    marginLeft: 14,
+    flex: 1,
+  },
+  summaryTitle: {
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: '500',
+  },
+  summaryAmount: {
     color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: '700',
+    marginVertical: 2,
+  },
+  summarySubtitle: {
+    color: 'rgba(255, 255, 255, 0.75)',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 100,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 100,
+    marginTop: 60,
+    paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyStateText: {
-    fontSize: 18,
-    color: '#666',
-    fontWeight: '600',
-    marginBottom: 8,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+    textAlign: 'center',
   },
   emptyStateSubtext: {
-    fontSize: 14,
-    color: '#999',
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  createFirstButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#48BB78',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  createFirstButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    marginLeft: 8,
   },
   goalCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   closedCard: {
-    opacity: 0.7,
-    backgroundColor: '#f9f9f9',
+    opacity: 0.6,
   },
   goalHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  goalName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+  goalIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  goalTitleContainer: {
     flex: 1,
   },
+  goalName: {
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  targetDate: {
+    color: '#64748B',
+    marginTop: 2,
+  },
   closedBadge: {
-    backgroundColor: '#ff9800',
+    backgroundColor: '#F59E0B',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   closedBadgeText: {
     color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   amountContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
     marginBottom: 12,
   },
   currentAmount: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginRight: 8,
+    fontWeight: '700',
+    color: '#48BB78',
   },
   targetAmount: {
-    fontSize: 14,
-    color: '#666',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  progressContainer: {
+    marginBottom: 16,
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#E2E8F0',
     borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#4CAF50',
+    borderRadius: 4,
   },
   progressText: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 8,
-  },
-  targetDate: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
+    fontWeight: '600',
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
   },
-  button: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
   updateButton: {
-    backgroundColor: '#2196F3',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#EFF6FF',
+  },
+  updateButtonText: {
+    color: '#3B82F6',
+    fontWeight: '600',
+    marginLeft: 6,
   },
   closeButton: {
-    backgroundColor: '#f44336',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#FEF2F2',
   },
-  buttonText: {
-    color: '#fff',
+  closeButtonText: {
+    color: '#EF4444',
     fontWeight: '600',
-    fontSize: 14,
+    marginLeft: 6,
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    width: '90%',
-    maxWidth: 400,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+    maxHeight: '85%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  modalForm: {
+    padding: 16,
+  },
+  fieldContainer: {
     marginBottom: 20,
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   label: {
-    fontSize: 14,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    marginTop: 12,
+    color: '#1F2937',
+    marginLeft: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 16,
+    color: '#1F2937',
+  },
+  dateInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 16,
+  },
+  dateText: {
+    color: '#1F2937',
   },
   modalButtons: {
     flexDirection: 'row',
+    paddingHorizontal: 16,
     gap: 12,
-    marginTop: 24,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#e0e0e0',
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontWeight: '600',
+    color: '#64748B',
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
-  },
-  modalButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    flex: 1,
+    flexDirection: 'row',
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: '#48BB78',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveButtonText: {
+    fontWeight: '700',
     color: '#fff',
+    marginLeft: 8,
   },
   fab: {
     position: 'absolute',
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
     right: 20,
     bottom: 90,
-    backgroundColor: '#00D9A8',
-    borderRadius: 28,
-    elevation: 8,
+    backgroundColor: '#48BB78',
+    borderRadius: 30,
+    shadowColor: '#48BB78',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });
 

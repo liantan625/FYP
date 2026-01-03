@@ -20,7 +20,7 @@
   },
   "profile": {
     "title": "Profil",
-    "security":"Keselamatan",
+    "security": "Keselamatan",
     "editProfile": "Edit Profil",
     "settings": "Tetapan",
     "logout": "Log Keluar",
@@ -37,7 +37,6 @@
     "sampleText": "Contoh Teks",
     "error": "Ralat: {{message}}",
     "userDataNotFound": "Data pengguna tidak dijumpai.",
-
     "fontSizeOptions": {
       "small": "Kecil",
       "medium": "Sederhana",
@@ -115,13 +114,12 @@
     "deleteCategory": "Padam Kategori",
     "categoryName": "Nama Kategori",
     "noCategories": "Tiada kategori lagi",
-      "groceries": "Runcit",
-      "rent": "Sewa",
-      "celebration": "Perayaan",
-      "entertainment": "Hiburan",
-      "others": "Lain-Lain",
-      "subtext":"Huraian"
-    
+    "groceries": "Runcit",
+    "rent": "Sewa",
+    "celebration": "Perayaan",
+    "entertainment": "Hiburan",
+    "others": "Lain-Lain",
+    "subtext": "Huraian"
   },
   "spending": {
     "title": "Pengurus Perbelanjaan",
@@ -178,8 +176,7 @@
     "passcodeLength": "Kod laluan mesti 6 digit",
     "invalidId": "Format Nombor Kad Pengenalan tidak sah",
     "recaptchaNotReady": "reCAPTCHA belum bersedia. Sila cuba sebentar lagi.",
-    "otpFailed": "Gagal menghantar OTP. Sila cuba lagi."    
-
+    "otpFailed": "Gagal menghantar OTP. Sila cuba lagi."
   },
   "common": {
     "save": "Simpan",
@@ -225,5 +222,38 @@
     "sharePdf": "Kongsi PDF",
     "sharePdfMessage": "Berikut adalah laporan kewangan anda",
     "shareFailed": "Gagal berkongsi PDF"
+  },
+  "savingsGoals": {
+    "title": "Matlamat Simpanan",
+    "summaryTitle": "Matlamat Aktif",
+    "summarySubtitle": "Pantau kemajuan simpanan anda",
+    "noGoals": "Tiada matlamat simpanan lagi",
+    "noGoalsSubtext": "Cipta matlamat pertama anda untuk bermula!",
+    "createGoal": "Cipta Matlamat",
+    "updateGoal": "Kemas Kini Matlamat",
+    "goalName": "Nama Matlamat",
+    "goalNamePlaceholder": "cth: Dana Kecemasan, Percutian",
+    "targetAmount": "Jumlah Sasaran",
+    "currentAmount": "Jumlah Semasa",
+    "targetDate": "Tarikh Sasaran",
+    "of": "daripada",
+    "complete": "Selesai",
+    "update": "Kemas Kini",
+    "close": "Tutup",
+    "closed": "DITUTUP",
+    "closeGoalTitle": "Tutup Matlamat",
+    "closeGoalMessage": "Adakah anda pasti mahu menutup matlamat simpanan ini?",
+    "cancel": "Batal",
+    "create": "Cipta",
+    "success": "Berjaya",
+    "goalCreated": "Matlamat simpanan berjaya dicipta!",
+    "goalUpdated": "Matlamat simpanan berjaya dikemas kini!",
+    "goalClosed": "Matlamat simpanan berjaya ditutup!",
+    "error": "Ralat",
+    "fillRequired": "Sila isi semua medan yang diperlukan",
+    "pastDate": "Tarikh sasaran tidak boleh berada pada masa lalu",
+    "invalidTarget": "Sila masukkan jumlah sasaran yang sah (lebih besar daripada 0)",
+    "invalidCurrent": "Sila masukkan jumlah semasa yang sah (0 atau lebih)",
+    "loginRequired": "Anda mesti log masuk untuk menggunakan ciri ini"
   }
 }
