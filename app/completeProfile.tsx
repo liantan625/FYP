@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import * as Crypto from 'expo-crypto';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +28,8 @@ export default function CompleteProfileScreen() {
   const [idNumber, setIdNumber] = useState('');
   const [birthday, setBirthday] = useState<Date | null>(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [passcode, setPasscode] = useState('');
+  const [repeatPasscode, setRepeatPasscode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const showDatePicker = () => {
@@ -43,13 +46,26 @@ export default function CompleteProfileScreen() {
   };
 
   const handleSaveProfile = async () => {
-    if (!name || !idNumber || !birthday) {
+    // Validate required fields
+    if (!name || !idNumber || !birthday || !passcode || !repeatPasscode) {
       Alert.alert(t('common.error'), t('signup.fillAllFields'));
       return;
     }
 
+    // Validate ID number
     if (idNumber.length !== 12 && !/^[A-Z]/.test(idNumber)) {
       Alert.alert(t('common.error'), t('signup.invalidId'));
+      return;
+    }
+
+    // Validate passcode
+    if (passcode.length !== 6) {
+      Alert.alert(t('common.error'), t('signup.passcodeLength'));
+      return;
+    }
+
+    if (passcode !== repeatPasscode) {
+      Alert.alert(t('common.error'), t('signup.passcodeMismatch'));
       return;
     }
 
@@ -63,11 +79,18 @@ export default function CompleteProfileScreen() {
     setLoading(true);
     try {
       const birthdayString = birthday.toLocaleDateString('en-GB');
-      
+
+      // Hash the passcode before storing
+      const hashedPasscode = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        passcode
+      );
+
       await firestore().collection('users').doc(user.uid).set({
         name,
         idNumber,
         birthday: birthdayString,
+        passcode: hashedPasscode, // Store hashed PIN
         email: user.email,
         phoneNumber: user.phoneNumber, // Might be null for Google Sign-In
         createdAt: firestore.FieldValue.serverTimestamp(),
@@ -75,7 +98,7 @@ export default function CompleteProfileScreen() {
       }, { merge: true });
 
       Alert.alert(t('common.success'), 'Profile completed successfully!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/home') }
+        { text: 'OK', onPress: () => router.replace('/pinLock') }
       ]);
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -88,7 +111,7 @@ export default function CompleteProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.heading}]}>Lengkapkan Profil Anda</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.heading }]}>Lengkapkan Profil Anda</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -100,6 +123,7 @@ export default function CompleteProfileScreen() {
             Please provide a few more details to complete your registration.
           </Text>
 
+          {/* Name Input */}
           <View style={styles.inputContainer}>
             <MaterialIcons name="person" size={24} color="#666" style={styles.inputIcon} />
             <TextInput
@@ -110,6 +134,7 @@ export default function CompleteProfileScreen() {
             />
           </View>
 
+          {/* ID Number Input */}
           <View style={styles.inputContainer}>
             <MaterialIcons name="badge" size={24} color="#666" style={styles.inputIcon} />
             <TextInput
@@ -122,13 +147,14 @@ export default function CompleteProfileScreen() {
             />
           </View>
 
+          {/* Date Picker */}
           <TouchableOpacity onPress={showDatePicker} style={styles.dateButton}>
-             <View style={styles.inputContainer}>
-                <MaterialIcons name="calendar-today" size={24} color="#666" style={styles.inputIcon} />
-                <Text style={[styles.dateText, { fontSize: fontSize.body, color: birthday ? '#333' : '#999' }]}>
-                  {birthday ? birthday.toLocaleDateString('en-GB') : t('signup.birthDate')}
-                </Text>
-             </View>
+            <View style={styles.inputContainer}>
+              <MaterialIcons name="calendar-today" size={24} color="#666" style={styles.inputIcon} />
+              <Text style={[styles.dateText, { fontSize: fontSize.body, color: birthday ? '#333' : '#999' }]}>
+                {birthday ? birthday.toLocaleDateString('en-GB') : t('signup.birthDate')}
+              </Text>
+            </View>
           </TouchableOpacity>
 
           <DateTimePickerModal
@@ -138,6 +164,45 @@ export default function CompleteProfileScreen() {
             onCancel={hideDatePicker}
             maximumDate={new Date()}
           />
+
+          {/* PIN Section Header */}
+          <View style={styles.sectionHeader}>
+            <MaterialIcons name="lock" size={20} color="#48BB78" />
+            <Text style={[styles.sectionTitle, { fontSize: fontSize.medium }]}>
+              {t('signup.passcode')} (6-digit PIN)
+            </Text>
+          </View>
+          <Text style={[styles.sectionDescription, { fontSize: fontSize.small }]}>
+            This PIN will be required each time you open the app.
+          </Text>
+
+          {/* Passcode Input */}
+          <View style={styles.inputContainer}>
+            <MaterialIcons name="pin" size={24} color="#666" style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { fontSize: fontSize.body }]}
+              placeholder={t('signup.passcode')}
+              value={passcode}
+              onChangeText={setPasscode}
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={6}
+            />
+          </View>
+
+          {/* Repeat Passcode Input */}
+          <View style={styles.inputContainer}>
+            <MaterialIcons name="pin" size={24} color="#666" style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { fontSize: fontSize.body }]}
+              placeholder={t('signup.repeatPasscode')}
+              value={repeatPasscode}
+              onChangeText={setRepeatPasscode}
+              keyboardType="number-pad"
+              secureTextEntry
+              maxLength={6}
+            />
+          </View>
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
@@ -166,13 +231,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center'
   },
   content: {
     padding: 24,
+    paddingBottom: 40,
   },
   description: {
     color: '#666',
@@ -201,6 +266,21 @@ const styles = StyleSheet.create({
   },
   dateText: {
     paddingVertical: 15,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontWeight: '600',
+    color: '#48BB78',
+  },
+  sectionDescription: {
+    color: '#64748B',
+    marginBottom: 16,
   },
   button: {
     backgroundColor: '#00D09E',

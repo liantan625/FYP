@@ -150,18 +150,8 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (!isReady || !client) {
-      Alert.alert(t('common.error'), t('signup.recaptchaNotReady'));
-      return;
-    }
-
     setLoading(true);
     try {
-      // Execute reCAPTCHA for SIGNUP action
-      console.log('Executing reCAPTCHA for SIGNUP...');
-      const token = await client.execute(RecaptchaAction.SIGNUP());
-      console.log('reCAPTCHA Token received:', token);
-
       // Check for unique ID
       const usersSnapshot = await firestore()
         .collection('users')
@@ -173,9 +163,6 @@ export default function SignUpScreen() {
         setLoading(false);
         return;
       }
-
-      // TODO: Send token to your backend for verification before proceeding
-      // For now, we proceed with phone authentication
 
       // phoneNumber already contains +60 prefix from the input
       // Just ensure it's clean and properly formatted

@@ -4,6 +4,7 @@ import { useAuth } from '../context/auth-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import * as Crypto from 'expo-crypto';
 
 export default function OTPScreen() {
   const router = useRouter();
@@ -61,12 +62,18 @@ export default function OTPScreen() {
 
       // If this is sign up, save user data to Firestore
       if (params.isSignUp === 'true' && user) {
+        // Hash the passcode before storing for security
+        const hashedPasscode = await Crypto.digestStringAsync(
+          Crypto.CryptoDigestAlgorithm.SHA256,
+          params.passcode as string
+        );
+
         await firestore().collection('users').doc(user.uid).set({
           name: params.name,
           phoneNumber: params.phoneNumber,
           idNumber: params.idNumber,
           birthday: params.birthday,
-          passcode: params.passcode, // Note: In production, you should hash this!
+          passcode: hashedPasscode, // Store hashed PIN
           createdAt: firestore.FieldValue.serverTimestamp(),
         });
       }
@@ -110,8 +117,8 @@ export default function OTPScreen() {
         disabled={timer > 0 || isResending}
       >
         <Text style={[styles.resendText, (timer > 0 || isResending) && styles.resendTextDisabled]}>
-          {timer > 0 
-            ? `Hantar semula dalam ${timer}s` 
+          {timer > 0
+            ? `Hantar semula dalam ${timer}s`
             : isResending ? 'Menghantar...' : 'Hantar semula OTP'}
         </Text>
       </TouchableOpacity>

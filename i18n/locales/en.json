@@ -246,5 +246,16 @@
     "terms": "Terms of Service",
     "website": "Official Website",
     "developer": "Developed by DuitU Team"
+  },
+  "pinLock": {
+    "title": "Enter PIN",
+    "subtitle": "Enter your 6-digit PIN to continue",
+    "invalidPin": "Invalid PIN. Please try again.",
+    "forgotPin": "Forgot PIN?",
+    "forgotPinMessage": "You will be logged out and need to sign in again.",
+    "useBiometric": "Use Face ID / Touch ID",
+    "logout": "Logout",
+    "cancel": "Cancel",
+    "attemptsRemaining": "{{count}} attempts remaining"
   }
 }

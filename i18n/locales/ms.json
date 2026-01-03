@@ -266,5 +266,16 @@
     "terms": "Terma Perkhidmatan",
     "website": "Laman Web Rasmi",
     "developer": "Dibangunkan oleh Pasukan DuitU"
+  },
+  "pinLock": {
+    "title": "Masukkan PIN",
+    "subtitle": "Masukkan PIN 6-digit anda untuk meneruskan",
+    "invalidPin": "PIN tidak sah. Sila cuba lagi.",
+    "forgotPin": "Lupa PIN?",
+    "forgotPinMessage": "Anda akan dilog keluar dan perlu log masuk semula.",
+    "useBiometric": "Gunakan Face ID / Touch ID",
+    "logout": "Log Keluar",
+    "cancel": "Batal",
+    "attemptsRemaining": "{{count}} percubaan lagi"
   }
 }

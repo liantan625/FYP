@@ -118,6 +118,8 @@ function AppLayout() {
         <Stack.Screen name="expert" options={{ headerShown: false }} />
         <Stack.Screen name="reminders" options={{ headerShown: false }} />
         <Stack.Screen name="tips" options={{ headerShown: false }} />
+        <Stack.Screen name="pinLock" options={{ headerShown: false }} />
+        <Stack.Screen name="about" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
       <Toast config={toastConfig} />

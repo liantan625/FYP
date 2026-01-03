@@ -132,7 +132,8 @@ export default function LoginScreen() {
       if (userDoc.exists) {
         const userData = userDoc.data();
         if (userData?.name && userData?.idNumber && userData?.birthday) {
-          router.replace('/(tabs)/home');
+          // Route to PIN lock for verification
+          router.replace('/pinLock');
         } else {
           // User exists but profile incomplete
           router.replace('/completeProfile');
@@ -160,21 +161,6 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      if (__DEV__) {
-        console.log('Dev mode: Skipping reCAPTCHA, verification is disabled');
-      } else if (isReady && client) {
-        console.log('Executing reCAPTCHA for LOGIN...');
-        try {
-          const token = await client.execute(RecaptchaAction.LOGIN());
-          console.log('reCAPTCHA Token received:', token);
-        } catch (recaptchaError) {
-          console.error('reCAPTCHA Execution Error:', recaptchaError);
-          // Don't block flow, let Firebase try anyway
-        }
-      } else {
-        console.log('reCAPTCHA client not ready or not initialized');
-      }
-
       console.log('Calling auth().signInWithPhoneNumber...');
       const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
       console.log('signInWithPhoneNumber returned result:', confirmationResult);
@@ -210,7 +196,8 @@ export default function LoginScreen() {
       if (userDoc.exists) {
         const userData = userDoc.data();
         if (userData?.name && userData?.idNumber && userData?.birthday) {
-          router.replace('/(tabs)/home');
+          // Route to PIN lock for verification
+          router.replace('/pinLock');
         } else {
           // User exists but profile incomplete
           router.replace('/completeProfile');

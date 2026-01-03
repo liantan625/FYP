@@ -1,12 +1,35 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 
-const AuthContext = createContext(null);
+interface AuthContextType {
+  confirmation: any;
+  setConfirmation: (c: any) => void;
+  isPinVerified: boolean;
+  setPinVerified: (v: boolean) => void;
+  lockApp: () => void;
+}
 
-export function AuthProvider({ children }) {
-  const [confirmation, setConfirmation] = useState(null);
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [confirmation, setConfirmation] = useState<any>(null);
+  const [isPinVerified, setIsPinVerified] = useState<boolean>(false);
+
+  const setPinVerified = useCallback((verified: boolean) => {
+    setIsPinVerified(verified);
+  }, []);
+
+  const lockApp = useCallback(() => {
+    setIsPinVerified(false);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ confirmation, setConfirmation }}>
+    <AuthContext.Provider value={{
+      confirmation,
+      setConfirmation,
+      isPinVerified,
+      setPinVerified,
+      lockApp
+    }}>
       {children}
     </AuthContext.Provider>
   );
