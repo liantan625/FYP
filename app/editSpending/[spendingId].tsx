@@ -13,13 +13,17 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function EditSpendingScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { spendingId } = params;
+  const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
 
-  const [spending, setSpending] = useState(null);
+  const [spending, setSpending] = useState<any>(null);
   const [spendingName, setSpendingName] = useState('');
   const [amount, setAmount] = useState('0.00');
   const [description, setDescription] = useState('');
@@ -31,14 +35,14 @@ export default function EditSpendingScreen() {
         .collection('users')
         .doc(user.uid)
         .collection('spendings')
-        .doc(spendingId)
+        .doc(spendingId as string)
         .onSnapshot(doc => {
-          if (doc.exists) {
-            const spendingData = doc.data();
+          const spendingData = doc.data();
+          if (spendingData) {
             setSpending(spendingData);
-            setSpendingName(spendingData.spendingName);
-            setAmount(spendingData.amount.toString());
-            setDescription(spendingData.description);
+            setSpendingName(spendingData?.spendingName || '');
+            setAmount(spendingData?.amount ? spendingData.amount.toString() : '0.00');
+            setDescription(spendingData?.description || '');
           }
         });
 
@@ -49,18 +53,18 @@ export default function EditSpendingScreen() {
   const handleUpdate = async () => {
     const user = auth().currentUser;
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to update a spending.');
+      Alert.alert(t('common.error'), t('addSpending.loginRequired'));
       return;
     }
 
     if (!spendingName || spendingName.trim() === '') {
-      Alert.alert('Ralat', 'Sila masukkan nama perbelanjaan.');
+      Alert.alert(t('common.error'), t('addSpending.nameRequired'));
       return;
     }
 
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Ralat', 'Sila masukkan amaun yang sah (lebih besar daripada 0.00).');
+      Alert.alert(t('common.error'), t('addSpending.amountRequired'));
       return;
     }
 
@@ -69,49 +73,49 @@ export default function EditSpendingScreen() {
         .collection('users')
         .doc(user.uid)
         .collection('spendings')
-        .doc(spendingId)
+        .doc(spendingId as string)
         .update({
           spendingName,
           amount: parseFloat(amount),
           description,
         });
 
-      Alert.alert('Simpan', 'Perbelanjaan berjaya dikemaskini!');
+      Alert.alert(t('common.success'), t('addSpending.successMessage'));
       router.back();
     } catch (error) {
       console.error('Error updating spending: ', error);
-      Alert.alert('Error', 'Gagal mengemaskini perbelanjaan. Sila cuba lagi.');
+      Alert.alert(t('common.error'), t('addSpending.errorMessage'));
     }
   };
 
   const handleDelete = async () => {
     const user = auth().currentUser;
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to delete a spending.');
+      Alert.alert(t('common.error'), t('addSpending.loginRequired'));
       return;
     }
 
     Alert.alert(
-      'Padam Perbelanjaan',
-      'Anda pasti mahu padam perbelanjaan ini?',
+      t('common.delete'),
+      t('reminders.deleteMessage'), // Reusing "Are you sure you want to delete this...?"
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Padam',
+          text: t('common.delete'),
           onPress: async () => {
             try {
               await firestore()
                 .collection('users')
                 .doc(user.uid)
                 .collection('spendings')
-                .doc(spendingId)
+                .doc(spendingId as string)
                 .delete();
 
-              Alert.alert('Padam', 'Perbelanjaan berjaya dipadam!');
+              Alert.alert(t('common.delete'), t('reminders.deleteFailed').replace('Failed', 'Success')); // Fallback text, ideally add specific key
               router.back();
             } catch (error) {
               console.error('Error deleting spending: ', error);
-              Alert.alert('Error', 'Gagal memadam perbelanjaan. Sila cuba lagi.');
+              Alert.alert(t('common.error'), t('addSpending.errorMessage'));
             }
           },
           style: 'destructive',
@@ -122,56 +126,80 @@ export default function EditSpendingScreen() {
   };
 
   if (!spending) {
-    return null; // Or a loading indicator
+    return null;
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          accessibilityLabel={t('common.back')}
+          accessibilityRole="button"
+        >
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Kemaskini Perbelanjaan</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]} accessibilityRole="header">
+          {t('spending.title')}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
-      <ScrollView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.form}>
-          <Text style={styles.label}>Nama Perbelanjaan</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.nameLabel')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { fontSize: fontSize.medium }]}
               value={spendingName}
               onChangeText={setSpendingName}
+              placeholder={t('addSpending.namePlaceholder')}
+              placeholderTextColor="#94A3B8"
+              accessibilityLabel={t('addSpending.nameLabel')}
             />
           </View>
 
-          <Text style={styles.label}>Amaun</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.amountLabel')}</Text>
           <View style={styles.amountContainer}>
-            <Text style={styles.currencyLabel}>MYR</Text>
+            <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>MYR</Text>
             <TextInput
-              style={styles.amountInput}
+              style={[styles.amountInput, { fontSize: fontSize.medium }]}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
+              accessibilityLabel={t('addSpending.amountLabel')}
             />
           </View>
 
-          <Text style={styles.label}>Penerangan (Pilihan)</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.descriptionLabel')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { fontSize: fontSize.medium }]}
               value={description}
               onChangeText={setDescription}
               multiline
+              placeholder={t('addSpending.descriptionPlaceholder')}
+              placeholderTextColor="#94A3B8"
+              accessibilityLabel={t('addSpending.descriptionLabel')}
             />
           </View>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
-            <Text style={styles.saveButtonText}>Kemaskini</Text>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleUpdate}
+            accessibilityLabel={t('common.save')}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('common.save')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Padam Perbelanjaan</Text>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+            accessibilityLabel={t('common.delete')}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.deleteButtonText, { fontSize: fontSize.medium }]}>{t('common.delete')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -189,84 +217,91 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    padding: 16,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#fff',
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
   },
   form: {
-    padding: 20,
+    padding: 24,
   },
   label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#1F2937',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 20,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    marginBottom: 24,
+    backgroundColor: '#F8FAFC',
   },
   input: {
     flex: 1,
-    padding: 15,
-    fontSize: 16,
+    padding: 16,
+    color: '#1F2937',
   },
   amountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 20,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    marginBottom: 24,
+    backgroundColor: '#fff',
   },
   currencyLabel: {
-    padding: 15,
-    fontSize: 16,
-    fontWeight: 'bold',
-    backgroundColor: '#f0f0f0',
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    padding: 16,
+    fontWeight: '700',
+    backgroundColor: '#F1F5F9',
+    borderTopLeftRadius: 11,
+    borderBottomLeftRadius: 11,
+    color: '#475569',
   },
   amountInput: {
     flex: 1,
-    padding: 15,
-    fontSize: 16,
+    padding: 16,
+    color: '#1F2937',
+    fontWeight: '600',
   },
   textArea: {
-    height: 100,
+    height: 120,
     textAlignVertical: 'top',
   },
   saveButton: {
     backgroundColor: '#00D9A8',
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 14,
+    paddingVertical: 18, // Larger touch target
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 8,
+    shadowColor: '#00D9A8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   deleteButton: {
-    backgroundColor: '#FF5252',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 16,
+    borderWidth: 2,
+    borderColor: '#EF4444',
   },
   deleteButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#EF4444',
+    fontWeight: '700',
   },
 });

@@ -22,28 +22,32 @@ import auth from '@react-native-firebase/auth';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const defaultSpendingCategories = [
-  { label: "Runcit", value: "groceries" },
-  { label: "Sewa", value: "rent" },
-  { label: "Perayaan", value: "celebration" },
-  { label: "Hiburan", value: "entertainment" },
-  { label: "Lain-Lain", value: "others" }
-];
+import { useTranslation } from 'react-i18next';
 
 const defaultCurrency = "MYR";
 
 export default function AddSpendingScreen() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const fontSize = useScaledFontSize();
   const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  // Dynamic default categories
+  const defaultSpendingCategories = [
+    { label: t('spending.categories.groceries'), value: "groceries" },
+    { label: t('spending.categories.rent'), value: "rent" },
+    { label: t('spending.categories.celebration'), value: "celebration" },
+    { label: t('spending.categories.entertainment'), value: "entertainment" },
+    { label: t('spending.categories.others'), value: "others" }
+  ];
+
   const [spendingCategories, setSpendingCategories] = useState(defaultSpendingCategories);
 
   // Load custom categories on mount
   useEffect(() => {
     loadCustomCategories();
-  }, []);
+  }, [i18n.language]);
 
   const loadCustomCategories = async () => {
     try {
@@ -52,6 +56,8 @@ export default function AddSpendingScreen() {
         const customCategories = JSON.parse(customCategoriesJson);
         // Combine default + custom categories
         setSpendingCategories([...defaultSpendingCategories, ...customCategories]);
+      } else {
+        setSpendingCategories(defaultSpendingCategories);
       }
     } catch (error) {
       console.error('Error loading custom categories:', error);
@@ -78,38 +84,33 @@ export default function AddSpendingScreen() {
 
   const getSelectedCategoryLabel = () => {
     const selected = spendingCategories.find(c => c.value === category);
-    return selected ? selected.label : 'Pilih Jenis Perbelanjaan';
+    return selected ? selected.label : t('addSpending.selectPlaceholder');
   };
 
   const handleSave = async () => {
-    console.log('handleSave called');
     const user = auth().currentUser;
     if (!user) {
-      console.log('User not logged in');
-      Alert.alert('Error', 'You must be logged in to add an asset.');
+      Alert.alert(t('addSpending.errorTitle'), t('addSpending.loginRequired'));
       return;
     }
-    console.log('User UID:', user.uid);
 
     if (!category) {
-      Alert.alert('Ralat', 'Sila pilih kategori perbelanjaan.');
+      Alert.alert(t('addSpending.errorTitle'), t('addSpending.categoryRequired'));
       return;
     }
 
     if (!spendingName || spendingName.trim() === '') {
-      Alert.alert('Ralat', 'Sila masukkan nama perbelanjaan.');
+      Alert.alert(t('addSpending.errorTitle'), t('addSpending.nameRequired'));
       return;
     }
 
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Ralat', 'Sila masukkan amaun yang sah (lebih besar daripada 0.00).');
+      Alert.alert(t('addSpending.errorTitle'), t('addSpending.amountRequired'));
       return;
     }
-    console.log('All fields filled');
 
     try {
-      console.log('Attempting to save to Firestore');
       await firestore()
         .collection('users')
         .doc(user.uid)
@@ -122,7 +123,6 @@ export default function AddSpendingScreen() {
           description,
           createdAt: firestore.FieldValue.serverTimestamp(),
         });
-      console.log('Save successful');
 
       // Add notification
       await firestore()
@@ -130,8 +130,8 @@ export default function AddSpendingScreen() {
         .doc(user.uid)
         .collection('notifications')
         .add({
-          title: 'Perbelanjaan Direkod',
-          message: `Anda telah merekod perbelanjaan '${spendingName}' bernilai RM ${parseFloat(amount).toFixed(2)}`,
+          title: t('addSpending.successTitle'),
+          message: `${t('addSpending.successMessage')} '${spendingName}' (RM ${parseFloat(amount).toFixed(2)})`,
           type: 'spending',
           createdAt: firestore.FieldValue.serverTimestamp(),
           read: false,
@@ -141,13 +141,13 @@ export default function AddSpendingScreen() {
 
       Toast.show({
         type: 'success',
-        text1: 'Simpan',
-        text2: 'Perbelanjaan berjaya disimpan!',
+        text1: t('addSpending.successTitle'),
+        text2: t('addSpending.successMessage'),
       });
       router.back();
     } catch (error) {
       console.error('Error adding spending: ', error);
-      Alert.alert('Error', 'Gagal menyimpan perbelanjaan. Sila cuba lagi.');
+      Alert.alert(t('addSpending.errorTitle'), t('addSpending.errorMessage'));
     }
   };
 
@@ -158,7 +158,7 @@ export default function AddSpendingScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Tambah Perbelanjaan</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('addSpending.title')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -168,8 +168,8 @@ export default function AddSpendingScreen() {
           <MaterialIcons name="shopping-cart" size={28} color="#fff" />
         </View>
         <View style={styles.summaryContent}>
-          <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>Rekod Perbelanjaan</Text>
-          <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>Pantau perbelanjaan harian anda</Text>
+          <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>{t('addSpending.summaryTitle')}</Text>
+          <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>{t('addSpending.summarySubtitle')}</Text>
         </View>
       </View>
 
@@ -183,10 +183,10 @@ export default function AddSpendingScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="calendar-today" size={20} color="#EF4444" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Tarikh</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.dateLabel')}</Text>
               </View>
               <TouchableOpacity onPress={showDatePicker} style={styles.inputContainer}>
-                <Text style={[styles.inputText, { fontSize: fontSize.medium }]}>{date.toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                <Text style={[styles.inputText, { fontSize: fontSize.medium }]}>{date.toLocaleDateString(i18n.language === 'ms' ? 'ms-MY' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
                 <MaterialIcons name="chevron-right" size={24} color="#94A3B8" />
               </TouchableOpacity>
             </View>
@@ -201,7 +201,7 @@ export default function AddSpendingScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="folder" size={20} color="#EF4444" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Kategori Perbelanjaan</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.categoryLabel')}</Text>
               </View>
               {Platform.OS === 'ios' ? (
                 <>
@@ -230,16 +230,16 @@ export default function AddSpendingScreen() {
                     <View style={styles.modalOverlay}>
                       <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                          <Text style={styles.modalTitle}>Pilih Kategori</Text>
+                          <Text style={styles.modalTitle}>{t('addSpending.selectCategory')}</Text>
                           <TouchableOpacity onPress={() => setPickerVisible(false)}>
-                            <Text style={styles.doneButtonText}>Selesai</Text>
+                            <Text style={styles.doneButtonText}>{t('common.confirm')}</Text>
                           </TouchableOpacity>
                         </View>
                         <Picker
                           selectedValue={category}
                           onValueChange={(itemValue) => setCategory(itemValue)}
                         >
-                          <Picker.Item label="Pilih Jenis Perbelanjaan" value={null} />
+                          <Picker.Item label={t('addSpending.selectPlaceholder')} value={null} />
                           {spendingCategories.map((item) => (
                             <Picker.Item key={item.value} label={item.label} value={item.value} />
                           ))}
@@ -253,7 +253,7 @@ export default function AddSpendingScreen() {
                   <RNPickerSelect
                     onValueChange={(value) => setCategory(value)}
                     items={spendingCategories}
-                    placeholder={{ label: 'Pilih Jenis Perbelanjaan', value: null }}
+                    placeholder={{ label: t('addSpending.selectPlaceholder'), value: null }}
                     style={pickerSelectStyles(fontSize.fontScale)}
                   />
                 </View>
@@ -264,12 +264,12 @@ export default function AddSpendingScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="label" size={20} color="#EF4444" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Nama Perbelanjaan</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.nameLabel')}</Text>
               </View>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={[styles.textInput, { fontSize: fontSize.medium }]}
-                  placeholder="Contoh: Makan Malam"
+                  placeholder={t('addSpending.namePlaceholder')}
                   placeholderTextColor="#94A3B8"
                   value={spendingName}
                   onChangeText={setSpendingName}
@@ -281,7 +281,7 @@ export default function AddSpendingScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="attach-money" size={20} color="#EF4444" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Amaun</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.amountLabel')}</Text>
               </View>
               <View style={styles.amountContainer}>
                 <View style={styles.currencyBadge}>
@@ -302,12 +302,12 @@ export default function AddSpendingScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="notes" size={20} color="#EF4444" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Penerangan (Pilihan)</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addSpending.descriptionLabel')}</Text>
               </View>
               <View style={[styles.inputContainer, styles.textAreaContainer]}>
                 <TextInput
                   style={[styles.textInput, styles.textArea, { fontSize: fontSize.medium }]}
-                  placeholder="Tambah nota..."
+                  placeholder={t('addSpending.descriptionPlaceholder')}
                   placeholderTextColor="#94A3B8"
                   value={description}
                   onChangeText={setDescription}
@@ -319,7 +319,7 @@ export default function AddSpendingScreen() {
             {/* Save Button */}
             <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
               <MaterialIcons name="save" size={22} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan Perbelanjaan</Text>
+              <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('addSpending.saveButton')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

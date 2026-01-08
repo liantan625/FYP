@@ -5,10 +5,16 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function SewaScreen() {
   const router = useRouter();
-  const [spendings, setSpendings] = useState([]);
+  const fontSize = useScaledFontSize();
+  const { t, i18n } = useTranslation();
+  const [spendings, setSpendings] = useState<any[]>([]);
+
+  const dateLocale = i18n.language === 'ms' ? 'ms-MY' : i18n.language === 'zh' ? 'zh-CN' : 'en-US';
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -19,10 +25,12 @@ export default function SewaScreen() {
         .collection('spendings')
         .where('category', '==', 'rent')
         .onSnapshot(querySnapshot => {
-          const spendingsData = [];
-          querySnapshot.forEach(doc => {
-            spendingsData.push({ id: doc.id, ...doc.data() });
-          });
+          const spendingsData: any[] = [];
+          if (querySnapshot) {
+            querySnapshot.forEach(doc => {
+              spendingsData.push({ id: doc.id, ...doc.data() });
+            });
+          }
           setSpendings(spendingsData);
         });
 
@@ -30,17 +38,31 @@ export default function SewaScreen() {
     }
   }, []);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.assetItem}>
-      <View>
-        <Text style={styles.assetName}>{item.spendingName}</Text>
-        <Text style={styles.assetDescription}>{item.description}</Text>
-        <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString()}</Text>
+  const renderItem = ({ item }: { item: any }) => (
+    <View
+      style={styles.assetItem}
+      accessible={true}
+      accessibilityLabel={`${item.spendingName}, ${item.description}, -RM ${item.amount.toFixed(2)}, ${new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale)}`}
+    >
+      <View style={{ flex: 1, paddingRight: 8 }}>
+        <Text style={[styles.assetName, { fontSize: fontSize.medium }]}>{item.spendingName}</Text>
+        <Text style={[styles.assetDescription, { fontSize: fontSize.small }]}>
+          {item.description || t('transactions.na')}
+        </Text>
+        <Text style={[styles.assetDate, { fontSize: fontSize.small }]}>
+          {item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale, { dateStyle: 'medium' }) : ''}
+        </Text>
       </View>
       <View style={styles.assetRight}>
-        <Text style={styles.assetAmount}>-RM {item.amount.toFixed(2)}</Text>
-        <TouchableOpacity onPress={() => router.push(`/editSpending/${item.id}`)}>
-          <MaterialIcons name="edit" size={24} color="#666" />
+        <Text style={[styles.assetAmount, { fontSize: fontSize.medium }]}>-RM {item.amount.toFixed(2)}</Text>
+        <TouchableOpacity
+          onPress={() => router.push(`/editSpending/${item.id}`)}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          accessibilityLabel={t('common.edit')}
+          accessibilityRole="button"
+          style={styles.editButton}
+        >
+          <MaterialIcons name="edit" size={24} color="#475569" />
         </TouchableOpacity>
       </View>
     </View>
@@ -49,10 +71,17 @@ export default function SewaScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          accessibilityLabel={t('common.back')}
+          accessibilityRole="button"
+        >
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Sewa</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]} accessibilityRole="header">
+          {t('transactions.rent')}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
       <FlatList
@@ -62,7 +91,9 @@ export default function SewaScreen() {
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Tiada perbelanjaan sewa.</Text>
+            <Text style={[styles.emptyText, { fontSize: fontSize.medium }]}>
+              {t('transactions.noTransactions')}
+            </Text>
           </View>
         )}
       />
@@ -119,16 +150,18 @@ const styles = StyleSheet.create({
   assetAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF6B6B',
+    color: '#EF4444',
+  },
+  editButton: {
+    padding: 4,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 60,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    color: '#94A3B8',
   },
 });

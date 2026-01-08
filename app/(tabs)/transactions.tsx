@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { PieChart, BarChart, ProgressChart } from 'react-native-chart-kit';
+import { PieChart, BarChart } from 'react-native-chart-kit';
 import { useRouter } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
@@ -96,7 +96,9 @@ export default function TransactionsScreen() {
             // Build expense breakdown
             const expenseBreakdownMap = new Map<string, number>();
             spendings.forEach((spending: any) => {
-              const categoryName = t(`transactions.${spending.category}`, { defaultValue: spending.category });
+              // Normalize category key to lowercase for translation
+              const categoryKey = spending.category ? spending.category.toLowerCase() : 'others';
+              const categoryName = t(`transactions.${categoryKey}`, { defaultValue: spending.category });
               expenseBreakdownMap.set(
                 categoryName,
                 (expenseBreakdownMap.get(categoryName) || 0) + (spending.amount || 0)
@@ -109,7 +111,7 @@ export default function TransactionsScreen() {
               name,
               population: amount,
               color: colors[colorIndex++ % colors.length],
-              legendFontSize: 0,
+              legendFontSize: 0, // We use custom legend
             })).sort((a, b) => b.population - a.population);
 
             // Calculate monthly trend (last 6 months)
@@ -149,10 +151,13 @@ export default function TransactionsScreen() {
             setExpenseBreakdown(newExpenseBreakdown);
 
             const translatedTransactions = [...assets, ...spendings]
-              .map((item: any) => ({
-                ...item,
-                category: t(`transactions.${item.category}`, { defaultValue: item.category })
-              }))
+              .map((item: any) => {
+                const categoryKey = item.category ? item.category.toLowerCase() : 'others';
+                return {
+                  ...item,
+                  category: t(`transactions.${categoryKey}`, { defaultValue: item.category })
+                };
+              })
               .filter((item: any) => item.createdAt)
               .sort((a: any, b: any) => b.createdAt.toDate() - a.createdAt.toDate())
               .slice(0, 10); // Show only last 10 transactions
@@ -204,10 +209,18 @@ export default function TransactionsScreen() {
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.headerButton}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          accessibilityLabel={t('common.back')}
+          accessibilityRole="button"
+        >
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('transactions.headerTitle')}</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]} accessibilityRole="header">
+          {t('transactions.headerTitle')}
+        </Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -219,28 +232,40 @@ export default function TransactionsScreen() {
       >
         {/* Summary Cards */}
         <View style={styles.summaryRow}>
-          <View style={[styles.summaryCard, { backgroundColor: '#E8F5E9' }]}>
+          <View
+            style={[styles.summaryCard, { backgroundColor: '#E8F5E9' }]}
+            accessible={true}
+            accessibilityLabel={`${t('transactions.income')}, RM ${summary.totalIncome.toLocaleString('en-MY', { minimumFractionDigits: 2 })}`}
+          >
             <View style={styles.summaryIconContainer}>
               <MaterialIcons name="trending-up" size={22} color="#48BB78" />
             </View>
             <Text style={[styles.summaryLabel, { fontSize: fontSize.small }]}>{t('transactions.income')}</Text>
-            <Text style={[styles.summaryAmount, { fontSize: fontSize.medium, color: '#48BB78' }]}>
+            <Text style={[styles.summaryAmount, { fontSize: fontSize.medium, color: '#166534' }]}>
               RM {summary.totalIncome.toLocaleString('en-MY', { minimumFractionDigits: 2 })}
             </Text>
           </View>
-          <View style={[styles.summaryCard, { backgroundColor: '#FEE2E2' }]}>
+          <View
+            style={[styles.summaryCard, { backgroundColor: '#FEE2E2' }]}
+            accessible={true}
+            accessibilityLabel={`${t('transactions.expensesChartTitle')}, RM ${summary.totalExpenses.toLocaleString('en-MY', { minimumFractionDigits: 2 })}`}
+          >
             <View style={styles.summaryIconContainer}>
               <MaterialIcons name="trending-down" size={22} color="#EF4444" />
             </View>
             <Text style={[styles.summaryLabel, { fontSize: fontSize.small }]}>{t('transactions.expensesChartTitle')}</Text>
-            <Text style={[styles.summaryAmount, { fontSize: fontSize.medium, color: '#EF4444' }]}>
+            <Text style={[styles.summaryAmount, { fontSize: fontSize.medium, color: '#B91C1C' }]}>
               RM {summary.totalExpenses.toLocaleString('en-MY', { minimumFractionDigits: 2 })}
             </Text>
           </View>
         </View>
 
         {/* Net Cash Flow Card */}
-        <View style={styles.cashFlowCard}>
+        <View
+          style={styles.cashFlowCard}
+          accessible={true}
+          accessibilityLabel={`${t('transactions.total')}, ${netCashFlow >= 0 ? '+' : ''} RM ${netCashFlow.toLocaleString('en-MY', { minimumFractionDigits: 2 })}. ${t('report.savingsRate')}: ${savingsRate.toFixed(1)}%. ${topCategory ? `${t('report.topSpending')}: ${topCategory.name}` : ''}`}
+        >
           <View style={styles.cashFlowHeader}>
             <MaterialIcons name="account-balance-wallet" size={24} color="#48BB78" />
             <Text style={[styles.cashFlowTitle, { fontSize: fontSize.medium }]}>
@@ -249,7 +274,7 @@ export default function TransactionsScreen() {
           </View>
           <Text style={[
             styles.cashFlowAmount,
-            { fontSize: fontSize.xlarge, color: netCashFlow >= 0 ? '#48BB78' : '#EF4444' }
+            { fontSize: fontSize.xlarge, color: netCashFlow >= 0 ? '#166534' : '#B91C1C' }
           ]}>
             {netCashFlow >= 0 ? '+' : ''}RM {netCashFlow.toLocaleString('en-MY', { minimumFractionDigits: 2 })}
           </Text>
@@ -260,7 +285,7 @@ export default function TransactionsScreen() {
               </Text>
               <Text style={[
                 styles.insightValue,
-                { fontSize: fontSize.medium, color: savingsRate >= 20 ? '#48BB78' : '#F59E0B' }
+                { fontSize: fontSize.medium, color: savingsRate >= 20 ? '#15803d' : '#b45309' }
               ]}>
                 {savingsRate.toFixed(1)}%
               </Text>
@@ -270,7 +295,7 @@ export default function TransactionsScreen() {
                 <Text style={[styles.insightLabel, { fontSize: fontSize.small }]}>
                   {t('report.topSpending')}
                 </Text>
-                <Text style={[styles.insightValue, { fontSize: fontSize.medium, color: topCategory.color }]}>
+                <Text style={[styles.insightValue, { fontSize: fontSize.medium, color: '#1F2937' }]}>
                   {topCategory.name}
                 </Text>
               </View>
@@ -280,7 +305,7 @@ export default function TransactionsScreen() {
 
         {/* Monthly Trend Chart */}
         {monthlyData.labels.length > 0 && (
-          <View style={styles.chartCard}>
+          <View style={styles.chartCard} accessible={true} accessibilityLabel={t('report.monthlyTrend')}>
             <Text style={[styles.sectionTitle, { fontSize: fontSize.medium }]}>
               {t('report.financialTrend')}
             </Text>
@@ -295,8 +320,8 @@ export default function TransactionsScreen() {
                     },
                   ],
                 }}
-                width={Math.max(screenWidth - 40, monthlyData.labels.length * 60)}
-                height={200}
+                width={Math.max(screenWidth - 48, monthlyData.labels.length * 60)}
+                height={220}
                 yAxisLabel="RM"
                 yAxisSuffix=""
                 chartConfig={{
@@ -305,7 +330,7 @@ export default function TransactionsScreen() {
                   backgroundGradientTo: '#fff',
                   decimalPlaces: 0,
                   color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
-                  labelColor: () => '#64748B',
+                  labelColor: () => '#475569',
                   barPercentage: 0.6,
                   propsForBackgroundLines: {
                     strokeDasharray: '',
@@ -329,15 +354,15 @@ export default function TransactionsScreen() {
             <View style={styles.pieChartContainer}>
               <PieChart
                 data={expenseBreakdown}
-                width={screenWidth - 180}
-                height={160}
+                width={screenWidth - 48} // Adjusted width padding
+                height={180}
                 chartConfig={{
                   color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
                 }}
                 accessor="population"
                 backgroundColor="transparent"
                 paddingLeft="15"
-                absolute
+                absolute={false} // Removed absolute to avoid text clutter on pie chart
                 hasLegend={false}
               />
             </View>
@@ -347,7 +372,12 @@ export default function TransactionsScreen() {
                   ? ((item.population / summary.totalExpenses) * 100).toFixed(1)
                   : '0';
                 return (
-                  <View key={index} style={styles.legendItem}>
+                  <View
+                    key={index}
+                    style={styles.legendItem}
+                    accessible={true}
+                    accessibilityLabel={`${item.name}, ${percentage}%, RM ${item.population.toFixed(0)}`}
+                  >
                     <View style={[styles.legendColor, { backgroundColor: item.color }]} />
                     <Text style={[styles.legendText, { fontSize: fontSize.small }]}>{item.name}</Text>
                     <Text style={[styles.legendPercent, { fontSize: fontSize.small }]}>{percentage}%</Text>
@@ -358,36 +388,6 @@ export default function TransactionsScreen() {
                 );
               })}
             </View>
-          </View>
-        )}
-
-        {/* Top Categories Card */}
-        {expenseBreakdown.length > 0 && (
-          <View style={styles.chartCard}>
-            <Text style={[styles.sectionTitle, { fontSize: fontSize.medium }]}>
-              {t('transactions.topCategories')}
-            </Text>
-            {expenseBreakdown.slice(0, 5).map((category, index) => {
-              const barWidth = summary.totalExpenses > 0
-                ? (category.population / summary.totalExpenses) * 100
-                : 0;
-              return (
-                <View key={index} style={styles.categoryRow}>
-                  <View style={styles.categoryInfo}>
-                    <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
-                    <Text style={[styles.categoryName, { fontSize: fontSize.small }]} numberOfLines={1}>
-                      {category.name}
-                    </Text>
-                  </View>
-                  <View style={styles.categoryBarContainer}>
-                    <View style={[styles.categoryBar, { width: `${barWidth}%`, backgroundColor: category.color }]} />
-                  </View>
-                  <Text style={[styles.categoryAmount, { fontSize: fontSize.small }]}>
-                    RM {category.population.toFixed(0)}
-                  </Text>
-                </View>
-              );
-            })}
           </View>
         )}
 
@@ -410,6 +410,9 @@ export default function TransactionsScreen() {
                 style={styles.transactionCard}
                 onPress={() => Alert.alert(item.category, `${t('transactions.total')}: RM ${item.amount.toFixed(2)}`)}
                 activeOpacity={0.7}
+                accessible={true}
+                accessibilityLabel={`${item.type === 'income' ? item.assetName : item.spendingName}, ${item.category}, ${item.type === 'income' ? '+' : '-'} RM ${item.amount.toFixed(2)}, ${item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale) : ''}`}
+                accessibilityRole="button"
               >
                 <View style={[
                   styles.transactionIcon,
@@ -417,12 +420,12 @@ export default function TransactionsScreen() {
                 ]}>
                   <MaterialIcons
                     name={item.type === 'income' ? 'arrow-upward' : 'arrow-downward'}
-                    size={20}
-                    color={item.type === 'income' ? '#48BB78' : '#EF4444'}
+                    size={24}
+                    color={item.type === 'income' ? '#166534' : '#B91C1C'}
                   />
                 </View>
                 <View style={styles.transactionContent}>
-                  <Text style={[styles.transactionName, { fontSize: fontSize.medium }]} numberOfLines={1}>
+                  <Text style={[styles.transactionName, { fontSize: fontSize.medium }]}>
                     {item.type === 'income' ? item.assetName : item.spendingName}
                   </Text>
                   <Text style={[styles.transactionCategory, { fontSize: fontSize.small }]}>
@@ -432,7 +435,7 @@ export default function TransactionsScreen() {
                 <View style={styles.transactionRight}>
                   <Text style={[
                     styles.transactionAmount,
-                    { fontSize: fontSize.medium, color: item.type === 'income' ? '#48BB78' : '#EF4444' }
+                    { fontSize: fontSize.medium, color: item.type === 'income' ? '#166534' : '#B91C1C' }
                   ]}>
                     {item.type === 'income' ? '+' : '-'}RM {item.amount.toFixed(2)}
                   </Text>
@@ -463,7 +466,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    color: '#64748B',
+    color: '#475569',
   },
   header: {
     flexDirection: 'row',
@@ -476,8 +479,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E2E8F0',
   },
   headerButton: {
-    width: 44,
-    height: 44,
+    width: 48, // Minimum touch target 48dp
+    height: 48,
     borderRadius: 12,
     backgroundColor: '#F1F5F9',
     justifyContent: 'center',
@@ -500,12 +503,14 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     padding: 14,
+    minHeight: 100, // Ensure minimum height for expanding content
+    justifyContent: 'center',
   },
   summaryIconContainer: {
     marginBottom: 8,
   },
   summaryLabel: {
-    color: '#64748B',
+    color: '#475569', // Darker grey for better contrast
     marginBottom: 4,
   },
   summaryAmount: {
@@ -529,7 +534,7 @@ const styles = StyleSheet.create({
   },
   cashFlowTitle: {
     fontWeight: '600',
-    color: '#64748B',
+    color: '#475569',
     marginLeft: 8,
   },
   cashFlowAmount: {
@@ -546,7 +551,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   insightLabel: {
-    color: '#94A3B8',
+    color: '#64748B',
     marginBottom: 4,
   },
   insightValue: {
@@ -581,27 +586,29 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+    flexWrap: 'wrap', // Allow wrapping for large text
   },
   legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 10,
+    width: 16, // Larger color indicator
+    height: 16,
+    borderRadius: 8,
+    marginRight: 12,
   },
   legendText: {
     flex: 1,
     color: '#1F2937',
+    marginRight: 8,
   },
   legendPercent: {
-    color: '#64748B',
+    color: '#475569',
     marginRight: 12,
-    width: 40,
+    minWidth: 40,
   },
   legendAmount: {
     fontWeight: '600',
     color: '#1F2937',
-    width: 80,
+    minWidth: 80,
     textAlign: 'right',
   },
   categoryRow: {
@@ -658,41 +665,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 14,
-    padding: 14,
+    padding: 16, // Increased padding
     marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
+    minHeight: 72, // Ensure minimum height
   },
   transactionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 48, // Increased size
+    height: 48,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   transactionContent: {
     flex: 1,
+    marginRight: 8,
   },
   transactionName: {
     fontWeight: '600',
     color: '#1F2937',
+    marginBottom: 4,
   },
   transactionCategory: {
-    color: '#64748B',
-    marginTop: 2,
+    color: '#475569', // Darker grey
   },
   transactionRight: {
     alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   transactionAmount: {
     fontWeight: '700',
+    marginBottom: 4,
   },
   transactionDate: {
-    color: '#94A3B8',
-    marginTop: 2,
+    color: '#64748B',
   },
 });

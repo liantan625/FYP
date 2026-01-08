@@ -66,7 +66,8 @@
     "investment": "投资",
     "property": "房产",
     "bank": "银行储蓄",
-    "na": "无"
+    "na": "无",
+    "topCategories": "最高支出类别"
   },
   "analysis": {
     "title": "分析",
@@ -103,6 +104,11 @@
     "editCategory": "编辑类别",
     "deleteCategory": "删除类别",
     "categoryName": "类别名称",
+    "entertainment": "娱乐",
+    "groceries": "杂货",
+    "rent": "租金",
+    "celebration": "庆祝",
+    "others": "其他",
     "noCategories": "暂无类别"
   },
   "spending": {
@@ -112,6 +118,9 @@
     "popular": "热门类别",
     "all": "所有类别",
     "addNew": "添加新类别",
+    "onTrack": "掌控之中",
+    "dailyAverage": "日均支出",
+    "daysLeft": "剩余天数",
     "categories": {
       "groceries": "杂货",
       "rent": "租金",
@@ -458,5 +467,53 @@
     "description": "您现在可以登录并开始使用DuitU管理您的财务。",
     "login": "登录",
     "welcome": "欢迎使用DuitU"
+  },
+  "addAsset": {
+    "title": "添加资产",
+    "summaryTitle": "新资产记录",
+    "summarySubtitle": "添加储蓄、投资或收入",
+    "dateLabel": "日期",
+    "categoryLabel": "资产类别",
+    "nameLabel": "资产名称",
+    "namePlaceholder": "例如：银行储蓄",
+    "amountLabel": "金额",
+    "descriptionLabel": "描述（可选）",
+    "descriptionPlaceholder": "添加备注...",
+    "recurringIncome": "经常性收入",
+    "recurringIncomeHint": "如果是每月收入，请启用",
+    "saveButton": "保存资产",
+    "selectCategory": "选择类别",
+    "selectPlaceholder": "选择资产/收入",
+    "errorTitle": "错误",
+    "errorMessage": "保存资产失败。请重试。",
+    "loginRequired": "您必须登录才能添加资产。",
+    "categoryRequired": "请选择资产类别。",
+    "nameRequired": "请输入资产名称。",
+    "amountRequired": "请输入有效金额（大于0.00）。",
+    "successTitle": "已保存",
+    "successMessage": "资产保存成功！"
+  },
+  "addSpending": {
+    "title": "添加支出",
+    "summaryTitle": "记录支出",
+    "summarySubtitle": "追踪您的每日开销",
+    "dateLabel": "日期",
+    "categoryLabel": "支出类别",
+    "nameLabel": "支出名称",
+    "namePlaceholder": "例如：晚餐",
+    "amountLabel": "金额",
+    "descriptionLabel": "描述（可选）",
+    "descriptionPlaceholder": "添加备注...",
+    "saveButton": "保存支出",
+    "selectCategory": "选择类别",
+    "selectPlaceholder": "选择支出类型",
+    "errorTitle": "错误",
+    "errorMessage": "保存支出失败。请重试。",
+    "loginRequired": "您必须登录才能添加支出。",
+    "categoryRequired": "请选择支出类别。",
+    "nameRequired": "请输入支出名称。",
+    "amountRequired": "请输入有效金额（大于0.00）。",
+    "successTitle": "已保存",
+    "successMessage": "支出保存成功！"
   }
 }

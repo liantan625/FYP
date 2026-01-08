@@ -14,13 +14,17 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function EditAssetScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { assetId } = params;
+  const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
 
-  const [asset, setAsset] = useState(null);
+  const [asset, setAsset] = useState<any>(null);
   const [assetName, setAssetName] = useState('');
   const [amount, setAmount] = useState('0.00');
   const [description, setDescription] = useState('');
@@ -32,14 +36,14 @@ export default function EditAssetScreen() {
         .collection('users')
         .doc(user.uid)
         .collection('assets')
-        .doc(assetId)
+        .doc(assetId as string)
         .onSnapshot(doc => {
-          if (doc.exists) {
-            const assetData = doc.data();
+          const assetData = doc.data();
+          if (assetData) {
             setAsset(assetData);
-            setAssetName(assetData.assetName);
-            setAmount(assetData.amount.toString());
-            setDescription(assetData.description);
+            setAssetName(assetData?.assetName || '');
+            setAmount(assetData?.amount ? assetData.amount.toString() : '0.00');
+            setDescription(assetData?.description || '');
           }
         });
 
@@ -50,18 +54,18 @@ export default function EditAssetScreen() {
   const handleUpdate = async () => {
     const user = auth().currentUser;
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to update an asset.');
+      Alert.alert(t('common.error'), t('addAsset.loginRequired'));
       return;
     }
 
     if (!assetName || assetName.trim() === '') {
-      Alert.alert('Ralat', 'Sila masukkan nama aset.');
+      Alert.alert(t('common.error'), t('addAsset.nameRequired'));
       return;
     }
 
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Ralat', 'Sila masukkan amaun yang sah (lebih besar daripada 0.00).');
+      Alert.alert(t('common.error'), t('addAsset.amountRequired'));
       return;
     }
 
@@ -70,49 +74,49 @@ export default function EditAssetScreen() {
         .collection('users')
         .doc(user.uid)
         .collection('assets')
-        .doc(assetId)
+        .doc(assetId as string)
         .update({
           assetName,
           amount: parseFloat(amount),
           description,
         });
 
-      Alert.alert('Simpan', 'Aset berjaya dikemaskini!');
+      Alert.alert(t('common.success'), t('addAsset.successMessage'));
       router.back();
     } catch (error) {
       console.error('Error updating asset: ', error);
-      Alert.alert('Error', 'Gagal mengemaskini aset. Sila cuba lagi.');
+      Alert.alert(t('common.error'), t('addAsset.errorMessage'));
     }
   };
 
   const handleDelete = async () => {
     const user = auth().currentUser;
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to delete an asset.');
+      Alert.alert(t('common.error'), t('addAsset.loginRequired'));
       return;
     }
 
     Alert.alert(
-      'Padam Aset',
-      'Anda pasti mahu padam aset ini?',
+      t('common.delete'),
+      t('reminders.deleteMessage'), // Reuse "Are you sure..."
       [
-        { text: 'Batal', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Padam',
+          text: t('common.delete'),
           onPress: async () => {
             try {
               await firestore()
                 .collection('users')
                 .doc(user.uid)
                 .collection('assets')
-                .doc(assetId)
+                .doc(assetId as string)
                 .delete();
 
-              Alert.alert('Padam', 'Aset berjaya dipadam!');
+              Alert.alert(t('common.delete'), t('reminders.deleteFailed').replace('Failed', 'Success'));
               router.back();
             } catch (error) {
               console.error('Error deleting asset: ', error);
-              Alert.alert('Error', 'Gagal memadam aset. Sila cuba lagi.');
+              Alert.alert(t('common.error'), t('addAsset.errorMessage'));
             }
           },
           style: 'destructive',
@@ -123,56 +127,80 @@ export default function EditAssetScreen() {
   };
 
   if (!asset) {
-    return null; // Or a loading indicator
+    return null;
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          accessibilityLabel={t('common.back')}
+          accessibilityRole="button"
+        >
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Kemaskini Aset</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]} accessibilityRole="header">
+          {t('asset.title')}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
-      <ScrollView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.form}>
-          <Text style={styles.label}>Nama Aset</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.nameLabel')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { fontSize: fontSize.medium }]}
               value={assetName}
               onChangeText={setAssetName}
+              placeholder={t('addAsset.namePlaceholder')}
+              placeholderTextColor="#94A3B8"
+              accessibilityLabel={t('addAsset.nameLabel')}
             />
           </View>
 
-          <Text style={styles.label}>Amaun</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.amountLabel')}</Text>
           <View style={styles.amountContainer}>
-            <Text style={styles.currencyLabel}>MYR</Text>
+            <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>MYR</Text>
             <TextInput
-              style={styles.amountInput}
+              style={[styles.amountInput, { fontSize: fontSize.medium }]}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
+              accessibilityLabel={t('addAsset.amountLabel')}
             />
           </View>
 
-          <Text style={styles.label}>Penerangan (Pilihan)</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.descriptionLabel')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { fontSize: fontSize.medium }]}
               value={description}
               onChangeText={setDescription}
               multiline
+              placeholder={t('addAsset.descriptionPlaceholder')}
+              placeholderTextColor="#94A3B8"
+              accessibilityLabel={t('addAsset.descriptionLabel')}
             />
           </View>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
-            <Text style={styles.saveButtonText}>Kemaskini</Text>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleUpdate}
+            accessibilityLabel={t('common.save')}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('common.save')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Padam Aset</Text>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+            accessibilityLabel={t('common.delete')}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.deleteButtonText, { fontSize: fontSize.medium }]}>{t('common.delete')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -190,86 +218,91 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    padding: 16,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#fff',
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
   },
   form: {
-    padding: 20,
+    padding: 24,
   },
   label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#1F2937',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 20,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    marginBottom: 24,
+    backgroundColor: '#F8FAFC',
   },
   input: {
     flex: 1,
-    padding: 15,
-    fontSize: 16,
+    padding: 16,
+    color: '#1F2937',
   },
   amountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 20,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    marginBottom: 24,
+    backgroundColor: '#fff',
   },
   currencyLabel: {
-    padding: 15,
-    fontSize: 16,
-    fontWeight: 'bold',
-    backgroundColor: '#f0f0f0',
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    padding: 16,
+    fontWeight: '700',
+    backgroundColor: '#F1F5F9',
+    borderTopLeftRadius: 11,
+    borderBottomLeftRadius: 11,
+    color: '#475569',
   },
   amountInput: {
     flex: 1,
-    padding: 15,
-    fontSize: 16,
+    padding: 16,
+    color: '#1F2937',
+    fontWeight: '600',
   },
   textArea: {
-    height: 100,
+    height: 120,
     textAlignVertical: 'top',
   },
   saveButton: {
     backgroundColor: '#00D9A8',
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 8,
+    shadowColor: '#00D9A8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   deleteButton: {
-    backgroundColor: '#FF5252',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 15,
-    borderWidth: 1,
-    borderColor: '#FF5252',
+    marginTop: 16,
+    borderWidth: 2,
+    borderColor: '#EF4444',
   },
   deleteButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#EF4444',
+    fontWeight: '700',
   },
 });

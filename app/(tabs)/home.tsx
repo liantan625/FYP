@@ -65,9 +65,9 @@ export default function HomeScreen() {
       .collection('users')
       .doc(user.uid)
       .onSnapshot(
-        documentSnapshot => {
-          if (documentSnapshot.exists) {
-            const data = documentSnapshot.data();
+        (documentSnapshot: any) => {
+          const data = documentSnapshot.data();
+          if (data) {
             setUserName(data?.name || '');
             if (data?.monthlyBudget) {
               setMonthlyBudget(data.monthlyBudget);
@@ -199,209 +199,257 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        {/* Header */}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header - Simplified & Clear */}
         <View style={styles.headerContainer}>
-
           <View style={styles.headerTopRow}>
-            <Text style={[styles.headerGreeting, { fontSize: fontSize.large }]}>{t('home.welcome', { name: userName })}</Text>
-            <TouchableOpacity onPress={() => router.push('/notifications')}>
-              <MaterialIcons name="notifications" size={28} color="#fff" />
+            <View style={{ flexShrink: 1 }}>
+              <Text style={[styles.headerGreeting, { fontSize: fontSize.large }]}>
+                {t('home.welcome', { name: userName })}
+              </Text>
+              <Text style={[styles.headerDate, { fontSize: fontSize.small }]}>
+                {new Date().toLocaleDateString('ms-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push('/notifications')}
+              accessible={true}
+              accessibilityLabel={t('notifications.title')}
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+              style={styles.notificationButton}
+            >
+              <MaterialIcons name="notifications-none" size={32} color="#FFFFFF" />
+              {/* Optional: Add red dot if unread */}
             </TouchableOpacity>
           </View>
 
-          {/* Financial Summary Card */}
-          <TouchableOpacity style={styles.summaryCard} onPress={() => router.push('/savingsgoals')}>
-            <View style={styles.summaryHeader}>
-              <Text style={[styles.summaryTitle, { fontSize: fontSize.large }]}>{t('home.savingsGoal')}</Text>
-            </View>
-
-            <View style={styles.summaryAmountContainer}>
-              <Text style={[styles.summaryAmount, { fontSize: fontSize.heading }]}>💵 RM {financialSummary.netAmount.toFixed(2)}</Text>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.progressContainer}>
-              <View style={styles.progressHeader}>
-                <Text style={[styles.progressTitle, { fontSize: fontSize.body }]}>{t('home.progress', { percentage: financialSummary.progressPercentage.toFixed(0) })}</Text>
+          {/* Savings Goal Card - Redesigned for Large Text */}
+          <TouchableOpacity
+            style={styles.mainCard}
+            onPress={() => router.push('/savingsgoals')}
+            accessible={true}
+            accessibilityLabel={`${t('home.savingsGoal')}. ${t('home.progress', { percentage: financialSummary.progressPercentage.toFixed(0) })}. RM ${financialSummary.netAmount.toFixed(2)}`}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.cardIcon}>
+                <MaterialIcons name="savings" size={24} color="#48BB78" />
               </View>
-              <View style={styles.progressBarContainer}>
-                <View style={[styles.progressBar, { width: `${financialSummary.progressPercentage}%` }]} />
-              </View>
-              <Text style={[styles.progressText, { fontSize: fontSize.small }]}>RM {financialSummary.totalAssets.toFixed(2)} / RM {financialSummary.goal.toFixed(2)}</Text>
+              <Text style={[styles.cardTitle, { fontSize: fontSize.medium }]}>{t('home.savingsGoal')}</Text>
+              <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
             </View>
 
-            <View style={styles.messageContainer}>
-              <Text style={[styles.summaryMessage, { fontSize: fontSize.body }]}>{t('home.greatConsistency')}</Text>
+            <View style={styles.mainAmountContainer}>
+              <Text style={[styles.currencySymbol, { fontSize: fontSize.large }]}>RM</Text>
+              <Text style={[styles.mainAmount, { fontSize: fontSize.heading }]}>
+                {financialSummary.netAmount.toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.progressSection}>
+              <View style={styles.progressLabels}>
+                <Text style={[styles.progressLabel, { fontSize: fontSize.small }]}>
+                  {t('home.progress', { percentage: financialSummary.progressPercentage.toFixed(0) })}
+                </Text>
+                <Text style={[styles.targetLabel, { fontSize: fontSize.small }]}>
+                  / RM {financialSummary.goal.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${Math.min(financialSummary.progressPercentage, 100)}%` }]} />
+              </View>
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Quick Action Cards */}
-        <View style={styles.quickActionsContainer}>
-          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardGreen]} onPress={() => router.push('/(tabs)/Asset')}>
-            <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>🏦</Text>
-            <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.retirementAssets')}</Text>
-            <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#10B981' }]}>RM {totalAssets.toFixed(2)}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickActionCard, styles.quickActionCardRed]} onPress={() => router.push('/(tabs)/spending')}>
-            <Text style={[styles.quickActionEmoji, { fontSize: fontSize.heading }]}>💳</Text>
-            <Text style={[styles.quickActionTitle, { fontSize: fontSize.body }]}>{t('home.expenses')}</Text>
-            <Text style={[styles.quickActionAmount, { fontSize: fontSize.xlarge, color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
-          </TouchableOpacity>
+        {/* Quick Stats - Vertical List for better readability on large fonts */}
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>
+            {t('home.monthSummary')}
+          </Text>
+
+          <View style={styles.statsGrid}>
+            {/* Total Assets */}
+            <TouchableOpacity
+              style={[styles.statCard, { borderLeftColor: '#3B82F6' }]}
+              onPress={() => router.push('/(tabs)/assets')}
+              accessible={true}
+              accessibilityLabel={`${t('home.totalAssets')}, RM ${totalAssets.toFixed(2)}`}
+              accessibilityRole="button"
+            >
+              <View style={[styles.statIcon, { backgroundColor: '#EFF6FF' }]}>
+                <MaterialIcons name="account-balance" size={32} color="#3B82F6" />
+              </View>
+              <View style={styles.statContent}>
+                <Text style={[styles.statLabel, { fontSize: fontSize.body }]}>{t('home.totalAssets')}</Text>
+                <Text style={[styles.statValue, { fontSize: fontSize.large, color: '#1D4ED8' }]}>
+                  RM {totalAssets.toFixed(2)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Expenses */}
+            <TouchableOpacity
+              style={[styles.statCard, { borderLeftColor: '#EF4444' }]}
+              onPress={() => router.push('/(tabs)/spending')}
+              accessible={true}
+              accessibilityLabel={`${t('home.expenses')}, RM ${totalExpenses.toFixed(2)}`}
+              accessibilityRole="button"
+            >
+              <View style={[styles.statIcon, { backgroundColor: '#FEF2F2' }]}>
+                <MaterialIcons name="trending-down" size={32} color="#EF4444" />
+              </View>
+              <View style={styles.statContent}>
+                <Text style={[styles.statLabel, { fontSize: fontSize.body }]}>{t('home.expenses')}</Text>
+                <Text style={[styles.statValue, { fontSize: fontSize.large, color: '#B91C1C' }]}>
+                  RM {totalExpenses.toFixed(2)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Income */}
+            <View
+              style={[styles.statCard, { borderLeftColor: '#10B981' }]}
+              accessible={true}
+              accessibilityLabel={`${t('home.income')}, RM ${monthlyIncome.toFixed(2)}`}
+            >
+              <View style={[styles.statIcon, { backgroundColor: '#ECFDF5' }]}>
+                <MaterialIcons name="trending-up" size={32} color="#10B981" />
+              </View>
+              <View style={styles.statContent}>
+                <Text style={[styles.statLabel, { fontSize: fontSize.body }]}>{t('home.income')}</Text>
+                <Text style={[styles.statValue, { fontSize: fontSize.large, color: '#047857' }]}>
+                  RM {monthlyIncome.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            {/* View Full Report Button */}
+            <TouchableOpacity
+              style={styles.reportButton}
+              onPress={() => router.push('/report')}
+              accessible={true}
+              accessibilityLabel={t('home.viewFullReport')}
+              accessibilityRole="button"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={[styles.reportButtonText, { fontSize: fontSize.medium }]}>
+                {t('home.viewFullReport')}
+              </Text>
+              <MaterialIcons name="arrow-forward" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Tools Section - 2x2 Grid */}
-        <View style={styles.toolsContainer}>
+        {/* Tools Grid - Spacious */}
+        <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="handyman" size={24} color="#1F293B" style={styles.sectionIcon} />
-            <Text style={[styles.toolsSectionTitle, { fontSize: fontSize.large }]}>{t('financialTools.title')}</Text>
+            <MaterialIcons name="grid-view" size={28} color="#1F2937" style={styles.sectionHeaderIcon} />
+            <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>{t('financialTools.title')}</Text>
           </View>
 
-          {/* Row 1: Kalkulator & Tanya Pakar (Killer Features) */}
-          <View style={styles.toolsRow}>
+          <View style={styles.toolsGrid}>
             <TouchableOpacity
-              style={[styles.toolCard, styles.toolCardPrimary]}
+              style={styles.toolItem}
               onPress={() => router.push('/calculator')}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('financialTools.calculator')}
             >
-              <View style={styles.iconContainer}>
-                <MaterialIcons name="calculate" size={32} color="#fff" />
+              <View style={[styles.toolIconBox, { backgroundColor: '#E0F2FE' }]}>
+                <MaterialIcons name="calculate" size={36} color="#0284C7" />
               </View>
-              <View>
-                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>{t('financialTools.calculator')}</Text>
-                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>{t('financialTools.calculatorSubtitle')}</Text>
-              </View>
+              <Text style={[styles.toolTitle, { fontSize: fontSize.medium }]}>{t('financialTools.calculator')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.toolCard, styles.toolCardSecondary]}
+              style={styles.toolItem}
               onPress={() => router.push('/expert')}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('financialTools.expert')}
             >
-              <View style={styles.iconContainer}>
-                <MaterialIcons name="support-agent" size={32} color="#fff" />
+              <View style={[styles.toolIconBox, { backgroundColor: '#F0FDF4' }]}>
+                <MaterialIcons name="support-agent" size={36} color="#16A34A" />
               </View>
-              <View>
-                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>{t('financialTools.expert')}</Text>
-                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>{t('financialTools.expertSubtitle')}</Text>
-              </View>
+              <Text style={[styles.toolTitle, { fontSize: fontSize.medium }]}>{t('financialTools.expert')}</Text>
             </TouchableOpacity>
-          </View>
 
-          {/* Row 2: Peringatan (Status Widget) & Tips (Auto-scroll Banner) */}
-          <View style={styles.toolsRow}>
-            {/* Spending Reminder Status Widget */}
             <TouchableOpacity
-              style={[
-                styles.toolCardSmall,
-                spendingStatus.isOverBudget ? styles.toolCardDanger : styles.toolCardSuccess
-              ]}
+              style={styles.toolItem}
               onPress={() => router.push('/reminders')}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('financialTools.reminders')}
             >
-              <View style={styles.smallIconContainer}>
+              <View style={[styles.toolIconBox, { backgroundColor: '#FEF3C7' }]}>
                 <MaterialIcons
-                  name={spendingStatus.isOverBudget ? "warning" : "check-circle"}
-                  size={24}
-                  color="rgba(255,255,255,0.9)"
+                  name={spendingStatus.isOverBudget ? "warning" : "notifications-active"}
+                  size={36}
+                  color="#D97706"
                 />
               </View>
-              <View>
-                <Text style={[
-                  styles.statusTitle,
-                  { fontSize: fontSize.small }
-                ]}>
-                  {spendingStatus.isOverBudget ? t('financialTools.overBudget') : t('financialTools.controlled')}
-                </Text>
-                {spendingStatus.isOverBudget && (
-                  <Text style={[styles.statusAmount, { fontSize: fontSize.small }]}>
-                    RM {spendingStatus.amount.toFixed(2)}
-                  </Text>
-                )}
-              </View>
+              <Text style={[styles.toolTitle, { fontSize: fontSize.medium }]}>{t('financialTools.reminders')}</Text>
             </TouchableOpacity>
 
-            {/* Tips Static Banner */}
             <TouchableOpacity
-              style={[styles.toolCardSmall, styles.toolCardTips]}
+              style={styles.toolItem}
               onPress={() => router.push('/tips')}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('financialTools.tips')}
             >
-              <View style={styles.smallIconContainer}>
-                <MaterialIcons name="lightbulb" size={24} color="rgba(255,255,255,0.9)" />
+              <View style={[styles.toolIconBox, { backgroundColor: '#F3E8FF' }]}>
+                <MaterialIcons name="lightbulb" size={36} color="#9333EA" />
               </View>
-              <Text
-                style={[
-                  styles.tipsText,
-                  { fontSize: fontSize.small }
-                ]}
-                numberOfLines={3}
-              >
-                {t('financialTools.tips')}
-              </Text>
+              <Text style={[styles.toolTitle, { fontSize: fontSize.medium }]}>{t('financialTools.tips')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Summary Section */}
-        <View style={styles.expenseContainer}>
-          <Text style={[styles.expenseTitle, { fontSize: fontSize.large }]}>{t('home.monthSummary')}</Text>
-
-          <View style={styles.summaryItem}>
-            <View style={styles.summaryItemLeft}>
-              <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>🏠</Text>
-              <Text
-                style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {t('home.totalAssets')}
+        {/* Status Banner - Full Width for Readability */}
+        <View
+          style={[
+            styles.statusBanner,
+            spendingStatus.isOverBudget ? styles.statusBannerDanger : styles.statusBannerSuccess
+          ]}
+          accessible={true}
+          accessibilityLabel={`${spendingStatus.isOverBudget ? t('financialTools.overBudget') : t('financialTools.controlled')}${spendingStatus.isOverBudget ? `, RM ${spendingStatus.amount.toFixed(2)}` : ''}`}
+        >
+          <MaterialIcons
+            name={spendingStatus.isOverBudget ? "error-outline" : "check-circle-outline"}
+            size={32}
+            color="#fff"
+          />
+          <View style={styles.statusTextContainer}>
+            <Text style={[styles.statusBannerTitle, { fontSize: fontSize.medium }]}>
+              {spendingStatus.isOverBudget ? t('financialTools.overBudget') : t('financialTools.controlled')}
+            </Text>
+            {spendingStatus.isOverBudget && (
+              <Text style={[styles.statusBannerSubtitle, { fontSize: fontSize.body }]}>
+                RM {spendingStatus.amount.toFixed(2)}
               </Text>
-            </View>
-            <View style={styles.summaryItemRight}>
-              <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#3B82F6' }]}>RM {totalAssets.toFixed(2)}</Text>
-            </View>
+            )}
           </View>
-
-          <View style={styles.summaryItem}>
-            <View style={styles.summaryItemLeft}>
-              <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📥</Text>
-              <Text
-                style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {t('home.income')}
-              </Text>
-            </View>
-            <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#10B981' }]}>RM {monthlyIncome.toFixed(2)}</Text>
-          </View>
-
-          <View style={styles.summaryItem}>
-            <View style={styles.summaryItemLeft}>
-              <Text style={[styles.summaryItemEmoji, { fontSize: fontSize.xlarge }]}>📤</Text>
-              <Text
-                style={[styles.summaryItemTitle, { fontSize: fontSize.medium }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {t('home.expenses')}
-              </Text>
-            </View>
-            <Text style={[styles.summaryItemAmount, { fontSize: fontSize.medium, color: '#EF4444' }]}>RM {totalExpenses.toFixed(2)}</Text>
-          </View>
-
-          <TouchableOpacity style={styles.reportButton} onPress={() => router.push('/report')}>
-            <Text style={[styles.reportButtonText, { fontSize: fontSize.medium }]}>{t('home.viewFullReport')}</Text>
-          </TouchableOpacity>
         </View>
+
+        <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Floating AI Chat Button */}
+      {/* Floating AI Chat Button - Larger & Accessible */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => router.push('/expert')}
         activeOpacity={0.8}
+        accessible={true}
+        accessibilityLabel="Chat with financial expert AI"
+        accessibilityRole="button"
       >
-        <MaterialIcons name="smart-toy" size={28} color="#fff" />
+        <MaterialIcons name="smart-toy" size={32} color="#fff" />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -410,348 +458,271 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F3F4F6', // Lighter grey background
   },
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 100, // Increased to avoid FAB overlap (was 20)
+  },
   headerContainer: {
-    backgroundColor: '#48BB78',
-    padding: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    padding: 24,
+    backgroundColor: '#48BB78', // Green background
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    shadowColor: '#48BB78',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
+    paddingBottom: 32,
   },
   headerTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  headerTime: {
-    fontWeight: 'bold',
+    alignItems: 'flex-start', // Removing space-between so elements hug each other
+    marginBottom: 24,
   },
   headerGreeting: {
-    fontWeight: 'bold',
+    fontWeight: '800',
+    color: '#FFFFFF', // White text
+    marginBottom: 4,
   },
-  summaryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 16,
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  headerDate: {
+    color: 'rgba(255, 255, 255, 0.9)', // Semi-transparent white
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  summaryTitle: {
-    color: '#666',
-  },
-  summaryTrend: {
-    color: '#00C896',
-  },
-  summaryAmountContainer: {
-    marginTop: 10,
-  },
-  summaryAmount: {
-    fontWeight: 'bold',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E2E8F0',
-    marginVertical: 10,
-  },
-  progressContainer: {
-    marginTop: 10,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  progressTitle: {
-    color: '#666',
-  },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 4,
-    marginTop: 5,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#2D3748',
-    borderRadius: 4,
-  },
-  progressText: {
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 5,
-  },
-  messageContainer: {
-    marginTop: 10,
-  },
-  summaryMessage: {
-    color: '#00C896',
-  },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-  quickActionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 16,
-    width: '48%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  quickActionTitle: {
-    fontWeight: 'bold',
-  },
-  quickActionAmount: {
-    fontWeight: 'bold',
-    marginTop: 10,
-  },
-  quickActionSubtitlePositive: {
-    color: '#00C896',
-    marginTop: 5,
-  },
-  quickActionSubtitleNegative: {
-    color: '#FF6B6B',
-    marginTop: 5,
-  },
-  expenseContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    margin: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  expenseTitle: {
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
-  },
-  legendContainer: {
-    marginTop: 20,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  legendColor: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  legendText: {
-    flex: 1,
-  },
-  legendAmount: {
-    fontWeight: 'bold',
-  },
-  totalExpense: {
-    fontWeight: 'bold',
-    marginTop: 10,
-    textAlign: 'right',
-  },
-  reportButton: {
-    backgroundColor: '#48BB78',
+  notificationButton: {
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Semi-transparent white button
     borderRadius: 12,
-    paddingVertical: 16,
-    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    flexShrink: 0,
+    marginLeft: 12, // Restored margin for spacing
   },
-  reportButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
+  mainCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  summaryItem: {
+  cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    marginBottom: 16,
   },
-  summaryItemLeft: {
-    flexDirection: 'row',
+  cardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#ECFDF5',
     alignItems: 'center',
-    flex: 1,
-    marginRight: 10,
-  },
-  summaryItemEmoji: {
+    justifyContent: 'center',
     marginRight: 12,
   },
-  summaryItemTitle: {
-    color: '#666',
+  cardTitle: {
     flex: 1,
-  },
-  summaryItemRight: {
-    alignItems: 'flex-end',
-    flexShrink: 0,
-  },
-  summaryItemAmount: {
-    fontWeight: 'bold',
-    flexShrink: 0,
-  },
-  summaryItemTrend: {
+    color: '#374151',
     fontWeight: '600',
-    marginTop: 2,
   },
-  summaryTrendPositive: {
-    color: '#10B981',
-    fontWeight: 'bold',
+  mainAmountContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 20,
   },
-  quickActionCardGreen: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
+  currencySymbol: {
+    color: '#6B7280',
+    fontWeight: '600',
+    marginRight: 4,
   },
-  quickActionCardRed: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
+  mainAmount: {
+    color: '#111827',
+    fontWeight: '900',
+    letterSpacing: -1,
   },
-  quickActionEmoji: {
+  progressSection: {
+    width: '100%',
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
     marginBottom: 8,
   },
-  // Tools Section Styles
-  toolsContainer: {
-    paddingHorizontal: 20,
-    marginTop: 20,
+  progressLabel: {
+    color: '#059669', // Strong green
+    fontWeight: '700',
+  },
+  targetLabel: {
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  progressBarBg: {
+    height: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#10B981',
+    borderRadius: 6,
+  },
+  sectionContainer: {
+    paddingHorizontal: 24,
+    marginTop: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
   },
-  sectionIcon: {
-    marginRight: 10,
+  sectionHeaderIcon: {
+    marginRight: 12,
+    opacity: 0.8,
   },
-  toolsSectionTitle: {
-    fontWeight: 'bold',
+  sectionTitle: {
+    fontWeight: '800',
     color: '#1F2937',
-  },
-  toolsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  toolCard: {
-    width: '48%',
-    borderRadius: 20,
+  statsGrid: {
+    gap: 16,
+  },
+  statCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 16,
-    justifyContent: 'space-between',
-    height: 160,
+    borderLeftWidth: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  toolCardPrimary: {
-    backgroundColor: '#1E293B', // Slate 800
-  },
-  toolCardSecondary: {
-    backgroundColor: '#1E3A8A', // Blue 900
-  },
-  iconContainer: {
+  statIcon: {
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  statContent: {
+    flex: 1,
+  },
+  statLabel: {
+    color: '#6B7280',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontWeight: '800',
+  },
+  reportButton: {
+    backgroundColor: '#1E293B', // Dark Slate for contrast
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  reportButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  toolItem: {
+    width: '47%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  toolIconBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
   },
-  toolCardTitle: {
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
+  toolTitle: {
+    color: '#374151',
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  toolCardSubtitle: {
-    color: '#94A3B8', // Slate 400
-  },
-  toolCardSmall: {
-    width: '48%',
-    borderRadius: 20,
+  statusBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 24,
+    marginTop: 32,
     padding: 16,
-    justifyContent: 'space-between',
-    height: 140,
+    borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  toolCardSuccess: {
-    backgroundColor: '#065F46', // Emerald 800
-    borderWidth: 0,
+  statusBannerSuccess: {
+    backgroundColor: '#059669', // Emerald 600
   },
-  toolCardDanger: {
-    backgroundColor: '#991B1B', // Red 800
-    borderWidth: 0,
+  statusBannerDanger: {
+    backgroundColor: '#DC2626', // Red 600
   },
-  toolCardTips: {
-    backgroundColor: '#B45309', // Amber 700
-    borderWidth: 0,
+  statusTextContainer: {
+    marginLeft: 12,
+    flex: 1,
   },
-  smallIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  statusTitle: {
-    fontWeight: '600',
+  statusBannerTitle: {
     color: '#fff',
+    fontWeight: '700',
   },
-  statusAmount: {
-    fontWeight: 'bold',
-    color: '#FECACA', // Light red text
+  statusBannerSubtitle: {
+    color: 'rgba(255,255,255,0.9)',
     marginTop: 2,
-  },
-  tipsText: {
-    color: '#fff',
     fontWeight: '500',
-    lineHeight: 20,
-  },
-  tipsMore: {
-    display: 'none',
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 32,
     right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#2563EB', // Blue 600
-    justifyContent: 'center',
+    width: 64, // LargeFAB
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#2563EB',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    justifyContent: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowRadius: 12,
     elevation: 8,
     zIndex: 100,
   },

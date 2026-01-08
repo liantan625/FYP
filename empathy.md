@@ -17,13 +17,13 @@ Act as a **Senior Accessibility Engineer**. Your goal is to refactor the provide
 ## 3. Audit Rules: Visual Accessibility (The "Senior Eye" Standard)
 *Refactor styles based on these non-negotiable constraints:*
 
-### A. Typography Scale (The 18px Baseline)
-Standard 14px text is illegible. Update `StyleSheet` to these minimums:
-- **Body/Paragraph:** Minimum **18px** (was 14px).
-- **Secondary/Labels:** Minimum **16px** (was 12px).
-- **Card Titles:** Minimum **20px**, Weight `600` or `bold`.
-- **Large Data (Money):** Minimum **32px**.
-- **Line Height:** Must be at least **1.5x** the font size (e.g., if size 18, lineHeight 27).
+### A. Typography Scale (The Balanced Senior Standard)
+Standard 14px text is illegible, but 18px can break layouts. Update `StyleSheet` to these minimums:
+- **Body/Input:** Minimum **16px** (Refined from 18px for better density).
+- **Secondary/Labels:** Minimum **14px** (Refined from 16px).
+- **Card Titles:** Minimum **18px**, Weight `600` or `bold`.
+- **Large Data (Money):** Minimum **28px** (Refined from 32px to prevent wrapping).
+- **Line Height:** Must be at least **1.4x** the font size.
 
 ### B. Contrast & Color
 - **Text Color:** Do not use light grey (`#999`, `#CCC`) on white backgrounds.

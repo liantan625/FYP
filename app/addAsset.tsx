@@ -22,36 +22,42 @@ import auth from '@react-native-firebase/auth';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const defaultAssetCategories = [
-  { label: "Simpanan Bank", value: "bank" },
-  { label: "Pelaburan", value: "investment" },
-  { label: "Hartanah", value: "property" },
-  { label: "Pendapatan", value: "income" },
-  { label: "Lain-lain", value: "others" }
-];
+import { useTranslation } from 'react-i18next';
 
 const defaultCurrency = "MYR";
 
 export default function AddAssetScreen() {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
   const fontSize = useScaledFontSize();
   const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  // Dynamic default categories
+  const defaultAssetCategories = [
+    { label: t('asset.bank'), value: "bank" },
+    { label: t('asset.investment'), value: "investment" },
+    { label: t('asset.property'), value: "property" },
+    { label: t('asset.income'), value: "income" },
+    { label: t('asset.others'), value: "others" }
+  ];
+
   const [assetCategories, setAssetCategories] = useState(defaultAssetCategories);
 
   // Load custom asset categories on mount
   useEffect(() => {
     loadCustomAssetCategories();
-  }, []);
+  }, [i18n.language]); // Reload when language changes
 
   const loadCustomAssetCategories = async () => {
     try {
       const customCategoriesJson = await AsyncStorage.getItem('customAssetCategories');
       if (customCategoriesJson) {
         const customCategories = JSON.parse(customCategoriesJson);
-        // Combine default + custom categories
+        // Combine translated defaults + custom categories
         setAssetCategories([...defaultAssetCategories, ...customCategories]);
+      } else {
+        setAssetCategories(defaultAssetCategories);
       }
     } catch (error) {
       console.error('Error loading custom asset categories:', error);
@@ -79,29 +85,29 @@ export default function AddAssetScreen() {
 
   const getSelectedCategoryLabel = () => {
     const selected = assetCategories.find(c => c.value === category);
-    return selected ? selected.label : 'Pilih Aset/Pendapatan';
+    return selected ? selected.label : t('addAsset.selectPlaceholder');
   };
 
   const handleSave = async () => {
     const user = auth().currentUser;
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to add an asset.');
+      Alert.alert(t('addAsset.errorTitle'), t('addAsset.loginRequired'));
       return;
     }
 
     if (!category) {
-      Alert.alert('Ralat', 'Sila pilih kategori aset.');
+      Alert.alert(t('addAsset.errorTitle'), t('addAsset.categoryRequired'));
       return;
     }
 
     if (!assetName || assetName.trim() === '') {
-      Alert.alert('Ralat', 'Sila masukkan nama aset.');
+      Alert.alert(t('addAsset.errorTitle'), t('addAsset.nameRequired'));
       return;
     }
 
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Ralat', 'Sila masukkan amaun yang sah (lebih besar daripada 0.00).');
+      Alert.alert(t('addAsset.errorTitle'), t('addAsset.amountRequired'));
       return;
     }
 
@@ -126,8 +132,8 @@ export default function AddAssetScreen() {
         .doc(user.uid)
         .collection('notifications')
         .add({
-          title: 'Aset Ditambah',
-          message: `Anda telah menambah aset '${assetName}' bernilai RM ${parseFloat(amount).toFixed(2)}`,
+          title: t('addAsset.successTitle'),
+          message: `${t('addAsset.successMessage')} '${assetName}' (RM ${parseFloat(amount).toFixed(2)})`,
           type: 'asset',
           createdAt: firestore.FieldValue.serverTimestamp(),
           read: false,
@@ -137,13 +143,13 @@ export default function AddAssetScreen() {
 
       Toast.show({
         type: 'success',
-        text1: 'Simpan',
-        text2: 'Aset berjaya disimpan!',
+        text1: t('addAsset.successTitle'),
+        text2: t('addAsset.successMessage'),
       });
       router.back();
     } catch (error) {
       console.error('Error adding asset: ', error);
-      Alert.alert('Error', 'Gagal menyimpan aset. Sila cuba lagi.');
+      Alert.alert(t('addAsset.errorTitle'), t('addAsset.errorMessage'));
     }
   };
 
@@ -154,7 +160,7 @@ export default function AddAssetScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Tambah Aset</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('addAsset.title')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -164,8 +170,8 @@ export default function AddAssetScreen() {
           <MaterialIcons name="account-balance-wallet" size={28} color="#fff" />
         </View>
         <View style={styles.summaryContent}>
-          <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>Rekod Aset Baharu</Text>
-          <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>Tambah simpanan, pelaburan atau pendapatan</Text>
+          <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>{t('addAsset.summaryTitle')}</Text>
+          <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>{t('addAsset.summarySubtitle')}</Text>
         </View>
       </View>
 
@@ -179,10 +185,10 @@ export default function AddAssetScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="calendar-today" size={20} color="#48BB78" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Tarikh</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.dateLabel')}</Text>
               </View>
               <TouchableOpacity onPress={showDatePicker} style={styles.inputContainer}>
-                <Text style={[styles.inputText, { fontSize: fontSize.medium }]}>{date.toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                <Text style={[styles.inputText, { fontSize: fontSize.medium }]}>{date.toLocaleDateString(i18n.language === 'ms' ? 'ms-MY' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
                 <MaterialIcons name="chevron-right" size={24} color="#94A3B8" />
               </TouchableOpacity>
             </View>
@@ -197,7 +203,7 @@ export default function AddAssetScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="folder" size={20} color="#48BB78" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Kategori Aset</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.categoryLabel')}</Text>
               </View>
               {Platform.OS === 'ios' ? (
                 <>
@@ -226,16 +232,16 @@ export default function AddAssetScreen() {
                     <View style={styles.modalOverlay}>
                       <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                          <Text style={styles.modalTitle}>Pilih Kategori</Text>
+                          <Text style={styles.modalTitle}>{t('addAsset.selectCategory')}</Text>
                           <TouchableOpacity onPress={() => setPickerVisible(false)}>
-                            <Text style={styles.doneButtonText}>Selesai</Text>
+                            <Text style={styles.doneButtonText}>{t('common.confirm')}</Text>
                           </TouchableOpacity>
                         </View>
                         <Picker
                           selectedValue={category}
                           onValueChange={(itemValue) => setCategory(itemValue)}
                         >
-                          <Picker.Item label="Pilih Aset/Pendapatan" value={null} />
+                          <Picker.Item label={t('addAsset.selectPlaceholder')} value={null} />
                           {assetCategories.map((item) => (
                             <Picker.Item key={item.value} label={item.label} value={item.value} />
                           ))}
@@ -249,7 +255,7 @@ export default function AddAssetScreen() {
                   <RNPickerSelect
                     onValueChange={(value) => setCategory(value)}
                     items={assetCategories}
-                    placeholder={{ label: 'Pilih Aset/Pendapatan', value: null }}
+                    placeholder={{ label: t('addAsset.selectPlaceholder'), value: null }}
                     style={pickerSelectStyles(fontSize.fontScale)}
                   />
                 </View>
@@ -260,12 +266,12 @@ export default function AddAssetScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="label" size={20} color="#48BB78" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Nama Aset</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.nameLabel')}</Text>
               </View>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={[styles.textInput, { fontSize: fontSize.medium }]}
-                  placeholder="Contoh: Simpanan Bank"
+                  placeholder={t('addAsset.namePlaceholder')}
                   placeholderTextColor="#94A3B8"
                   value={assetName}
                   onChangeText={setAssetName}
@@ -277,11 +283,11 @@ export default function AddAssetScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="attach-money" size={20} color="#48BB78" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Amaun</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.amountLabel')}</Text>
               </View>
               <View style={styles.amountContainer}>
                 <View style={styles.currencyBadge}>
-                  <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>{defaultCurrency}</Text>
+                  <Text style={[styles.currencyLabel, { fontSize: fontSize.medium }]}>RM</Text>
                 </View>
                 <TextInput
                   style={[styles.amountInput, { fontSize: fontSize.large }]}
@@ -298,12 +304,12 @@ export default function AddAssetScreen() {
             <View style={styles.fieldContainer}>
               <View style={styles.labelRow}>
                 <MaterialIcons name="notes" size={20} color="#48BB78" />
-                <Text style={[styles.label, { fontSize: fontSize.medium }]}>Penerangan (Pilihan)</Text>
+                <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.descriptionLabel')}</Text>
               </View>
               <View style={[styles.inputContainer, styles.textAreaContainer]}>
                 <TextInput
                   style={[styles.textInput, styles.textArea, { fontSize: fontSize.medium }]}
-                  placeholder="Tambah nota..."
+                  placeholder={t('addAsset.descriptionPlaceholder')}
                   placeholderTextColor="#94A3B8"
                   value={description}
                   onChangeText={setDescription}
@@ -325,10 +331,10 @@ export default function AddAssetScreen() {
               </View>
               <View style={styles.checkboxContent}>
                 <Text style={[styles.checkboxLabel, { fontSize: fontSize.medium }]}>
-                  Pendapatan Berulang
+                  {t('addAsset.recurringIncome')}
                 </Text>
                 <Text style={[styles.checkboxHint, { fontSize: fontSize.small }]}>
-                  Aktifkan jika ini adalah pendapatan bulanan
+                  {t('addAsset.recurringIncomeHint')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -336,7 +342,7 @@ export default function AddAssetScreen() {
             {/* Save Button */}
             <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
               <MaterialIcons name="save" size={22} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan Aset</Text>
+              <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('addAsset.saveButton')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

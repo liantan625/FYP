@@ -5,10 +5,16 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function PerayaanScreen() {
   const router = useRouter();
-  const [spendings, setSpendings] = useState([]);
+  const fontSize = useScaledFontSize();
+  const { t, i18n } = useTranslation();
+  const [spendings, setSpendings] = useState<any[]>([]);
+
+  const dateLocale = i18n.language === 'ms' ? 'ms-MY' : i18n.language === 'zh' ? 'zh-CN' : 'en-US';
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -19,10 +25,12 @@ export default function PerayaanScreen() {
         .collection('spendings')
         .where('category', '==', 'celebration')
         .onSnapshot(querySnapshot => {
-          const spendingsData = [];
-          querySnapshot.forEach(doc => {
-            spendingsData.push({ id: doc.id, ...doc.data() });
-          });
+          const spendingsData: any[] = [];
+          if (querySnapshot) {
+            querySnapshot.forEach(doc => {
+              spendingsData.push({ id: doc.id, ...doc.data() });
+            });
+          }
           setSpendings(spendingsData);
         });
 
@@ -30,12 +38,12 @@ export default function PerayaanScreen() {
     }
   }, []);
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <View style={styles.assetItem}>
       <View>
         <Text style={styles.assetName}>{item.spendingName}</Text>
         <Text style={styles.assetDescription}>{item.description}</Text>
-        <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString()}</Text>
+        <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale)}</Text>
       </View>
       <View style={styles.assetRight}>
         <Text style={styles.assetAmount}>-RM {item.amount.toFixed(2)}</Text>
@@ -52,7 +60,7 @@ export default function PerayaanScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Perayaan</Text>
+        <Text style={styles.headerTitle}>{t('transactions.celebration')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <FlatList
@@ -62,7 +70,9 @@ export default function PerayaanScreen() {
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Tiada perbelanjaan perayaan.</Text>
+            <Text style={[styles.emptyText, { fontSize: fontSize.medium }]}>
+              {t('transactions.noTransactions')}
+            </Text>
           </View>
         )}
       />
@@ -119,16 +129,15 @@ const styles = StyleSheet.create({
   assetAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF6B6B',
+    color: '#EF4444',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 60,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    color: '#94A3B8',
   },
 });

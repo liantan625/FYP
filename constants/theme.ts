@@ -53,18 +53,18 @@ export const Fonts = Platform.select({
 });
 
 export const FontSizes = {
-  // Base font sizes (at 1.0 scale)
-  small: 12,
-  body: 14,
-  medium: 16,
-  large: 18,
-  xlarge: 20,
-  title: 24,
-  heading: 32,
+  // Base font sizes (at 1.0 scale) - REFINED for Layout Stability & Senior Accessibility
+  small: 14,     // Minimum for senior legibility (was 13)
+  body: 16,      // Minimum for reading (was 16)
+  medium: 18,    // Card Titles
+  large: 22,     // Section Headers
+  xlarge: 26,    // Key Stats
+  title: 32,     // Screen Titles (Increased for impact)
+  heading: 38,   // Big Money Display
 };
 
 export const FontScaleOptions = {
-  small: { label: 'Kecil', value: 0.9 },
-  medium: { label: 'Sederhana', value: 1.0 },
-  large: { label: 'Besar', value: 1.2 },
+  small: { label: 'Kecil', value: 1.0 },       // Bump base to 1.0 since base sizes are larger
+  medium: { label: 'Sederhana', value: 1.15 }, // Increase medium slightly
+  large: { label: 'Besar', value: 1.4 },       // Large is now significantly larger for visual impairment
 };
