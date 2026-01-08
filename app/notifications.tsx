@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 // Notification type icons mapping to MaterialIcons
 const getNotificationIcon = (type: string): { name: string; color: string; bgColor: string } => {
@@ -93,6 +94,7 @@ const NotificationItem = memo(({ item, fontSize }: { item: any; fontSize: any })
 export default function NotificationsScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [sections, setSections] = useState<any[]>([]);
@@ -141,9 +143,9 @@ export default function NotificationsScreen() {
     yesterday.setDate(yesterday.getDate() - 1);
 
     const groups: { [key: string]: any[] } = {
-      'Hari Ini': [],
-      'Semalam': [],
-      'Lebih Awal': [],
+      'today': [],
+      'yesterday': [],
+      'earlier': [],
     };
 
     notifications.forEach(notification => {
@@ -151,18 +153,24 @@ export default function NotificationsScreen() {
 
       const date = notification.createdAt.toDate();
       if (isSameDate(date, today)) {
-        groups['Hari Ini'].push(notification);
+        groups['today'].push(notification);
       } else if (isSameDate(date, yesterday)) {
-        groups['Semalam'].push(notification);
+        groups['yesterday'].push(notification);
       } else {
-        groups['Lebih Awal'].push(notification);
+        groups['earlier'].push(notification);
       }
     });
+
+    const keyToTranslation: { [key: string]: string } = {
+      'today': t('notifications.today'),
+      'yesterday': t('notifications.yesterday'),
+      'earlier': t('notifications.earlier'),
+    };
 
     return Object.keys(groups)
       .filter(key => groups[key].length > 0)
       .map(key => ({
-        title: key,
+        title: keyToTranslation[key],
         data: groups[key]
       }));
   };
@@ -192,7 +200,7 @@ export default function NotificationsScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#48BB78" />
-          <Text style={styles.loadingText}>Memuatkan notifikasi...</Text>
+          <Text style={styles.loadingText}>{t('notifications.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -206,7 +214,7 @@ export default function NotificationsScreen() {
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Notifikasi</Text>
+          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('notifications.title')}</Text>
           {totalUnread > 0 && (
             <View style={styles.unreadBadge}>
               <Text style={styles.unreadBadgeText}>{totalUnread}</Text>
@@ -223,10 +231,13 @@ export default function NotificationsScreen() {
         </View>
         <View style={styles.summaryContent}>
           <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>
-            Pemberitahuan Terkini
+            {t('notifications.summaryTitle')}
           </Text>
           <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>
-            {sections.reduce((acc, s) => acc + s.data.length, 0)} notifikasi • {totalUnread} belum dibaca
+            {t('notifications.summaryStats', {
+              count: sections.reduce((acc, s) => acc + s.data.length, 0),
+              unread: totalUnread
+            })}
           </Text>
         </View>
       </View>
@@ -248,10 +259,10 @@ export default function NotificationsScreen() {
               <MaterialIcons name="notifications-off" size={48} color="#CBD5E1" />
             </View>
             <Text style={[styles.emptyTitle, { fontSize: fontSize.medium }]}>
-              Tiada Notifikasi
+              {t('notifications.empty')}
             </Text>
             <Text style={[styles.emptySubtitle, { fontSize: fontSize.small }]}>
-              Anda akan menerima notifikasi apabila ada aktiviti baharu
+              {t('notifications.emptySubtitle')}
             </Text>
           </View>
         }

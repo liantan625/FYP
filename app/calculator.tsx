@@ -48,72 +48,72 @@ export default function CalculatorScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <MaterialIcons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>🧮 Kalkulator Persaraan</Text>
+          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('calculator.title')}</Text>
           <View style={{ width: 40 }} />
         </View>
 
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
-            <Text style={[styles.label, { fontSize: fontSize.medium }]}>Umur Semasa</Text>
+            <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('calculator.currentAge')}</Text>
             <TextInput
               style={[styles.input, { fontSize: fontSize.medium }]}
               value={currentAge}
               onChangeText={setCurrentAge}
               keyboardType="numeric"
-              placeholder="Contoh: 30"
+              placeholder={t('calculator.placeholder.age')}
             />
 
-            <Text style={[styles.label, { fontSize: fontSize.medium }]}>Umur Persaraan</Text>
+            <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('calculator.retirementAge')}</Text>
             <TextInput
               style={[styles.input, { fontSize: fontSize.medium }]}
               value={retirementAge}
               onChangeText={setRetirementAge}
               keyboardType="numeric"
-              placeholder="Contoh: 55"
+              placeholder={t('calculator.placeholder.retireAge')}
             />
 
-            <Text style={[styles.label, { fontSize: fontSize.medium }]}>Simpanan Semasa (RM)</Text>
+            <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('calculator.currentSavings')}</Text>
             <TextInput
               style={[styles.input, { fontSize: fontSize.medium }]}
               value={currentSavings}
               onChangeText={setCurrentSavings}
               keyboardType="numeric"
-              placeholder="Contoh: 50000"
+              placeholder={t('calculator.placeholder.savings')}
             />
 
-            <Text style={[styles.label, { fontSize: fontSize.medium }]}>Caruman Bulanan (RM)</Text>
+            <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('calculator.monthlyContribution')}</Text>
             <TextInput
               style={[styles.input, { fontSize: fontSize.medium }]}
               value={monthlyContribution}
               onChangeText={setMonthlyContribution}
               keyboardType="numeric"
-              placeholder="Contoh: 1000"
+              placeholder={t('calculator.placeholder.monthly')}
             />
 
-            <Text style={[styles.label, { fontSize: fontSize.medium }]}>Pulangan Dijangka (%)</Text>
+            <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('calculator.expectedReturn')}</Text>
             <TextInput
               style={[styles.input, { fontSize: fontSize.medium }]}
               value={expectedReturn}
               onChangeText={setExpectedReturn}
               keyboardType="numeric"
-              placeholder="Contoh: 5"
+              placeholder={t('calculator.placeholder.return')}
             />
 
             <TouchableOpacity style={styles.calculateButton} onPress={calculateRetirement}>
-              <Text style={[styles.calculateButtonText, { fontSize: fontSize.medium }]}>Kira Sekarang</Text>
+              <Text style={[styles.calculateButtonText, { fontSize: fontSize.medium }]}>{t('calculator.calculate')}</Text>
             </TouchableOpacity>
 
             {result !== null && (
               <View style={styles.resultContainer}>
-                <Text style={[styles.resultLabel, { fontSize: fontSize.medium }]}>Dana Persaraan Anda:</Text>
+                <Text style={[styles.resultLabel, { fontSize: fontSize.medium }]}>{t('calculator.result')}</Text>
                 <Text style={[styles.resultAmount, { fontSize: fontSize.xlarge }]}>
                   RM {result.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>

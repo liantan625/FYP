@@ -5,9 +5,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import * as Crypto from 'expo-crypto';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function OTPScreen() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const { confirmation, setConfirmation } = useAuth();
   const params = useLocalSearchParams();
   const [otp, setOtp] = useState('');
@@ -35,10 +39,10 @@ export default function OTPScreen() {
       const confirm = await auth().signInWithPhoneNumber(phoneNumber);
       setConfirmation(confirm);
       setTimer(60);
-      Alert.alert('Berjaya', 'Kod OTP baharu telah dihantar.');
+      Alert.alert(t('otp.success'), t('otp.newOtpSent'));
     } catch (error) {
       console.error('Error resending OTP:', error);
-      Alert.alert('Ralat', 'Gagal menghantar semula OTP. Sila cuba lagi kemudian.');
+      Alert.alert(t('otp.error'), t('otp.resendFailed'));
     } finally {
       setIsResending(false);
     }
@@ -46,11 +50,11 @@ export default function OTPScreen() {
 
   const handleSubmitOtp = async () => {
     if (otp.length !== 6) {
-      Alert.alert('Ralat', 'Sila masukkan OTP 6-digit yang sah.');
+      Alert.alert(t('otp.error'), t('otp.enterValidOtp'));
       return;
     }
     if (!confirmation) {
-      Alert.alert('Ralat', 'Tidak dapat mengesahkan OTP. Sila cuba daftar semula.');
+      Alert.alert(t('otp.error'), t('otp.confirmationError'));
       return;
     }
 
@@ -78,12 +82,12 @@ export default function OTPScreen() {
         });
       }
 
-      Alert.alert('Berjaya', 'Nombor telefon berjaya disahkan!', [
+      Alert.alert(t('otp.success'), t('otp.verified'), [
         { text: 'OK', onPress: () => router.replace('/successfulSignUp') }
       ]);
     } catch (error) {
       console.error('Error confirming OTP:', error);
-      Alert.alert('Ralat', 'OTP tidak sah. Sila cuba lagi.');
+      Alert.alert(t('otp.error'), t('otp.invalidOtp'));
     } finally {
       setLoading(false);
     }
@@ -91,11 +95,11 @@ export default function OTPScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Pengesahan OTP</Text>
-      <Text style={styles.subtitle}>Masukkan kod 6-digit yang dihantar ke telefon anda.</Text>
+      <Text style={[styles.title, { fontSize: fontSize.xlarge }]}>{t('otp.title')}</Text>
+      <Text style={[styles.subtitle, { fontSize: fontSize.medium }]}>{t('otp.subtitle')}</Text>
       <TextInput
-        style={styles.input}
-        placeholder="OTP 6-digit"
+        style={[styles.input, { fontSize: fontSize.large }]}
+        placeholder={t('otp.placeholder')}
         value={otp}
         onChangeText={setOtp}
         keyboardType="number-pad"
@@ -106,8 +110,8 @@ export default function OTPScreen() {
         onPress={handleSubmitOtp}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>
-          {loading ? 'Mengesahkan...' : 'Hantar OTP'}
+        <Text style={[styles.buttonText, { fontSize: fontSize.medium }]}>
+          {loading ? t('otp.verifying') : t('otp.submit')}
         </Text>
       </TouchableOpacity>
 
@@ -116,17 +120,16 @@ export default function OTPScreen() {
         onPress={handleResendOtp}
         disabled={timer > 0 || isResending}
       >
-        <Text style={[styles.resendText, (timer > 0 || isResending) && styles.resendTextDisabled]}>
+        <Text style={[styles.resendText, { fontSize: fontSize.small }, (timer > 0 || isResending) && styles.resendTextDisabled]}>
           {timer > 0
-            ? `Hantar semula dalam ${timer}s`
-            : isResending ? 'Menghantar...' : 'Hantar semula OTP'}
+            ? t('otp.resendIn', { seconds: timer })
+            : isResending ? t('otp.resending') : t('otp.resend')}
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-// Keep your existing styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -135,14 +138,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
     color: '#666',
     marginBottom: 40,
     textAlign: 'center',
@@ -151,7 +152,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     padding: 15,
     borderRadius: 10,
-    fontSize: 18,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#e0e0e0',
@@ -170,7 +170,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: '600',
   },
   resendContainer: {
@@ -179,7 +178,6 @@ const styles = StyleSheet.create({
   },
   resendText: {
     color: '#00D09E',
-    fontSize: 14,
     fontWeight: '600',
   },
   resendTextDisabled: {

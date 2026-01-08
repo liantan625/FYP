@@ -3,9 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function SuccessfulSignUp() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -16,10 +20,10 @@ export default function SuccessfulSignUp() {
         </View>
 
         {/* Success Message */}
-        <Text style={styles.title}>Tahniah! </Text>
-        <Text style={styles.subtitle}>Akaun anda berjaya didaftarkan</Text>
-        <Text style={styles.description}>
-          Anda kini boleh log masuk dan mula mengurus kewangan anda dengan DuitU.
+        <Text style={[styles.title, { fontSize: fontSize.xlarge }]}>{t('successfulSignUp.title')}</Text>
+        <Text style={[styles.subtitle, { fontSize: fontSize.large }]}>{t('successfulSignUp.subtitle')}</Text>
+        <Text style={[styles.description, { fontSize: fontSize.medium }]}>
+          {t('successfulSignUp.description')}
         </Text>
 
         {/* Sign In Button */}
@@ -27,14 +31,14 @@ export default function SuccessfulSignUp() {
           style={styles.button}
           onPress={() => router.push('/login')}
         >
-          <Text style={styles.buttonText}>Log Masuk</Text>
+          <Text style={[styles.buttonText, { fontSize: fontSize.large }]}>{t('successfulSignUp.login')}</Text>
           <MaterialIcons name="arrow-forward" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {/* Decorative Bottom */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Selamat datang ke DuitU</Text>
+        <Text style={[styles.footerText, { fontSize: fontSize.small }]}>{t('successfulSignUp.welcome')}</Text>
       </View>
     </SafeAreaView>
   );
@@ -66,21 +70,18 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    fontSize: 32,
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 10,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
     fontWeight: '600',
     color: '#00D9A8',
     marginBottom: 15,
     textAlign: 'center',
   },
   description: {
-    fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 22,
@@ -104,7 +105,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
     fontWeight: 'bold',
   },
   footer: {
@@ -112,7 +112,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 14,
     color: '#9CA3AF',
   },
 });

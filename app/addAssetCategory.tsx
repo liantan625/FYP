@@ -13,10 +13,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 // Available emoji icons for asset categories
 const availableIcons = [
-  '🏦', '💰', '🏠', '💵', '📈', '💎', '🏪', '🏢', 
+  '🏦', '💰', '🏠', '💵', '📈', '💎', '🏪', '🏢',
   '🚗', '🚢', '✈️', '🎨', '⚡', '🌾', '🐄', '🐟',
   '⛏️', '🔧', '💼', '📊', '🏭', '🔑', '💳', '❓'
 ];
@@ -36,13 +37,14 @@ const availableColors = [
 export default function AddAssetCategoryScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [categoryName, setCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('🏦');
   const [selectedColor, setSelectedColor] = useState('#48BB78');
 
   const handleSave = async () => {
     if (!categoryName.trim()) {
-      Alert.alert('Ralat', 'Sila masukkan nama kategori aset.');
+      Alert.alert(t('addAssetCategory.errorTitle'), t('addAssetCategory.validationName'));
       return;
     }
 
@@ -68,8 +70,8 @@ export default function AddAssetCategoryScreen() {
       await AsyncStorage.setItem('customAssetCategories', JSON.stringify(categories));
 
       Alert.alert(
-        'Berjaya!',
-        `Kategori aset "${categoryName}" telah ditambah!`,
+        t('addAssetCategory.successTitle'),
+        t('addAssetCategory.successMessage', { name: categoryName }),
         [
           {
             text: 'OK',
@@ -79,7 +81,7 @@ export default function AddAssetCategoryScreen() {
       );
     } catch (error) {
       console.error('Error saving asset category:', error);
-      Alert.alert('Ralat', 'Gagal menyimpan kategori aset. Sila cuba lagi.');
+      Alert.alert(t('addAssetCategory.errorTitle'), t('addAssetCategory.errorMessage'));
     }
   };
 
@@ -89,25 +91,25 @@ export default function AddAssetCategoryScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Tambah Kategori Aset</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('addAssetCategory.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         <View style={styles.form}>
           {/* Category Name */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📝 Nama Kategori Aset</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📝 {t('addAssetCategory.nameLabel')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, { fontSize: fontSize.medium }]}
-              placeholder="Contoh: Emas, Tanah, Perniagaan"
+              placeholder={t('addAssetCategory.namePlaceholder')}
               value={categoryName}
               onChangeText={setCategoryName}
             />
           </View>
 
           {/* Icon Selection */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 Pilih Ikon</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 {t('addAssetCategory.iconLabel')}</Text>
           <View style={styles.iconGrid}>
             {availableIcons.map((icon) => (
               <TouchableOpacity
@@ -124,7 +126,7 @@ export default function AddAssetCategoryScreen() {
           </View>
 
           {/* Color Selection */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 Pilih Warna</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 {t('addAssetCategory.colorLabel')}</Text>
           <View style={styles.colorSection}>
             <View style={styles.colorGrid}>
               {availableColors.map((color) => (
@@ -146,17 +148,17 @@ export default function AddAssetCategoryScreen() {
           </View>
 
           {/* Preview */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>👁️ Pratonton</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>👁️ {t('addAssetCategory.preview')}</Text>
           <View style={[styles.previewCard, { backgroundColor: selectedColor }]}>
             <Text style={[styles.previewIcon, { fontSize: fontSize.heading }]}>{selectedIcon}</Text>
             <Text style={[styles.previewText, { fontSize: fontSize.medium }]}>
-              {categoryName || 'Nama Kategori Aset'}
+              {categoryName || t('addAssetCategory.nameLabel')}
             </Text>
           </View>
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan Kategori Aset</Text>
+            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('addAssetCategory.save')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

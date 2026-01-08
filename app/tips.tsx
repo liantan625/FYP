@@ -227,19 +227,19 @@ Sasaran: Jimat RM10/hari = RM300/bulan = RM3,600/tahun!`,
   },
 ];
 
-const CATEGORIES = ['Semua', 'Persaraan', 'Bajet', 'Simpanan', 'Pelaburan', 'Pengurusan Hutang', 'Penjimatan'];
+const CATEGORIES = ['all', 'retirement', 'budget', 'savings', 'investment', 'debt', 'saving'];
 
 export default function TipsScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
   const { t } = useTranslation();
-  
+
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const filteredArticles = selectedCategory === 'Semua' 
-    ? ARTICLES 
+  const filteredArticles = selectedCategory === 'Semua'
+    ? ARTICLES
     : ARTICLES.filter(article => article.category === selectedCategory);
 
   const openArticle = (article: Article) => {
@@ -253,7 +253,7 @@ export default function TipsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>💡 Tips Kewangan</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('tips.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -262,16 +262,16 @@ export default function TipsScreen() {
         <View style={styles.featuredCard}>
           <Text style={styles.featuredEmoji}>📚</Text>
           <Text style={[styles.featuredTitle, { fontSize: fontSize.medium }]}>
-            Baca & Belajar
+            {t('tips.featured')}
           </Text>
           <Text style={[styles.featuredText, { fontSize: fontSize.small }]}>
-            Tingkatkan literasi kewangan anda dengan artikel-artikel pilihan kami.
+            {t('tips.featuredSubtitle')}
           </Text>
         </View>
 
         {/* Category Filter */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoryContainer}
         >
@@ -291,7 +291,7 @@ export default function TipsScreen() {
                   selectedCategory === category && styles.categoryTextActive,
                 ]}
               >
-                {category}
+                {t(`tips.categories.${category}`)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -299,7 +299,7 @@ export default function TipsScreen() {
 
         {/* Articles List */}
         <Text style={[styles.sectionTitle, { fontSize: fontSize.medium }]}>
-          Artikel ({filteredArticles.length})
+          {t('tips.articles')} ({filteredArticles.length})
         </Text>
 
         {filteredArticles.map((article) => (
@@ -313,17 +313,17 @@ export default function TipsScreen() {
             </View>
             <View style={styles.articleContent}>
               <View style={styles.articleMeta}>
-                <Text style={[styles.articleCategory, { fontSize: fontSize.xsmall }]}>
+                <Text style={[styles.articleCategory, { fontSize: fontSize.small }]}>
                   {article.category}
                 </Text>
-                <Text style={[styles.articleReadTime, { fontSize: fontSize.xsmall }]}>
+                <Text style={[styles.articleReadTime, { fontSize: fontSize.small }]}>
                   ⏱️ {article.readTime}
                 </Text>
               </View>
               <Text style={[styles.articleTitle, { fontSize: fontSize.medium }]}>
                 {article.title}
               </Text>
-              <Text 
+              <Text
                 style={[styles.articleSummary, { fontSize: fontSize.small }]}
                 numberOfLines={2}
               >

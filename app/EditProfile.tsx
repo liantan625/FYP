@@ -5,9 +5,13 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
+import { useTranslation } from 'react-i18next';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(true);
@@ -21,8 +25,8 @@ export default function EditProfileScreen() {
         .onSnapshot(documentSnapshot => {
           if (documentSnapshot.exists) {
             const data = documentSnapshot.data();
-            setName(data.name);
-            setBirthday(data.birthday || '');
+            setName(data?.name || '');
+            setBirthday(data?.birthday || '');
           }
           setLoading(false);
         });
@@ -39,12 +43,12 @@ export default function EditProfileScreen() {
           name: name,
           birthday: birthday,
         });
-        Alert.alert('Success', 'Profile updated successfully!', [
+        Alert.alert(t('editProfile.success'), t('editProfile.profileUpdated'), [
           { text: 'OK', onPress: () => router.back() }
         ]);
       } catch (error) {
         console.error('Error updating profile: ', error);
-        Alert.alert('Error', 'Failed to update profile. Please try again.');
+        Alert.alert(t('editProfile.error'), t('editProfile.updateFailed'));
       }
     }
   };
@@ -55,22 +59,22 @@ export default function EditProfileScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('editProfile.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
       <View style={styles.content}>
         <View>
-          <Text style={styles.label}>Full Name</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('editProfile.fullName')}</Text>
           <TextInput
-            style={styles.input}
-            placeholder="Full Name"
+            style={[styles.input, { fontSize: fontSize.medium }]}
+            placeholder={t('editProfile.fullName')}
             value={name}
             onChangeText={setName}
           />
-          <Text style={styles.label}>Birthday</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('editProfile.birthday')}</Text>
           <TextInput
-            style={styles.input}
-            placeholder="Birthday (DD/MM/YYYY)"
+            style={[styles.input, { fontSize: fontSize.medium }]}
+            placeholder={t('editProfile.birthdayPlaceholder')}
             value={birthday}
             onChangeText={setBirthday}
             keyboardType="number-pad"
@@ -78,7 +82,7 @@ export default function EditProfileScreen() {
           />
         </View>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
+          <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('editProfile.save')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -99,13 +103,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   headerTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
-  },
-  headerButton: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00D09E',
   },
   content: {
     flex: 1,
@@ -113,7 +111,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   label: {
-    fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -121,7 +118,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     padding: 15,
     borderRadius: 10,
-    fontSize: 16,
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#e0e0e0',
@@ -135,7 +131,6 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
   },
 });

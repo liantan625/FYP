@@ -21,12 +21,7 @@ import { sendMessageToAI } from './services/api';
 import Markdown from 'react-native-markdown-display';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const QUICK_QUESTIONS = [
-  { id: 1, question: 'Bagaimana cara mula menyimpan untuk persaraan?', emoji: '🏦' },
-  { id: 2, question: 'Apakah pelaburan terbaik untuk pemula?', emoji: '📈' },
-  { id: 3, question: 'Bagaimana mengurus hutang dengan bijak?', emoji: '💳' },
-  { id: 4, question: 'Berapa banyak perlu disimpan setiap bulan?', emoji: '💰' },
-];
+// Quick questions are now loaded via translations
 
 const CHAT_STORAGE_KEY = 'expert_chat_session_v2';
 
@@ -115,7 +110,7 @@ export default function ExpertScreen() {
       console.error(error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Maaf, saya tidak dapat menghubungi pelayan AI pada masa ini.",
+        text: t('expert.errorMessage'),
         sender: 'ai',
         timestamp: Date.now(),
       };
@@ -173,6 +168,14 @@ export default function ExpertScreen() {
     },
   };
 
+  // Quick questions defined using translations
+  const QUICK_QUESTIONS = [
+    { id: 1, question: t('expert.questions.q1'), emoji: '🏦' },
+    { id: 2, question: t('expert.questions.q2'), emoji: '📈' },
+    { id: 3, question: t('expert.questions.q3'), emoji: '💳' },
+    { id: 4, question: t('expert.questions.q4'), emoji: '💰' },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
@@ -180,16 +183,16 @@ export default function ExpertScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
             <MaterialIcons name="close" size={24} color="#64748B" />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle]}>DuitU Expert AI</Text>
+          <Text style={[styles.headerTitle]}>{t('expert.title')}</Text>
           <TouchableOpacity
             onPress={() => {
               Alert.alert(
-                'Mulakan Sesi Baru',
-                'Adakah anda pasti mahu memadamkan perbualan ini dan mulakan semula?',
+                t('expert.newSession'),
+                t('expert.newSessionConfirm'),
                 [
-                  { text: 'Batal', style: 'cancel' },
+                  { text: t('common.cancel'), style: 'cancel' },
                   {
-                    text: 'Ya',
+                    text: t('expert.yes'),
                     style: 'destructive',
                     onPress: async () => {
                       setMessages([]);
@@ -219,10 +222,10 @@ export default function ExpertScreen() {
           {messages.length === 0 ? (
             <View style={styles.emptyStateContainer}>
               <Text style={[styles.introTitle, { fontSize: fontSize.large }]}>
-                Ada soalan kewangan?
+                {t('expert.emptyTitle')}
               </Text>
               <Text style={[styles.introText, { fontSize: fontSize.medium }]}>
-                Pilih soalan di bawah atau taip soalan anda sendiri.
+                {t('expert.emptySubtitle')}
               </Text>
               <View style={styles.quickQuestionsContainer}>
                 {QUICK_QUESTIONS.map((item) => (
@@ -253,7 +256,7 @@ export default function ExpertScreen() {
           {isLoading && (
             <View style={styles.loadingBubble}>
               <ActivityIndicator size="small" color="#666" />
-              <Text style={{ marginLeft: 8, color: '#666' }}>Sedang menaip...</Text>
+              <Text style={{ marginLeft: 8, color: '#666' }}>{t('expert.typing')}</Text>
             </View>
           )}
         </View>
@@ -263,7 +266,7 @@ export default function ExpertScreen() {
             style={[styles.input, { fontSize: fontSize.medium }]}
             value={input}
             onChangeText={setInput}
-            placeholder="Taip mesej..."
+            placeholder={t('expert.placeholder')}
             multiline
             maxLength={500}
           />

@@ -13,10 +13,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 // Available emoji icons for categories
 const availableIcons = [
-  '🛒', '🏠', '🎁', '🎟️', '🍔', '🚗', '💊', '📚', 
+  '🛒', '🏠', '🎁', '🎟️', '🍔', '🚗', '💊', '📚',
   '👕', '✈️', '⚡', '💰', '🎮', '🏋️', '🐕', '🌸',
   '📱', '🎬', '🍕', '☕', '🎵', '🖥️', '🔧', '🤷'
 ];
@@ -36,13 +37,14 @@ const availableColors = [
 export default function AddCategoryScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
+  const { t } = useTranslation();
   const [categoryName, setCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('🛒');
   const [selectedColor, setSelectedColor] = useState('#4A9EFF');
 
   const handleSave = async () => {
     if (!categoryName.trim()) {
-      Alert.alert('Ralat', 'Sila masukkan nama kategori.');
+      Alert.alert(t('addSpendingCategory.errorTitle'), t('addSpendingCategory.validationName'));
       return;
     }
 
@@ -68,8 +70,8 @@ export default function AddCategoryScreen() {
       await AsyncStorage.setItem('customCategories', JSON.stringify(categories));
 
       Alert.alert(
-        'Berjaya!',
-        `Kategori "${categoryName}" telah ditambah!`,
+        t('addSpendingCategory.successTitle'),
+        t('addSpendingCategory.successMessage', { name: categoryName }),
         [
           {
             text: 'OK',
@@ -79,7 +81,7 @@ export default function AddCategoryScreen() {
       );
     } catch (error) {
       console.error('Error saving category:', error);
-      Alert.alert('Ralat', 'Gagal menyimpan kategori. Sila cuba lagi.');
+      Alert.alert(t('addSpendingCategory.errorTitle'), t('addSpendingCategory.errorMessage'));
     }
   };
 
@@ -89,25 +91,25 @@ export default function AddCategoryScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>Tambah Kategori Baharu</Text>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('addSpendingCategory.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.container}>
         <View style={styles.form}>
           {/* Category Name */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📝 Nama Kategori</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>📝 {t('addSpendingCategory.nameLabel')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, { fontSize: fontSize.medium }]}
-              placeholder="Contoh: Kesihatan, Pendidikan"
+              placeholder={t('addSpendingCategory.namePlaceholder')}
               value={categoryName}
               onChangeText={setCategoryName}
             />
           </View>
 
           {/* Icon Selection */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 Pilih Ikon</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 {t('addSpendingCategory.iconLabel')}</Text>
           <View style={styles.iconGrid}>
             {availableIcons.map((icon) => (
               <TouchableOpacity
@@ -124,7 +126,7 @@ export default function AddCategoryScreen() {
           </View>
 
           {/* Color Selection */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 Pilih Warna</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>🎨 {t('addSpendingCategory.colorLabel')}</Text>
           <View style={styles.colorSection}>
             <View style={styles.colorGrid}>
               {availableColors.map((color) => (
@@ -146,17 +148,17 @@ export default function AddCategoryScreen() {
           </View>
 
           {/* Preview */}
-          <Text style={[styles.label, { fontSize: fontSize.medium }]}>👁️ Pratonton</Text>
+          <Text style={[styles.label, { fontSize: fontSize.medium }]}>👁️ {t('addSpendingCategory.preview')}</Text>
           <View style={[styles.previewCard, { backgroundColor: selectedColor }]}>
             <Text style={[styles.previewIcon, { fontSize: fontSize.heading }]}>{selectedIcon}</Text>
             <Text style={[styles.previewText, { fontSize: fontSize.medium }]}>
-              {categoryName || 'Nama Kategori'}
+              {categoryName || t('addSpendingCategory.nameLabel')}
             </Text>
           </View>
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>Simpan Kategori</Text>
+            <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('addSpendingCategory.save')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

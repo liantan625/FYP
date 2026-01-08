@@ -19,12 +19,6 @@ import { useTranslation } from 'react-i18next';
 
 const screenWidth = Dimensions.get("window").width;
 
-const TIPS_DATA = [
-  "💡 Simpan sekurang-kurangnya 20% pendapatan bulanan",
-  "💡 Elakkan hutang kad kredit yang tinggi",
-  "💡 Buat bajet bulanan dan patuhi",
-  "💡 Mulakan dana kecemasan 3-6 bulan perbelanjaan",
-];
 
 export default function HomeScreen() {
 
@@ -262,7 +256,7 @@ export default function HomeScreen() {
         <View style={styles.toolsContainer}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name="handyman" size={24} color="#1F293B" style={styles.sectionIcon} />
-            <Text style={[styles.toolsSectionTitle, { fontSize: fontSize.large }]}>Alat Kewangan</Text>
+            <Text style={[styles.toolsSectionTitle, { fontSize: fontSize.large }]}>{t('financialTools.title')}</Text>
           </View>
 
           {/* Row 1: Kalkulator & Tanya Pakar (Killer Features) */}
@@ -275,8 +269,8 @@ export default function HomeScreen() {
                 <MaterialIcons name="calculate" size={32} color="#fff" />
               </View>
               <View>
-                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>Kalkulator</Text>
-                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>Kira Tarikh Persaraan</Text>
+                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>{t('financialTools.calculator')}</Text>
+                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>{t('financialTools.calculatorSubtitle')}</Text>
               </View>
             </TouchableOpacity>
 
@@ -288,8 +282,8 @@ export default function HomeScreen() {
                 <MaterialIcons name="support-agent" size={32} color="#fff" />
               </View>
               <View>
-                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>Tanya Pakar</Text>
-                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>Nasihat Kewangan</Text>
+                <Text style={[styles.toolCardTitle, { fontSize: fontSize.medium }]}>{t('financialTools.expert')}</Text>
+                <Text style={[styles.toolCardSubtitle, { fontSize: fontSize.small }]}>{t('financialTools.expertSubtitle')}</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -316,7 +310,7 @@ export default function HomeScreen() {
                   styles.statusTitle,
                   { fontSize: fontSize.small }
                 ]}>
-                  {spendingStatus.isOverBudget ? 'Lebihan Belanja' : 'Terkawal'}
+                  {spendingStatus.isOverBudget ? t('financialTools.overBudget') : t('financialTools.controlled')}
                 </Text>
                 {spendingStatus.isOverBudget && (
                   <Text style={[styles.statusAmount, { fontSize: fontSize.small }]}>
@@ -341,7 +335,7 @@ export default function HomeScreen() {
                 ]}
                 numberOfLines={3}
               >
-                {TIPS_DATA[0].replace('💡 ', '')}
+                {t('financialTools.tips')}
               </Text>
             </TouchableOpacity>
           </View>
