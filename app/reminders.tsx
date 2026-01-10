@@ -76,6 +76,11 @@ export default function RemindersScreen() {
         .orderBy('dueDate', 'asc')
         .get();
 
+      if (!snapshot) {
+        setIsLoading(false);
+        return;
+      }
+
       const fetchedReminders: Reminder[] = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),

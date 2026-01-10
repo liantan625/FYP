@@ -32,6 +32,16 @@ interface AssetCategory {
   subtitle: string;
 }
 
+interface Asset {
+  id: string;
+  date: Date;
+  category: string;
+  assetName: string;
+  amount: number;
+  description: string;
+  isRecurringIncome: boolean;
+}
+
 export default function AnalysisScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
@@ -39,7 +49,7 @@ export default function AnalysisScreen() {
   const [assetCategories, setAssetCategories] = useState<AssetCategory[]>([]);
   const [customAssetCategories, setCustomAssetCategories] = useState<CustomCategory[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [assets, setAssets] = useState([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
   const [totalAssets, setTotalAssets] = useState(0);
 
   // Memoize helper functions to prevent unnecessary re-renders
@@ -49,7 +59,7 @@ export default function AnalysisScreen() {
     if (customCategory) {
       return customCategory.icon;
     }
-    
+
     // Fallback to default categories
     switch (categoryType) {
       case 'bank': return '🏦';
@@ -67,7 +77,7 @@ export default function AnalysisScreen() {
     if (customCategory) {
       return customCategory.label;
     }
-    
+
     // Fallback to default categories
     switch (categoryType) {
       case 'bank': return t('asset.bank');
@@ -75,7 +85,7 @@ export default function AnalysisScreen() {
       case 'property': return t('asset.property');
       case 'income': return t('asset.income');
       case 'others': return t('asset.others');
-      default: 
+      default:
         // If it's a slug, capitalize it (e.g., "emas" -> "Emas")
         return categoryType.charAt(0).toUpperCase() + categoryType.slice(1).replace(/_/g, ' ');
     }
@@ -123,6 +133,7 @@ export default function AnalysisScreen() {
       .collection('assets')
       .onSnapshot(
         querySnapshot => {
+          if (!querySnapshot) return;
           console.log(`Received ${querySnapshot.size} assets from Firestore`);
           const categoriesMap = new Map();
 
@@ -139,7 +150,7 @@ export default function AnalysisScreen() {
               const icon = getCategoryIcon(categoryType);
               const name = getCategoryName(categoryType);
               console.log(`Creating category: ${categoryType} with icon: ${icon} and name: ${name}`);
-              
+
               categoriesMap.set(categoryType, {
                 id: categoryType,
                 type: categoryType,
@@ -261,9 +272,9 @@ export default function AnalysisScreen() {
             <Text style={[styles.emptyText, { fontSize: fontSize.medium }]}>{t('asset.noAssets')}</Text>
           ) : (
             assetCategories.map(category => (
-              <TouchableOpacity 
-                key={category.id} 
-                style={styles.assetCard} 
+              <TouchableOpacity
+                key={category.id}
+                style={styles.assetCard}
                 onPress={() => router.push(`/${category.type}?category=${category.type}`)}
               >
                 <View style={styles.assetCardLeft}>

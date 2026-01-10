@@ -7,12 +7,24 @@ import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
+import auth from '@react-native-firebase/auth';
 
 import { AuthProvider } from '../context/auth-context';
 import { SettingsProvider } from '../context/settings-context';
 import { RecaptchaProvider } from '../context/recaptcha-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import '@/i18n/config';
+
+// Force reCAPTCHA flow for phone auth since app is not on Play Store
+// This is required for apps distributed outside the Play Store
+if (Platform.OS === 'android') {
+  try {
+    auth().settings.forceRecaptchaFlowForTesting = false; // Set to false for production
+    auth().settings.appVerificationDisabledForTesting = false; // Ensure verification is enabled
+  } catch (error) {
+    console.warn('Failed to configure Firebase auth settings:', error);
+  }
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

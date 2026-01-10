@@ -71,6 +71,7 @@ export default function TransactionsScreen() {
       .doc(user.uid)
       .collection('assets')
       .onSnapshot(assetsSnapshot => {
+        if (!assetsSnapshot) return;
         const assets = assetsSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),

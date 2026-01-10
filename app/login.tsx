@@ -28,7 +28,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { client, isReady } = useRecaptcha();
+  const { client, isReady, initializeRecaptcha } = useRecaptcha();
   const { t, i18n } = useTranslation();
   const fontSize = useScaledFontSize();
   const { fontScaleKey, setFontScale } = useSettings();
@@ -80,6 +80,9 @@ export default function LoginScreen() {
       });
     };
 
+    // Initialize reCAPTCHA lazily when login screen mounts
+    initializeRecaptcha();
+
     loopAnimation();
   }, []);
 
@@ -104,6 +107,15 @@ export default function LoginScreen() {
     { code: 'zh', label: '中文' },
     { code: 'ta', label: 'தமிழ்' },
   ];
+
+  // Validate E.164 format for Malaysia phone numbers
+  const validatePhoneNumber = (phone: string): boolean => {
+    // E.164 format for Malaysia: +60[9-10 digits without leading zero]
+    // Mobile: +60[1][0-9]{8,9} (e.g., +60123456789)
+    // Landline: +60[3-9][0-9]{7,8} (e.g., +6032123456)
+    const e164Regex = /^\+60[1-9]\d{7,9}$/;
+    return e164Regex.test(phone);
+  };
 
   const onGoogleButtonPress = async () => {
     try {
@@ -159,9 +171,18 @@ export default function LoginScreen() {
       return;
     }
 
+    // Validate E.164 phone number format
+    if (!validatePhoneNumber(phoneNumber)) {
+      Alert.alert(
+        t('common.error'),
+        'Invalid phone number format. Please enter a valid Malaysian phone number (e.g., +60123456789)'
+      );
+      return;
+    }
+
     setLoading(true);
     try {
-      console.log('Calling auth().signInWithPhoneNumber...');
+      console.log('Calling auth().signInWithPhoneNumber with E.164 format...');
       const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
       console.log('signInWithPhoneNumber returned result:', confirmationResult);
 
@@ -271,13 +292,32 @@ export default function LoginScreen() {
           placeholder={t('login.phoneNumberPlaceholder')}
           value={phoneNumber}
           onChangeText={(text) => {
-            if (text.startsWith('+60')) {
-              setPhoneNumber(text);
-            } else {
-              setPhoneNumber('+60' + text.replace(/[^0-9]/g, ''));
+            // Remove all non-digit characters except +
+            let cleaned = text.replace(/[^\d+]/g, '');
+
+            // Ensure it starts with +60
+            if (!cleaned.startsWith('+60')) {
+              if (cleaned.startsWith('60')) {
+                cleaned = '+' + cleaned;
+              } else if (cleaned.startsWith('0')) {
+                // Remove leading 0 and add +60
+                cleaned = '+60' + cleaned.substring(1);
+              } else if (cleaned.startsWith('+')) {
+                cleaned = '+60';
+              } else if (cleaned.length > 0) {
+                cleaned = '+60' + cleaned;
+              } else {
+                cleaned = '+60';
+              }
+            }
+
+            // Limit length: +60 (3) + max 10 digits = 13 characters
+            if (cleaned.length <= 13) {
+              setPhoneNumber(cleaned);
             }
           }}
           keyboardType="phone-pad"
+          maxLength={13}
         />
 
         {!confirmation && (
