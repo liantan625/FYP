@@ -78,9 +78,25 @@ export default function AddSpendingScreen() {
   };
   const [category, setCategory] = useState(null);
   const [spendingName, setSpendingName] = useState('');
-  const [amount, setAmount] = useState('0.00');
+  const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [isPickerVisible, setPickerVisible] = useState(false);
+
+  // Validate amount input - only allow numbers with at most 2 decimal places
+  const handleAmountChange = (text: string) => {
+    // Remove any non-numeric characters except decimal point
+    let cleaned = text.replace(/[^0-9.]/g, '');
+    // Ensure only one decimal point
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+    // Limit to 2 decimal places
+    if (parts.length === 2 && parts[1].length > 2) {
+      cleaned = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    setAmount(cleaned);
+  };
 
   const getSelectedCategoryLabel = () => {
     const selected = spendingCategories.find(c => c.value === category);
@@ -249,14 +265,29 @@ export default function AddSpendingScreen() {
                   </Modal>
                 </>
               ) : (
-                <View style={styles.inputContainer}>
+                <TouchableOpacity
+                  style={styles.inputContainer}
+                  activeOpacity={0.7}
+                >
                   <RNPickerSelect
                     onValueChange={(value) => setCategory(value)}
                     items={spendingCategories}
+                    value={category}
                     placeholder={{ label: t('addSpending.selectPlaceholder'), value: null }}
-                    style={pickerSelectStyles(fontSize.fontScale)}
+                    style={{
+                      ...pickerSelectStyles(fontSize.fontScale),
+                      iconContainer: {
+                        top: 18,
+                        right: 0,
+                      },
+                      viewContainer: {
+                        flex: 1,
+                      },
+                    }}
+                    useNativeAndroidPickerStyle={false}
+                    Icon={() => <MaterialIcons name="keyboard-arrow-down" size={24} color="#94A3B8" />}
                   />
-                </View>
+                </TouchableOpacity>
               )}
             </View>
 
@@ -290,9 +321,9 @@ export default function AddSpendingScreen() {
                 <TextInput
                   style={[styles.amountInput, { fontSize: fontSize.large }]}
                   value={amount}
-                  onChangeText={setAmount}
-                  keyboardType="numeric"
-                  placeholder="0.00"
+                  onChangeText={handleAmountChange}
+                  keyboardType="decimal-pad"
+                  placeholder="Enter amount"
                   placeholderTextColor="#94A3B8"
                 />
               </View>

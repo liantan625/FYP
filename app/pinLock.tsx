@@ -7,6 +7,7 @@ import {
     Alert,
     Vibration,
     Platform,
+    useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -32,6 +33,15 @@ export default function PinLockScreen() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [hasBiometric, setHasBiometric] = useState<boolean>(false);
     const [storedPinHash, setStoredPinHash] = useState<string | null>(null);
+
+    // Responsive button sizing
+    const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+    const isSmallScreen = screenHeight < 700;
+    const isVerySmallScreen = screenHeight < 600;
+    const buttonSize = Math.min(Math.floor((screenWidth - 80) / 3.5), isVerySmallScreen ? 56 : isSmallScreen ? 64 : 80);
+    const buttonGap = isVerySmallScreen ? 8 : isSmallScreen ? 12 : 16;
+    const logoSize = isVerySmallScreen ? 50 : isSmallScreen ? 60 : 80;
+    const logoIconSize = isVerySmallScreen ? 24 : isSmallScreen ? 30 : 40;
 
     useEffect(() => {
         checkBiometricSupport();
@@ -205,23 +215,23 @@ export default function PinLockScreen() {
         ];
 
         return (
-            <View style={styles.numpad}>
+            <View style={[styles.numpad, { maxWidth: buttonSize * 3 + buttonGap * 4 }]}>
                 {rows.map((row, rowIndex) => (
-                    <View key={rowIndex} style={styles.numpadRow}>
+                    <View key={rowIndex} style={[styles.numpadRow, { marginBottom: buttonGap }]}>
                         {row.map((item, colIndex) => {
                             if (item === '') {
-                                return <View key={colIndex} style={styles.numpadButton} />;
+                                return <View key={colIndex} style={[styles.numpadButton, { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 }]} />;
                             }
                             if (item === 'biometric') {
                                 return (
                                     <TouchableOpacity
                                         key={colIndex}
-                                        style={styles.numpadButton}
+                                        style={[styles.numpadButton, { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 }]}
                                         onPress={handleBiometric}
                                     >
                                         <MaterialIcons
                                             name={Platform.OS === 'ios' ? 'face' : 'fingerprint'}
-                                            size={28}
+                                            size={isSmallScreen ? 24 : 28}
                                             color="#48BB78"
                                         />
                                     </TouchableOpacity>
@@ -231,22 +241,22 @@ export default function PinLockScreen() {
                                 return (
                                     <TouchableOpacity
                                         key={colIndex}
-                                        style={styles.numpadButton}
+                                        style={[styles.numpadButton, { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 }]}
                                         onPress={handleDelete}
                                         onLongPress={() => setPin('')}
                                     >
-                                        <MaterialIcons name="backspace" size={24} color="#64748B" />
+                                        <MaterialIcons name="backspace" size={isSmallScreen ? 20 : 24} color="#64748B" />
                                     </TouchableOpacity>
                                 );
                             }
                             return (
                                 <TouchableOpacity
                                     key={colIndex}
-                                    style={styles.numpadButton}
+                                    style={[styles.numpadButton, { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 }]}
                                     onPress={() => handleNumberPress(item)}
                                     disabled={isLoading}
                                 >
-                                    <Text style={[styles.numpadText, { fontSize: fontSize.xlarge }]}>{item}</Text>
+                                    <Text style={[styles.numpadText, { fontSize: isSmallScreen ? fontSize.large : fontSize.xlarge }]}>{item}</Text>
                                 </TouchableOpacity>
                             );
                         })}
@@ -258,17 +268,17 @@ export default function PinLockScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.content}>
+            <View style={[styles.content, isSmallScreen && { paddingHorizontal: 16 }]}>
                 {/* Logo */}
-                <View style={styles.logoContainer}>
-                    <View style={styles.logo}>
-                        <MaterialIcons name="lock" size={40} color="#48BB78" />
+                <View style={[styles.logoContainer, isSmallScreen && { marginBottom: 12 }]}>
+                    <View style={[styles.logo, { width: logoSize, height: logoSize, borderRadius: logoSize / 4 }]}>
+                        <MaterialIcons name="lock" size={logoIconSize} color="#48BB78" />
                     </View>
                 </View>
 
                 {/* Title */}
-                <Text style={[styles.title, { fontSize: fontSize.xlarge }]}>{t('pinLock.title')}</Text>
-                <Text style={[styles.subtitle, { fontSize: fontSize.medium }]}>{t('pinLock.subtitle')}</Text>
+                <Text style={[styles.title, { fontSize: fontSize.xlarge, marginBottom: isSmallScreen ? 4 : 8 }]}>{t('pinLock.title')}</Text>
+                <Text style={[styles.subtitle, { fontSize: fontSize.medium, marginBottom: isSmallScreen ? 16 : 32 }]}>{t('pinLock.subtitle')}</Text>
 
                 {/* PIN Dots */}
                 {renderPinDots()}
@@ -277,7 +287,7 @@ export default function PinLockScreen() {
                 {renderNumpad()}
 
                 {/* Forgot PIN */}
-                <TouchableOpacity style={styles.forgotButton} onPress={() => handleForgotPin()}>
+                <TouchableOpacity style={[styles.forgotButton, isSmallScreen && { marginTop: 16, padding: 12 }]} onPress={() => handleForgotPin()}>
                     <Text style={[styles.forgotText, { fontSize: fontSize.medium }]}>{t('pinLock.forgotPin')}</Text>
                 </TouchableOpacity>
             </View>
@@ -321,8 +331,8 @@ const styles = StyleSheet.create({
     dotsContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginBottom: 40,
-        gap: 16,
+        marginBottom: 24,
+        gap: 12,
     },
     dot: {
         width: 16,
@@ -346,9 +356,6 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     numpadButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
         backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',

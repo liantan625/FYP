@@ -43,6 +43,8 @@ export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
+  const [showPasscode, setShowPasscode] = useState(false);
+  const [showRepeatPasscode, setShowRepeatPasscode] = useState(false);
 
   const instructions = ['Change Language', 'Tukar Bahasa', '更換語言', 'மொழி மாற்றம்'];
   const [instructionIndex, setInstructionIndex] = useState(0);
@@ -316,25 +318,57 @@ export default function SignUpScreen() {
             maximumDate={new Date()}
           />
 
-          <TextInput
-            style={[styles.input, { fontSize: fontSize.body }]}
-            placeholder={t('signup.passcode')}
-            value={passcode}
-            onChangeText={setPasscode}
-            keyboardType="number-pad"
-            secureTextEntry
-            maxLength={6}
-          />
+          <View style={styles.passwordInputContainer}>
+            <TextInput
+              style={[styles.passwordInput, { fontSize: fontSize.body }]}
+              placeholder={t('signup.passcode')}
+              value={passcode}
+              onChangeText={setPasscode}
+              keyboardType="number-pad"
+              secureTextEntry={!showPasscode}
+              maxLength={6}
+              accessibilityLabel={t('signup.passcode')}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPasscode(!showPasscode)}
+              accessibilityLabel={showPasscode ? 'Hide password' : 'Show password'}
+              accessibilityRole="button"
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            >
+              <MaterialIcons
+                name={showPasscode ? 'visibility-off' : 'visibility'}
+                size={24}
+                color="#666"
+                style={styles.passwordIcon}
+              />
+            </TouchableOpacity>
+          </View>
 
-          <TextInput
-            style={[styles.input, { fontSize: fontSize.body }]}
-            placeholder={t('signup.repeatPasscode')}
-            value={repeatPasscode}
-            onChangeText={setRepeatPasscode}
-            keyboardType="number-pad"
-            secureTextEntry
-            maxLength={6}
-          />
+          <View style={styles.passwordInputContainer}>
+            <TextInput
+              style={[styles.passwordInput, { fontSize: fontSize.body }]}
+              placeholder={t('signup.repeatPasscode')}
+              value={repeatPasscode}
+              onChangeText={setRepeatPasscode}
+              keyboardType="number-pad"
+              secureTextEntry={!showRepeatPasscode}
+              maxLength={6}
+              accessibilityLabel={t('signup.repeatPasscode')}
+            />
+            <TouchableOpacity
+              onPress={() => setShowRepeatPasscode(!showRepeatPasscode)}
+              accessibilityLabel={showRepeatPasscode ? 'Hide password' : 'Show password'}
+              accessibilityRole="button"
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            >
+              <MaterialIcons
+                name={showRepeatPasscode ? 'visibility-off' : 'visibility'}
+                size={24}
+                color="#666"
+                style={styles.passwordIcon}
+              />
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={styles.button}
@@ -497,9 +531,28 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   dateInputPlaceholder: {
-    color: '#999',
+    color: '#333',
   },
   dateIcon: {
+    marginLeft: 10,
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginBottom: 15,
+    paddingHorizontal: 15,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+    color: '#333',
+  },
+  passwordIcon: {
     marginLeft: 10,
   },
   button: {

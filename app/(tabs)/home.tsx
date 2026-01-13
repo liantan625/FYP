@@ -9,9 +9,9 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
-  SafeAreaView,
   Animated
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
@@ -276,7 +276,7 @@ export default function HomeScreen() {
             {/* Total Assets */}
             <TouchableOpacity
               style={[styles.statCard, { borderLeftColor: '#3B82F6' }]}
-              onPress={() => router.push('/(tabs)/assets')}
+              onPress={() => router.push('/(tabs)/Asset')}
               accessible={true}
               accessibilityLabel={`${t('home.totalAssets')}, RM ${totalAssets.toFixed(2)}`}
               accessibilityRole="button"

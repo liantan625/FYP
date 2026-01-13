@@ -97,6 +97,22 @@ const SavingsGoalScreen: React.FC = () => {
     hideDatePicker();
   };
 
+  // Validate amount input - only allow numbers with at most 2 decimal places
+  const handleAmountChange = (text: string, setter: (value: string) => void) => {
+    // Remove any non-numeric characters except decimal point
+    let cleaned = text.replace(/[^0-9.]/g, '');
+    // Ensure only one decimal point
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+    // Limit to 2 decimal places
+    if (parts.length === 2 && parts[1].length > 2) {
+      cleaned = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    setter(cleaned);
+  };
+
   const resetForm = () => {
     setGoalName('');
     setTargetAmount('');
@@ -463,11 +479,11 @@ const SavingsGoalScreen: React.FC = () => {
                 </View>
                 <TextInput
                   style={[styles.input, { fontSize: fontSize.medium }]}
-                  placeholder="0.00"
+                  placeholder={t('savingsGoals.enterAmount') || 'Enter amount'}
                   placeholderTextColor="#94A3B8"
                   keyboardType="decimal-pad"
                   value={targetAmount}
-                  onChangeText={setTargetAmount}
+                  onChangeText={(text) => handleAmountChange(text, setTargetAmount)}
                 />
               </View>
 
@@ -480,11 +496,11 @@ const SavingsGoalScreen: React.FC = () => {
                 </View>
                 <TextInput
                   style={[styles.input, { fontSize: fontSize.medium }]}
-                  placeholder="0.00"
+                  placeholder={t('savingsGoals.enterAmount') || 'Enter amount'}
                   placeholderTextColor="#94A3B8"
                   keyboardType="decimal-pad"
                   value={currentAmount}
-                  onChangeText={setCurrentAmount}
+                  onChangeText={(text) => handleAmountChange(text, setCurrentAmount)}
                 />
               </View>
 

@@ -26,8 +26,24 @@ export default function EditAssetScreen() {
 
   const [asset, setAsset] = useState<any>(null);
   const [assetName, setAssetName] = useState('');
-  const [amount, setAmount] = useState('0.00');
+  const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+
+  // Validate amount input - only allow numbers with at most 2 decimal places
+  const handleAmountChange = (text: string) => {
+    // Remove any non-numeric characters except decimal point
+    let cleaned = text.replace(/[^0-9.]/g, '');
+    // Ensure only one decimal point
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+    // Limit to 2 decimal places
+    if (parts.length === 2 && parts[1].length > 2) {
+      cleaned = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    setAmount(cleaned);
+  };
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -42,7 +58,7 @@ export default function EditAssetScreen() {
           if (assetData) {
             setAsset(assetData);
             setAssetName(assetData?.assetName || '');
-            setAmount(assetData?.amount ? assetData.amount.toString() : '0.00');
+            setAmount(assetData?.amount ? assetData.amount.toString() : '');
             setDescription(assetData?.description || '');
           }
         });
@@ -166,8 +182,10 @@ export default function EditAssetScreen() {
             <TextInput
               style={[styles.amountInput, { fontSize: fontSize.medium }]}
               value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
+              onChangeText={handleAmountChange}
+              keyboardType="decimal-pad"
+              placeholder="Enter amount"
+              placeholderTextColor="#94A3B8"
               accessibilityLabel={t('addAsset.amountLabel')}
             />
           </View>
