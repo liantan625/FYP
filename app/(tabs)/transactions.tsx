@@ -412,7 +412,7 @@ export default function TransactionsScreen() {
                 onPress={() => Alert.alert(item.category, `${t('transactions.total')}: RM ${item.amount.toFixed(2)}`)}
                 activeOpacity={0.7}
                 accessible={true}
-                accessibilityLabel={`${item.type === 'income' ? item.assetName : item.spendingName}, ${item.category}, ${item.type === 'income' ? '+' : '-'} RM ${item.amount.toFixed(2)}, ${item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale) : ''}`}
+                accessibilityLabel={`${item.type === 'income' ? item.assetName : item.spendingName}, ${item.category}, ${item.type === 'income' ? '+' : '-'} RM ${item.amount.toFixed(2)}, ${item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString('en-GB') : ''}`}
                 accessibilityRole="button"
               >
                 <View style={[
@@ -442,7 +442,7 @@ export default function TransactionsScreen() {
                   </Text>
                   <Text style={[styles.transactionDate, { fontSize: fontSize.small }]}>
                     {item.createdAt
-                      ? new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale, { day: '2-digit', month: 'short' })
+                      ? new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')
                       : t('transactions.na')}
                   </Text>
                 </View>

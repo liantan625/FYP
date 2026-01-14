@@ -204,7 +204,7 @@ export default function AddAssetScreen() {
                 <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('addAsset.dateLabel')}</Text>
               </View>
               <TouchableOpacity onPress={showDatePicker} style={styles.inputContainer}>
-                <Text style={[styles.inputText, { fontSize: fontSize.medium }]}>{date.toLocaleDateString(i18n.language === 'ms' ? 'ms-MY' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                <Text style={[styles.inputText, { fontSize: fontSize.medium }]}>{date.toLocaleDateString('en-GB')}</Text>
                 <MaterialIcons name="chevron-right" size={24} color="#94A3B8" />
               </TouchableOpacity>
             </View>

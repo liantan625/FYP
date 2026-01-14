@@ -44,7 +44,7 @@ export default function PelaburanScreen() {
       <View>
         <Text style={styles.assetName}>{item.assetName}</Text>
         <Text style={styles.assetDescription}>{item.description}</Text>
-        <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString()}</Text>
+        <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')}</Text>
       </View>
       <View style={styles.assetRight}>
         <Text style={styles.assetAmount}>RM {item.amount.toFixed(2)}</Text>

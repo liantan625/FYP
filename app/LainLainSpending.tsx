@@ -42,7 +42,7 @@ export default function LainLainSpendingScreen() {
     <View
       style={styles.assetItem}
       accessible={true}
-      accessibilityLabel={`${item.spendingName}, ${item.description}, -RM ${item.amount.toFixed(2)}, ${new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale)}`}
+      accessibilityLabel={`${item.spendingName}, ${item.description}, -RM ${item.amount.toFixed(2)}, ${new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')}`}
     >
       <View style={{ flex: 1, paddingRight: 8 }}>
         <Text style={[styles.assetName, { fontSize: fontSize.medium }]}>{item.spendingName}</Text>
@@ -50,7 +50,7 @@ export default function LainLainSpendingScreen() {
           {item.description || t('transactions.na')}
         </Text>
         <Text style={[styles.assetDate, { fontSize: fontSize.small }]}>
-          {item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString(dateLocale, { dateStyle: 'medium' }) : ''}
+          {item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString('en-GB') : ''}
         </Text>
       </View>
       <View style={styles.assetRight}>

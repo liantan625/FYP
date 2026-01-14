@@ -513,7 +513,7 @@ const SavingsGoalScreen: React.FC = () => {
                 </View>
                 <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
                   <Text style={[styles.dateText, { fontSize: fontSize.medium }]}>
-                    {targetDate.toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {targetDate.toLocaleDateString('en-GB')}
                   </Text>
                   <MaterialIcons name="chevron-right" size={24} color="#94A3B8" />
                 </TouchableOpacity>

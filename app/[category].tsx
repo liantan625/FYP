@@ -28,7 +28,7 @@ export default function DynamicAssetCategoryScreen() {
     try {
       // Get category value from params (e.g., "emas", "tanah")
       const categoryValue = params.category;
-      
+
       if (!categoryValue) return;
 
       // Try to find in custom categories
@@ -36,7 +36,7 @@ export default function DynamicAssetCategoryScreen() {
       if (customCategoriesJson) {
         const customCategories = JSON.parse(customCategoriesJson);
         const foundCategory = customCategories.find(cat => cat.value === categoryValue);
-        
+
         if (foundCategory) {
           setCategoryInfo({
             name: foundCategory.label,
@@ -123,7 +123,7 @@ export default function DynamicAssetCategoryScreen() {
           ) : null}
           {item.createdAt && (
             <Text style={[styles.assetDate, { fontSize: fontSize.small }]}>
-              {new Date(item.createdAt.toDate()).toLocaleDateString('ms-MY')}
+              {new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')}
             </Text>
           )}
         </View>
@@ -170,7 +170,7 @@ export default function DynamicAssetCategoryScreen() {
             <Text style={[styles.emptyText, { fontSize: fontSize.medium }]}>
               Tiada aset {categoryInfo.name.toLowerCase()}.
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.addButton, { backgroundColor: categoryInfo.color }]}
               onPress={() => router.push('/addAsset')}
             >
