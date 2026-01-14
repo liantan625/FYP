@@ -9,15 +9,15 @@
   },
   "home": {
     "welcome": "欢迎，{{name}}！",
-    "savingsGoal": "🎯 储蓄目标",
-    "progress": "📈 进度：{{percentage}}%",
-    "greatConsistency": "✅ 坚持就是胜利！",
+    "savingsGoal": "储蓄目标",
+    "progress": "进度：{{percentage}}%",
+    "greatConsistency": "坚持就是胜利！",
     "retirementAssets": "退休资产",
     "expenses": "支出",
     "monthSummary": "本月总结",
     "totalAssets": "总资产",
     "income": "收入",
-    "viewFullReport": "📊 查看完整报告"
+    "viewFullReport": "查看完整报告"
   },
   "profile": {
     "title": "个人资料",
@@ -193,7 +193,7 @@
     "topSpending": "最高支出",
     "expenseBreakdown": "支出明细",
     "noExpenseData": "本月无支出数据",
-    "exportPdf": "📄 导出 PDF",
+    "exportPdf": "导出 PDF",
     "loadingTrend": "正在加载趋势数据...",
     "totalSpending": "总支出",
     "spendingByCategory": "按类别支出",
@@ -257,7 +257,7 @@
     "title": "理财工具",
     "calculator": "计算器",
     "calculatorSubtitle": "计算退休日期",
-    "expert": "咨询专家",
+    "expert": "咨询 AI",
     "expertSubtitle": "财务建议",
     "reminders": "提醒",
     "controlled": "可控",
@@ -265,7 +265,7 @@
     "tips": "贴士"
   },
   "calculator": {
-    "title": "🧮 退休计算器",
+    "title": "退休计算器",
     "currentAge": "当前年龄",
     "retirementAge": "退休年龄",
     "currentSavings": "当前储蓄 (RM)",
@@ -282,7 +282,7 @@
     }
   },
   "expert": {
-    "title": "DuitU 专家 AI",
+    "title": "DuitU AI",
     "emptyTitle": "有财务问题吗？",
     "emptySubtitle": "选择以下问题或输入您自己的问题。",
     "typing": "正在输入...",
@@ -298,8 +298,26 @@
       "q4": "每月应该存多少钱？"
     }
   },
+  "humanPlanner": {
+    "title": "预约理财规划师",
+    "introTitle": "与真人专家交谈",
+    "introDesc": "从认证财务规划师获取个性化建议。填写以下表格安排预约。",
+    "fullName": "全名",
+    "fullNamePlaceholder": "例如：张三",
+    "phoneNumber": "电话号码",
+    "phonePlaceholder": "例如：+60123456789",
+    "topicLabel": "感兴趣的话题",
+    "topicRetirement": "退休规划",
+    "topicInvestment": "投资建议",
+    "topicDebt": "债务管理",
+    "topicOther": "其他",
+    "requestSession": "预约咨询",
+    "successMessage": "您的请求已收到。认证理财规划师将尽快联系您。",
+    "bookHumanSession": "预约规划师",
+    "bookHumanSessionDesc": "从认证规划师获取个性化建议"
+  },
   "tips": {
-    "title": "💡 理财贴士",
+    "title": "理财贴士",
     "featured": "阅读与学习",
     "featuredSubtitle": "通过我们精选的文章提高您的财务知识。",
     "articles": "文章",

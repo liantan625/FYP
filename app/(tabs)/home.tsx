@@ -311,36 +311,21 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
 
-            {/* Income */}
-            <View
-              style={[styles.statCard, { borderLeftColor: '#10B981' }]}
-              accessible={true}
-              accessibilityLabel={`${t('home.income')}, RM ${monthlyIncome.toFixed(2)}`}
-            >
-              <View style={[styles.statIcon, { backgroundColor: '#ECFDF5' }]}>
-                <MaterialIcons name="trending-up" size={32} color="#10B981" />
-              </View>
-              <View style={styles.statContent}>
-                <Text style={[styles.statLabel, { fontSize: fontSize.body }]}>{t('home.income')}</Text>
-                <Text style={[styles.statValue, { fontSize: fontSize.large, color: '#047857' }]}>
-                  RM {monthlyIncome.toFixed(2)}
-                </Text>
-              </View>
-            </View>
-
-            {/* View Full Report Button */}
+            {/* View Full Report - Styled as stat card */}
             <TouchableOpacity
-              style={styles.reportButton}
+              style={[styles.statCard, { borderLeftColor: '#8B5CF6' }]}
               onPress={() => router.push('/report')}
               accessible={true}
-              accessibilityLabel={t('home.viewFullReport')}
+              accessibilityLabel={t('report.title')}
               accessibilityRole="button"
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={[styles.reportButtonText, { fontSize: fontSize.medium }]}>
-                {t('home.viewFullReport')}
-              </Text>
-              <MaterialIcons name="arrow-forward" size={24} color="#fff" />
+              <View style={[styles.statIcon, { backgroundColor: '#F3E8FF' }]}>
+                <MaterialIcons name="bar-chart" size={32} color="#8B5CF6" />
+              </View>
+              <View style={styles.statContent}>
+                <Text style={[styles.statLabel, { fontSize: fontSize.body }]}>{t('report.title')}</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
         </View>

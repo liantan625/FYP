@@ -10,7 +10,8 @@ import {
   Platform,
   FlatList,
   Keyboard,
-  Alert
+  Alert,
+  ScrollView
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -220,7 +221,11 @@ export default function ExpertScreen() {
       >
         <View style={styles.chatContainer}>
           {messages.length === 0 ? (
-            <View style={styles.emptyStateContainer}>
+            <ScrollView
+              style={styles.emptyStateContainer}
+              contentContainerStyle={styles.emptyStateContent}
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={[styles.introTitle, { fontSize: fontSize.large }]}>
                 {t('expert.emptyTitle')}
               </Text>
@@ -241,7 +246,27 @@ export default function ExpertScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
+
+              <View style={styles.divider} />
+
+              <TouchableOpacity
+                style={styles.humanPlannerButton}
+                onPress={() => router.push('/humanPlanner')}
+              >
+                <View style={styles.humanPlannerIconContainer}>
+                  <MaterialIcons name="person" size={24} color="#fff" />
+                </View>
+                <View style={styles.humanPlannerContent}>
+                  <Text style={[styles.humanPlannerTitle, { fontSize: fontSize.medium }]}>
+                    {t('humanPlanner.bookHumanSession') || "Book Human Planner"}
+                  </Text>
+                  <Text style={[styles.humanPlannerSubtitle, { fontSize: fontSize.small }]}>
+                    {t('humanPlanner.bookHumanSessionDesc') || "Get personalized advice from a certified planner"}
+                  </Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color="#059669" />
+              </TouchableOpacity>
+            </ScrollView>
           ) : (
             <FlatList
               ref={flatListRef}
@@ -305,7 +330,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 0,
   },
   closeButton: {
     padding: 8,
@@ -342,8 +367,13 @@ const styles = StyleSheet.create({
   },
   emptyStateContainer: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 24,
+  },
+  emptyStateContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    paddingTop: 40,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
     alignItems: 'center',
   },
   introTitle: {
@@ -470,5 +500,46 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#CBD5E1',
     shadowOpacity: 0,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    width: '100%',
+    marginVertical: 20,
+  },
+  humanPlannerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#A7F3D0', // Light green border
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  humanPlannerIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#059669',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  humanPlannerContent: {
+    flex: 1,
+  },
+  humanPlannerTitle: {
+    fontWeight: '700',
+    color: '#064E3B',
+    marginBottom: 2,
+  },
+  humanPlannerSubtitle: {
+    color: '#059669',
   },
 });

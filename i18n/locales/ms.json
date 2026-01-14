@@ -8,15 +8,15 @@
   },
   "home": {
     "welcome": "Selamat Datang, {{name}}!",
-    "savingsGoal": "🎯 Matlamat Simpanan",
-    "progress": "📈 Kemajuan: {{percentage}}%",
-    "greatConsistency": "✅ Hebat Kerana Konsisten!",
+    "savingsGoal": "Matlamat Simpanan",
+    "progress": "Kemajuan: {{percentage}}%",
+    "greatConsistency": "Hebat Kerana Konsisten!",
     "retirementAssets": "Aset Persaraan",
     "expenses": "Perbelanjaan",
     "monthSummary": "Konklusi Bulan Ini",
     "totalAssets": "Total Aset",
     "income": "Pendapatan",
-    "viewFullReport": "📊 Lihat Laporan Penuh"
+    "viewFullReport": "Lihat Laporan Penuh"
   },
   "profile": {
     "title": "Profil",
@@ -206,7 +206,7 @@
     "topSpending": "Perbelanjaan Tertinggi",
     "expenseBreakdown": "Pecahan Perbelanjaan",
     "noExpenseData": "Tiada data perbelanjaan untuk bulan ini",
-    "exportPdf": "📄 Eksport sebagai PDF",
+    "exportPdf": "Eksport sebagai PDF",
     "loadingTrend": "Memuatkan data trend...",
     "totalSpending": "Jumlah Perbelanjaan",
     "spendingByCategory": "Perbelanjaan Mengikut Kategori",
@@ -281,7 +281,7 @@
     "title": "Alat Kewangan",
     "calculator": "Kalkulator",
     "calculatorSubtitle": "Kira Tarikh Persaraan",
-    "expert": "Tanya Pakar",
+    "expert": "Tanya AI",
     "expertSubtitle": "Nasihat Kewangan",
     "reminders": "Peringatan",
     "controlled": "Terkawal",
@@ -289,7 +289,7 @@
     "tips": "Tips"
   },
   "calculator": {
-    "title": "🧮 Kalkulator Persaraan",
+    "title": "Kalkulator Persaraan",
     "currentAge": "Umur Semasa",
     "retirementAge": "Umur Persaraan",
     "currentSavings": "Simpanan Semasa (RM)",
@@ -306,7 +306,7 @@
     }
   },
   "expert": {
-    "title": "DuitU Expert AI",
+    "title": "DuitU AI",
     "emptyTitle": "Ada soalan kewangan?",
     "emptySubtitle": "Pilih soalan di bawah atau taip soalan anda sendiri.",
     "typing": "Sedang menaip...",
@@ -322,8 +322,26 @@
       "q4": "Berapa banyak perlu disimpan setiap bulan?"
     }
   },
+  "humanPlanner": {
+    "title": "Tempah Perancang Kewangan",
+    "introTitle": "Bercakap dengan Pakar Manusia",
+    "introDesc": "Dapatkan nasihat peribadi daripada perancang kewangan bertauliah. Isikan borang di bawah untuk menjadualkan sesi.",
+    "fullName": "Nama Penuh",
+    "fullNamePlaceholder": "cth. Ali Bin Abu",
+    "phoneNumber": "Nombor Telefon",
+    "phonePlaceholder": "cth. +60123456789",
+    "topicLabel": "Topik Diminati",
+    "topicRetirement": "Perancangan Persaraan",
+    "topicInvestment": "Nasihat Pelaburan",
+    "topicDebt": "Pengurusan Hutang",
+    "topicOther": "Lain-lain",
+    "requestSession": "Minta Sesi",
+    "successMessage": "Permintaan anda telah diterima. Perancang kewangan bertauliah akan menghubungi anda tidak lama lagi.",
+    "bookHumanSession": "Tempah Perancang",
+    "bookHumanSessionDesc": "Dapatkan nasihat peribadi daripada perancang bertauliah"
+  },
   "tips": {
-    "title": "💡 Tips Kewangan",
+    "title": "Tips Kewangan",
     "featured": "Baca & Belajar",
     "featuredSubtitle": "Tingkatkan literasi kewangan anda dengan artikel-artikel pilihan kami.",
     "articles": "Artikel",

@@ -9,15 +9,15 @@
   },
   "home": {
     "welcome": "Welcome, {{name}}!",
-    "savingsGoal": "🎯 Savings Goal",
-    "progress": "📈 Progress: {{percentage}}%",
-    "greatConsistency": "✅ Great Because Consistent!",
+    "savingsGoal": "Savings Goal",
+    "progress": "Progress: {{percentage}}%",
+    "greatConsistency": "Great Because Consistent!",
     "retirementAssets": "Retirement Assets",
     "expenses": "Expenses",
     "monthSummary": "This Month's Summary",
     "totalAssets": "Total Assets",
     "income": "Income",
-    "viewFullReport": "📊 View Full Report"
+    "viewFullReport": "View Full Report"
   },
   "profile": {
     "title": "Profile",
@@ -187,7 +187,7 @@
     "topSpending": "Top Spending",
     "expenseBreakdown": "Expense Breakdown",
     "noExpenseData": "No expense data",
-    "exportPdf": "📄 Export as PDF",
+    "exportPdf": "Export as PDF",
     "loadingTrend": "Loading trend data...",
     "totalSpending": "Total Spending",
     "spendingByCategory": "Spending by Category",
@@ -262,7 +262,7 @@
     "title": "Financial Tools",
     "calculator": "Calculator",
     "calculatorSubtitle": "Calculate Retirement Date",
-    "expert": "Ask Expert",
+    "expert": "Ask AI",
     "expertSubtitle": "Financial Advice",
     "reminders": "Reminders",
     "controlled": "Controlled",
@@ -270,7 +270,7 @@
     "tips": "Tips"
   },
   "calculator": {
-    "title": "🧮 Retirement Calculator",
+    "title": "Retirement Calculator",
     "currentAge": "Current Age",
     "retirementAge": "Retirement Age",
     "currentSavings": "Current Savings (RM)",
@@ -287,7 +287,7 @@
     }
   },
   "expert": {
-    "title": "DuitU Expert AI",
+    "title": "DuitU AI",
     "emptyTitle": "Have a financial question?",
     "emptySubtitle": "Choose a question below or type your own.",
     "typing": "Typing...",
@@ -301,10 +301,28 @@
       "q2": "What are the best investments for beginners?",
       "q3": "How to manage debt wisely?",
       "q4": "How much should I save each month?"
-    }
+    },
+    "bookHumanSession": "Book Human Planner",
+    "bookHumanSessionDesc": "Get personalized advice from a certified planner"
+  },
+  "humanPlanner": {
+    "title": "Book Financial Planner",
+    "introTitle": "Speak to a Human Expert",
+    "introDesc": "Get personalized advice from a certified financial planner. Fill out the form below to schedule a session.",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "e.g. Ali Bin Abu",
+    "phoneNumber": "Phone Number",
+    "phonePlaceholder": "e.g. +60123456789",
+    "topicLabel": "Topic of Interest",
+    "topicRetirement": "Retirement Planning",
+    "topicInvestment": "Investment Advice",
+    "topicDebt": "Debt Management",
+    "topicOther": "Other",
+    "requestSession": "Request Session",
+    "successMessage": "Your request has been received. A certified financial planner will contact you shortly."
   },
   "tips": {
-    "title": "💡 Financial Tips",
+    "title": "Financial Tips",
     "featured": "Read & Learn",
     "featuredSubtitle": "Improve your financial literacy with our curated articles.",
     "articles": "Articles",
