@@ -7,6 +7,8 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import { useTranslation } from 'react-i18next';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform, Modal } from 'react-native';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -14,6 +16,8 @@ export default function EditProfileScreen() {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [birthday, setBirthday] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +30,21 @@ export default function EditProfileScreen() {
           if (documentSnapshot.exists) {
             const data = documentSnapshot.data();
             setName(data?.name || '');
-            setBirthday(data?.birthday || '');
+            const savedBirthday = data?.birthday || '';
+            setBirthday(savedBirthday);
+
+            // Try to parse saved birthday or default to current date
+            if (savedBirthday) {
+              // Assuming format DD/MM/YYYY or similar string
+              const parts = savedBirthday.split('/');
+              if (parts.length === 3) {
+                // simple parsing for DD/MM/YYYY
+                const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                if (!isNaN(d.getTime())) {
+                  setDate(d);
+                }
+              }
+            }
           }
           setLoading(false);
         });
@@ -53,6 +71,21 @@ export default function EditProfileScreen() {
     }
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+
+    if (selectedDate) {
+      setDate(selectedDate);
+      // Format as DD/MM/YYYY
+      const day = selectedDate.getDate().toString().padStart(2, '0');
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = selectedDate.getFullYear();
+      setBirthday(`${day}/${month}/${year}`);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -72,19 +105,61 @@ export default function EditProfileScreen() {
             onChangeText={setName}
           />
           <Text style={[styles.label, { fontSize: fontSize.medium }]}>{t('editProfile.birthday')}</Text>
-          <TextInput
-            style={[styles.input, { fontSize: fontSize.medium }]}
-            placeholder={t('editProfile.birthdayPlaceholder')}
-            value={birthday}
-            onChangeText={setBirthday}
-            keyboardType="number-pad"
-            maxLength={10}
-          />
+          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <View pointerEvents="none">
+              <TextInput
+                style={[styles.input, { fontSize: fontSize.medium }]}
+                placeholder={t('editProfile.birthdayPlaceholder')}
+                value={birthday}
+                editable={false}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={[styles.saveButtonText, { fontSize: fontSize.medium }]}>{t('editProfile.save')}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Date Picker Modal for iOS */}
+      {Platform.OS === 'ios' && (
+        <Modal
+          visible={showDatePicker}
+          transparent
+          animationType="slide"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={[styles.modalCancel, { fontSize: fontSize.medium }]}>{t('reminders.cancel')}</Text>
+                </TouchableOpacity>
+                <Text style={[styles.modalTitle, { fontSize: fontSize.medium }]}>{t('editProfile.birthday')}</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={[styles.modalDone, { fontSize: fontSize.medium }]}>{t('reminders.datePicker.done')}</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                style={{ height: 200 }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Date Picker for Android */}
+      {Platform.OS === 'android' && showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -131,6 +206,38 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalCancel: {
+    color: '#EF4444',
+    fontSize: 16,
+  },
+  modalDone: {
+    color: '#00D9A8',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
