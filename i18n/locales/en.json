@@ -380,6 +380,11 @@
     "datePicker": {
       "title": "Select Date",
       "done": "Done"
+    },
+    "notificationTime": "Notification Time",
+    "timePicker": {
+      "title": "Select Time",
+      "done": "Done"
     }
   },
   "savingsGoals": {

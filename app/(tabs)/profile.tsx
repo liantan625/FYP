@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
-  Image,
   ScrollView,
   Modal,
   Platform
@@ -132,9 +131,6 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Profile Info */}
         <View style={styles.profileContainer}>
-          <View style={styles.profilePictureContainer}>
-            <Image source={{ uri: user?.profilePicture || 'https://picsum.photos/200' }} style={styles.profilePicture} />
-          </View>
           <Text style={[styles.userName, { fontSize: fontSize.title }]}>{user?.name}</Text>
           <Text style={[styles.userId, { fontSize: fontSize.medium }]}>{user?.idNumber}</Text>
         </View>

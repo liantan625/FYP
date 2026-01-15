@@ -375,6 +375,11 @@
     "datePicker": {
       "title": "选择日期",
       "done": "完成"
+    },
+    "notificationTime": "通知时间",
+    "timePicker": {
+      "title": "选择时间",
+      "done": "完成"
     }
   },
   "savingsGoals": {

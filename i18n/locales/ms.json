@@ -399,6 +399,11 @@
     "datePicker": {
       "title": "Pilih Tarikh",
       "done": "Selesai"
+    },
+    "notificationTime": "Masa Pemberitahuan",
+    "timePicker": {
+      "title": "Pilih Masa",
+      "done": "Selesai"
     }
   },
   "savingsGoals": {

@@ -21,12 +21,18 @@ import { useTranslation } from 'react-i18next';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {
+  requestNotificationPermissions,
+  scheduleReminderNotification,
+  cancelReminderNotification,
+} from '@/utils/notifications';
 
 interface Reminder {
   id: string;
   title: string;
   amount: number;
   dueDate: string;
+  notificationTime: string;
   isEnabled: boolean;
   category: string;
 }
@@ -53,6 +59,7 @@ export default function RemindersScreen() {
     title: '',
     amount: '',
     dueDate: new Date().getDate().toString(),
+    notificationTime: '09:00',
     category: 'bill',
   });
 
@@ -62,6 +69,14 @@ export default function RemindersScreen() {
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Time picker state
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [selectedTime, setSelectedTime] = useState(() => {
+    const date = new Date();
+    date.setHours(9, 0, 0, 0);
+    return date;
+  });
 
   // Fetch reminders from Firebase
   const fetchReminders = useCallback(async () => {
@@ -98,6 +113,11 @@ export default function RemindersScreen() {
   useEffect(() => {
     fetchReminders();
   }, [fetchReminders]);
+
+  // Request notification permissions on mount
+  useEffect(() => {
+    requestNotificationPermissions();
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -152,6 +172,23 @@ export default function RemindersScreen() {
         .doc(id)
         .update({ isEnabled: !currentStatus });
 
+      // Find the reminder to get its details
+      const reminder = reminders.find((r) => r.id === id);
+
+      if (!currentStatus && reminder) {
+        // Enabling - schedule notification
+        await scheduleReminderNotification(
+          id,
+          reminder.title,
+          reminder.amount,
+          parseInt(reminder.dueDate, 10),
+          reminder.notificationTime || '09:00'
+        );
+      } else {
+        // Disabling - cancel notification
+        await cancelReminderNotification(id);
+      }
+
       setReminders((prev) =>
         prev.map((r) => (r.id === id ? { ...r, isEnabled: !currentStatus } : r))
       );
@@ -176,6 +213,9 @@ export default function RemindersScreen() {
             if (!user) return;
 
             try {
+              // Cancel any scheduled notification first
+              await cancelReminderNotification(id);
+
               await firestore()
                 .collection('users')
                 .doc(user.uid)
@@ -207,11 +247,14 @@ export default function RemindersScreen() {
       title: newReminder.title.trim(),
       amount: parseFloat(newReminder.amount),
       dueDate: newReminder.dueDate,
+      notificationTime: newReminder.notificationTime,
       isEnabled: true,
       category: newReminder.category,
     };
 
     try {
+      let reminderId: string;
+
       if (editingReminder) {
         await firestore()
           .collection('users')
@@ -220,6 +263,7 @@ export default function RemindersScreen() {
           .doc(editingReminder.id)
           .update(reminderData);
 
+        reminderId = editingReminder.id;
         setReminders((prev) =>
           prev.map((r) =>
             r.id === editingReminder.id ? { ...r, ...reminderData } : r
@@ -232,8 +276,18 @@ export default function RemindersScreen() {
           .collection('reminders')
           .add(reminderData);
 
+        reminderId = docRef.id;
         setReminders((prev) => [...prev, { id: docRef.id, ...reminderData }]);
       }
+
+      // Schedule push notification for this reminder
+      await scheduleReminderNotification(
+        reminderId,
+        reminderData.title,
+        reminderData.amount,
+        parseInt(reminderData.dueDate, 10),
+        reminderData.notificationTime
+      );
 
       resetForm();
     } catch (error) {
@@ -243,11 +297,14 @@ export default function RemindersScreen() {
   };
 
   const resetForm = () => {
-    setNewReminder({ title: '', amount: '', dueDate: new Date().getDate().toString(), category: 'bill' });
+    setNewReminder({ title: '', amount: '', dueDate: new Date().getDate().toString(), notificationTime: '09:00', category: 'bill' });
     setErrors({});
     setShowAddForm(false);
     setEditingReminder(null);
     setSelectedDate(new Date());
+    const defaultTime = new Date();
+    defaultTime.setHours(9, 0, 0, 0);
+    setSelectedTime(defaultTime);
   };
 
   const startEditing = (reminder: Reminder) => {
@@ -256,12 +313,18 @@ export default function RemindersScreen() {
       title: reminder.title,
       amount: reminder.amount.toString(),
       dueDate: reminder.dueDate,
+      notificationTime: reminder.notificationTime || '09:00',
       category: reminder.category,
     });
     // Set date picker to the reminder's due date
     const date = new Date();
     date.setDate(parseInt(reminder.dueDate, 10));
     setSelectedDate(date);
+    // Set time picker to the reminder's notification time
+    const [hours, minutes] = (reminder.notificationTime || '09:00').split(':').map(Number);
+    const time = new Date();
+    time.setHours(hours, minutes, 0, 0);
+    setSelectedTime(time);
     setErrors({});
     setShowAddForm(true);
   };
@@ -274,6 +337,18 @@ export default function RemindersScreen() {
       setSelectedDate(date);
       setNewReminder((prev) => ({ ...prev, dueDate: date.getDate().toString() }));
       setErrors((prev) => ({ ...prev, dueDate: undefined }));
+    }
+  };
+
+  const handleTimeChange = (event: any, time?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
+    if (time) {
+      setSelectedTime(time);
+      const hours = time.getHours().toString().padStart(2, '0');
+      const minutes = time.getMinutes().toString().padStart(2, '0');
+      setNewReminder((prev) => ({ ...prev, notificationTime: `${hours}:${minutes}` }));
     }
   };
 
@@ -372,6 +447,17 @@ export default function RemindersScreen() {
               <MaterialIcons name="chevron-right" size={20} color="#94A3B8" />
             </TouchableOpacity>
             {errors.dueDate && <Text style={styles.errorText}>{errors.dueDate}</Text>}
+
+            <TouchableOpacity
+              style={styles.datePickerButton}
+              onPress={() => setShowTimePicker(true)}
+            >
+              <MaterialIcons name="access-time" size={20} color="#48BB78" />
+              <Text style={[styles.datePickerText, { fontSize: fontSize.medium }]}>
+                {t('reminders.notificationTime')}: {newReminder.notificationTime}
+              </Text>
+              <MaterialIcons name="chevron-right" size={20} color="#94A3B8" />
+            </TouchableOpacity>
 
             <Text style={[styles.categoryLabel, { fontSize: fontSize.small }]}>{t('reminders.category')}</Text>
             <ScrollView
@@ -508,6 +594,48 @@ export default function RemindersScreen() {
           mode="date"
           display="default"
           onChange={handleDateChange}
+        />
+      )}
+
+      {/* Time Picker Modal for iOS */}
+      {Platform.OS === 'ios' && (
+        <Modal
+          visible={showTimePicker}
+          transparent
+          animationType="slide"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={styles.modalCancel}>{t('reminders.cancel')}</Text>
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>{t('reminders.timePicker.title')}</Text>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={styles.modalDone}>{t('reminders.timePicker.done')}</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={selectedTime}
+                mode="time"
+                display="spinner"
+                onChange={handleTimeChange}
+                style={{ height: 200 }}
+                is24Hour={true}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Time Picker for Android */}
+      {Platform.OS === 'android' && showTimePicker && (
+        <DateTimePicker
+          value={selectedTime}
+          mode="time"
+          display="default"
+          onChange={handleTimeChange}
+          is24Hour={true}
         />
       )}
     </SafeAreaView>
@@ -677,14 +805,18 @@ const styles = StyleSheet.create({
   },
   formButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     gap: 12,
+    marginTop: 8,
   },
   formButton: {
-    flex: 1,
-    paddingVertical: 14,
+    minHeight: 48,
+    minWidth: 120,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   cancelButton: {
     backgroundColor: '#F1F5F9',
@@ -692,6 +824,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#64748B',
     fontWeight: '600',
+    textAlign: 'center',
   },
   saveButton: {
     backgroundColor: '#48BB78',
@@ -699,6 +832,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontWeight: '600',
+    textAlign: 'center',
   },
   sectionTitle: {
     fontWeight: '700',
