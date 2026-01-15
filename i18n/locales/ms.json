@@ -199,6 +199,7 @@
     "expense": "Perbelanjaan",
     "thisMonth": "Bulan Ini",
     "financialTrend": "Trend Kewangan (6 Bulan)",
+    "financialTrendYearly": "Trend Kewangan (12 Bulan)",
     "smartAnalysis": "Analisis Pintar",
     "savingsRate": "Kadar Simpanan",
     "greatJob": "Syabas! Anda menyimpan dengan baik.",
@@ -221,7 +222,12 @@
     "storagePermissionRequired": "Kebenaran storan diperlukan untuk menyimpan PDF",
     "sharePdf": "Kongsi PDF",
     "sharePdfMessage": "Berikut adalah laporan kewangan anda",
-    "shareFailed": "Gagal berkongsi PDF"
+    "shareFailed": "Gagal berkongsi PDF",
+    "thisYear": "Tahun Ini",
+    "periodToggle": {
+      "monthly": "Bulanan",
+      "yearly": "Tahunan"
+    }
   },
   "about": {
     "title": "Tentang DuitU",

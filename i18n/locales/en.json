@@ -180,6 +180,7 @@
     "expense": "Expense",
     "thisMonth": "This Month",
     "financialTrend": "Financial Trend (6 Months)",
+    "financialTrendYearly": "Financial Trend (12 Months)",
     "smartAnalysis": "Smart Analysis",
     "savingsRate": "Savings Rate",
     "greatJob": "Great job!",
@@ -202,7 +203,12 @@
     "storagePermissionRequired": "Storage permission is required to save PDF",
     "sharePdf": "Share PDF",
     "sharePdfMessage": "Here is your financial report",
-    "shareFailed": "Failed to share PDF"
+    "shareFailed": "Failed to share PDF",
+    "thisYear": "This Year",
+    "periodToggle": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    }
   },
   "about": {
     "title": "About DuitU",

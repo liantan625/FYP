@@ -186,6 +186,7 @@
     "expense": "支出",
     "thisMonth": "本月",
     "financialTrend": "财务趋势（6个月）",
+    "financialTrendYearly": "财务趋势（12个月）",
     "smartAnalysis": "智能分析",
     "savingsRate": "储蓄率",
     "greatJob": "太棒了！您的储蓄状况良好。",
@@ -208,7 +209,12 @@
     "storagePermissionRequired": "需要存储权限以保存 PDF",
     "sharePdf": "分享 PDF",
     "sharePdfMessage": "这是您的财务报告",
-    "shareFailed": "分享 PDF 失败"
+    "shareFailed": "分享 PDF 失败",
+    "thisYear": "今年",
+    "periodToggle": {
+      "monthly": "月报",
+      "yearly": "年报"
+    }
   },
   "pinLock": {
     "title": "输入PIN",

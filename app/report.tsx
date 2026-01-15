@@ -9,6 +9,7 @@ import auth from '@react-native-firebase/auth';
 import { PieChart, LineChart, BarChart } from 'react-native-chart-kit';
 import { useTranslation } from 'react-i18next';
 import { generatePDF, generateCSV } from './services/reportGenerator';
+import { useScaledFontSize } from '@/hooks/use-scaled-font';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -70,6 +71,8 @@ export default function ReportScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const { t } = useTranslation();
+  const fontSize = useScaledFontSize();
+  const [reportPeriod, setReportPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [totalAssets, setTotalAssets] = useState(0);
   const [income, setIncome] = useState(0);
   const [expenses, setExpenses] = useState(0);
@@ -89,8 +92,18 @@ export default function ReportScreen() {
     const user = auth().currentUser;
     if (user) {
       const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      // Calculate date range based on report period
+      let startOfPeriod: Date;
+      let endOfPeriod: Date;
+
+      if (reportPeriod === 'yearly') {
+        startOfPeriod = new Date(now.getFullYear(), 0, 1); // Jan 1
+        endOfPeriod = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999); // Dec 31
+      } else {
+        startOfPeriod = new Date(now.getFullYear(), now.getMonth(), 1);
+        endOfPeriod = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
 
       const allAssetsUnsubscribe = firestore()
         .collection('users')
@@ -125,8 +138,8 @@ export default function ReportScreen() {
               assetsSnapshot.forEach(doc => {
                 const data = doc.data();
                 const docDate = data?.date?.toDate ? data.date.toDate() : new Date(data?.date);
-                // Check if the asset is from this month
-                if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                // Check if the asset is from this period
+                if (docDate >= startOfPeriod && docDate <= endOfPeriod) {
                   const amount = parseFloat(data?.amount) || 0;
                   totalIncome += amount;
                   currentMonthIncomes.push({
@@ -159,8 +172,8 @@ export default function ReportScreen() {
               spendingsSnapshot.forEach(doc => {
                 const spending = doc.data();
                 const docDate = spending?.date?.toDate ? spending.date.toDate() : new Date(spending?.date);
-                // Check if the spending is from this month
-                if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                // Check if the spending is from this period
+                if (docDate >= startOfPeriod && docDate <= endOfPeriod) {
                   const amount = parseFloat(spending?.amount) || 0;
                   totalExpenses += amount;
                   const categoryKey = spending.category;
@@ -199,9 +212,21 @@ export default function ReportScreen() {
           error => console.error("Error fetching spendings: ", error)
         );
 
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-      sixMonthsAgo.setDate(1);
+      // Calculate trend period based on report period
+      let trendStartDate: Date;
+      let numPeriods: number;
+
+      if (reportPeriod === 'yearly') {
+        // For yearly: show all 12 months of current year
+        trendStartDate = new Date(now.getFullYear(), 0, 1); // Jan 1
+        numPeriods = 12;
+      } else {
+        // For monthly: show last 6 months
+        trendStartDate = new Date();
+        trendStartDate.setMonth(trendStartDate.getMonth() - 5);
+        trendStartDate.setDate(1);
+        numPeriods = 6;
+      }
 
       const fetchTrendData = async () => {
         try {
@@ -209,7 +234,7 @@ export default function ReportScreen() {
             .collection('users')
             .doc(user.uid)
             .collection('assets')
-            .where('date', '>=', sixMonthsAgo)
+            .where('date', '>=', trendStartDate)
             .where('category', '==', 'income')
             .get();
 
@@ -217,38 +242,38 @@ export default function ReportScreen() {
             .collection('users')
             .doc(user.uid)
             .collection('spendings')
-            .where('date', '>=', sixMonthsAgo)
+            .where('date', '>=', trendStartDate)
             .get();
 
-          const monthlyData = new Map();
-          for (let i = 0; i < 6; i++) {
-            const d = new Date(sixMonthsAgo);
+          const periodData = new Map();
+          for (let i = 0; i < numPeriods; i++) {
+            const d = new Date(trendStartDate);
             d.setMonth(d.getMonth() + i);
             const key = d.toLocaleString('default', { month: 'short' });
-            monthlyData.set(key, { income: 0, expense: 0 });
+            periodData.set(key, { income: 0, expense: 0 });
           }
 
           incomeSnapshot.forEach(doc => {
             const date = doc.data().date.toDate();
             const key = date.toLocaleString('default', { month: 'short' });
-            if (monthlyData.has(key)) {
-              const current = monthlyData.get(key);
-              monthlyData.set(key, { ...current, income: current.income + doc.data().amount });
+            if (periodData.has(key)) {
+              const current = periodData.get(key);
+              periodData.set(key, { ...current, income: current.income + doc.data().amount });
             }
           });
 
           expenseSnapshot.forEach(doc => {
             const date = doc.data().date.toDate();
             const key = date.toLocaleString('default', { month: 'short' });
-            if (monthlyData.has(key)) {
-              const current = monthlyData.get(key);
-              monthlyData.set(key, { ...current, expense: current.expense + doc.data().amount });
+            if (periodData.has(key)) {
+              const current = periodData.get(key);
+              periodData.set(key, { ...current, expense: current.expense + doc.data().amount });
             }
           });
 
-          const labels = Array.from(monthlyData.keys());
-          const incomeData = Array.from(monthlyData.values()).map((d: any) => d.income);
-          const expenseData = Array.from(monthlyData.values()).map((d: any) => d.expense);
+          const labels = Array.from(periodData.keys());
+          const incomeData = Array.from(periodData.values()).map((d: any) => d.income);
+          const expenseData = Array.from(periodData.values()).map((d: any) => d.expense);
 
           console.log('Chart Labels:', labels);
           console.log('Income Data:', incomeData);
@@ -292,7 +317,7 @@ export default function ReportScreen() {
         spendingsUnsubscribe();
       };
     }
-  }, [t]);
+  }, [t, reportPeriod]);
 
   const handleGeneratePDF = async () => {
     try {
@@ -356,6 +381,48 @@ export default function ReportScreen() {
           <View style={{ width: 24 }} />
         </View>
 
+        {/* Period Toggle */}
+        <View style={styles.periodToggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.periodToggleButton,
+              reportPeriod === 'monthly' && styles.periodToggleButtonActive,
+            ]}
+            onPress={() => setReportPeriod('monthly')}
+            accessibilityLabel={t('report.periodToggle.monthly')}
+            accessibilityRole="button"
+          >
+            <Text
+              style={[
+                styles.periodToggleText,
+                { fontSize: fontSize.medium },
+                reportPeriod === 'monthly' && styles.periodToggleTextActive,
+              ]}
+            >
+              {t('report.periodToggle.monthly')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.periodToggleButton,
+              reportPeriod === 'yearly' && styles.periodToggleButtonActive,
+            ]}
+            onPress={() => setReportPeriod('yearly')}
+            accessibilityLabel={t('report.periodToggle.yearly')}
+            accessibilityRole="button"
+          >
+            <Text
+              style={[
+                styles.periodToggleText,
+                { fontSize: fontSize.medium },
+                reportPeriod === 'yearly' && styles.periodToggleTextActive,
+              ]}
+            >
+              {t('report.periodToggle.yearly')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.contentBody}>
           <View style={[styles.balanceCard, { backgroundColor: colors.card }]}>
             <Text style={[styles.balanceLabel, { color: colors.text, opacity: 0.7 }]}>
@@ -374,7 +441,9 @@ export default function ReportScreen() {
               <Text style={styles.summaryLabel}>{t('report.income')}</Text>
               <Text style={styles.summaryAmount}>RM {income.toFixed(2)}</Text>
               <View style={styles.summaryChange}>
-                <Text style={styles.summaryChangeText}>{t('report.thisMonth')}</Text>
+                <Text style={styles.summaryChangeText}>
+                  {reportPeriod === 'yearly' ? t('report.thisYear') : t('report.thisMonth')}
+                </Text>
               </View>
             </View>
 
@@ -385,35 +454,45 @@ export default function ReportScreen() {
               <Text style={styles.summaryLabel}>{t('report.expense')}</Text>
               <Text style={styles.summaryAmount}>RM {expenses.toFixed(2)}</Text>
               <View style={styles.summaryChange}>
-                <Text style={styles.summaryChangeText}>{t('report.thisMonth')}</Text>
+                <Text style={styles.summaryChangeText}>
+                  {reportPeriod === 'yearly' ? t('report.thisYear') : t('report.thisMonth')}
+                </Text>
               </View>
             </View>
           </View>
 
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {t('report.financialTrend')}
+              {reportPeriod === 'yearly'
+                ? t('report.financialTrendYearly')
+                : t('report.financialTrend')}
             </Text>
           </View>
-          <View style={[styles.chartCard, { backgroundColor: colors.card }]}>
+          <View style={[styles.chartCard, { backgroundColor: colors.card, paddingHorizontal: reportPeriod === 'yearly' ? 0 : 16 }]}>
             {trendData.labels.length > 0 ? (
-              <LineChart
-                data={trendData}
-                width={screenWidth - 80}
-                height={220}
-                chartConfig={{
-                  backgroundColor: colors.card,
-                  backgroundGradientFrom: colors.card,
-                  backgroundGradientTo: colors.card,
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  style: { borderRadius: 16 },
-                  propsForDots: { r: "4", strokeWidth: "2", stroke: "#ffa726" }
-                }}
-                bezier
-                style={{ marginVertical: 8, borderRadius: 16 }}
-              />
+              <ScrollView
+                horizontal={reportPeriod === 'yearly'}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: reportPeriod === 'yearly' ? 16 : 0 }}
+              >
+                <LineChart
+                  data={trendData}
+                  width={reportPeriod === 'yearly' ? Math.max(screenWidth * 1.5, 600) : screenWidth - 80}
+                  height={220}
+                  chartConfig={{
+                    backgroundColor: colors.card,
+                    backgroundGradientFrom: colors.card,
+                    backgroundGradientTo: colors.card,
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                    style: { borderRadius: 16 },
+                    propsForDots: { r: "4", strokeWidth: "2", stroke: "#ffa726" }
+                  }}
+                  bezier
+                  style={{ marginVertical: 8, borderRadius: 16 }}
+                />
+              </ScrollView>
             ) : (
               <View style={{ height: 220, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ color: '#999' }}>{t('report.loadingTrend')}</Text>
@@ -554,7 +633,7 @@ export default function ReportScreen() {
             onPress={handleGeneratePDF}
             disabled={isGeneratingPdf}
           >
-          
+
             {isGeneratingPdf ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -809,5 +888,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#4b5563',
     opacity: 0.8,
+  },
+  periodToggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  periodToggleButton: {
+    flex: 1,
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  periodToggleButtonActive: {
+    backgroundColor: '#10b981',
+  },
+  periodToggleText: {
+    fontWeight: '600',
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  periodToggleTextActive: {
+    color: '#FFFFFF',
   },
 });

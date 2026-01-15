@@ -31,7 +31,6 @@
       "medium": "நடுத்தர",
       "large": "பெரிய"
     },
-    "sampleText": "Aa",
     "darkMode": "இருண்ட முறை",
     "notifications": "அறிவிப்புகள்",
     "help": "உதவி & ஆதரவு",
@@ -178,6 +177,7 @@
     "expense": "செலவுகள்",
     "thisMonth": "இந்த மாதம்",
     "financialTrend": "நிதி போக்கு (6 மாதங்கள்)",
+    "financialTrendYearly": "நிதி போக்கு (12 மாதங்கள்)",
     "smartAnalysis": "புத்திசாலித்தனமான பகுப்பாய்வு",
     "savingsRate": "சேமிப்பு விகிதம்",
     "greatJob": "சிறப்பான வேலை!",
@@ -200,7 +200,12 @@
     "storagePermissionRequired": "PDF ஐ சேமிக்க சேமிப்பக அனுமதி தேவை",
     "sharePdf": "PDF ஐப் பகிரவும்",
     "sharePdfMessage": "இதோ உங்கள் நிதி அறிக்கை",
-    "shareFailed": "PDF ஐப் பகிர முடியவில்லை"
+    "shareFailed": "PDF ஐப் பகிர முடியவில்லை",
+    "thisYear": "இந்த வருடம்",
+    "periodToggle": {
+      "monthly": "மாதாந்திர",
+      "yearly": "வருடாந்திர"
+    }
   },
   "notifications": {},
   "expert": {
