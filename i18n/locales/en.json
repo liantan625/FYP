@@ -290,6 +290,14 @@
       "savings": "e.g. 50000",
       "monthly": "e.g. 1000",
       "return": "e.g. 5"
+    },
+    "validation": {
+      "required": "This field is required",
+      "noNegatives": "Value cannot be negative",
+      "invalidNumber": "Please enter a valid number",
+      "maxTwoDecimals": "Maximum 2 decimal places allowed",
+      "invalidAge": "Please enter a valid age",
+      "retirementMustBeGreater": "Retirement age must be greater than current age"
     }
   },
   "expert": {

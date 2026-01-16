@@ -19,6 +19,40 @@ import { useTranslation } from 'react-i18next';
 
 const screenWidth = Dimensions.get("window").width;
 
+// Get formatted date based on current language using translations
+const getFormattedDate = (lang: string, t: any): string => {
+  try {
+    const now = new Date();
+    const day = now.getDate();
+    const year = now.getFullYear();
+    const weekdayIndex = now.getDay();
+    const monthIndex = now.getMonth();
+
+    // Use translation keys for weekdays and months with fallbacks
+    const weekday = t(`common.weekdays.${weekdayIndex}`, { defaultValue: '' });
+    const month = t(`common.months.${monthIndex}`, { defaultValue: '' });
+
+    // If translations are missing, fallback to locale-based formatting
+    if (!weekday || !month || weekday.includes('common.') || month.includes('common.')) {
+      return now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    // Different date formats per language
+    if (lang === 'zh') {
+      return `${year}年${monthIndex + 1}月${day}日 ${weekday}`;
+    } else if (lang === 'ms') {
+      return `${weekday}, ${day} ${month} ${year}`;
+    } else if (lang === 'ta') {
+      return `${weekday}, ${day} ${month} ${year}`;
+    }
+    // Default English format
+    return `${weekday}, ${month} ${day}, ${year}`;
+  } catch (error) {
+    // Fallback on any error
+    return new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+};
+
 
 export default function HomeScreen() {
 

@@ -309,6 +309,14 @@
       "savings": "Contoh: 50000",
       "monthly": "Contoh: 1000",
       "return": "Contoh: 5"
+    },
+    "validation": {
+      "required": "Ruangan ini diperlukan",
+      "noNegatives": "Nilai tidak boleh negatif",
+      "invalidNumber": "Sila masukkan nombor yang sah",
+      "maxTwoDecimals": "Maksimum 2 tempat perpuluhan",
+      "invalidAge": "Sila masukkan umur yang sah",
+      "retirementMustBeGreater": "Umur persaraan mesti lebih besar daripada umur semasa"
     }
   },
   "expert": {

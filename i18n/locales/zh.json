@@ -285,6 +285,14 @@
       "savings": "例如：50000",
       "monthly": "例如：1000",
       "return": "例如：5"
+    },
+    "validation": {
+      "required": "此栏位必填",
+      "noNegatives": "数值不能为负数",
+      "invalidNumber": "请输入有效数字",
+      "maxTwoDecimals": "最多允许2位小数",
+      "invalidAge": "请输入有效年龄",
+      "retirementMustBeGreater": "退休年龄必须大于当前年龄"
     }
   },
   "expert": {
