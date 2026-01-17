@@ -264,7 +264,7 @@ export default function ExpertScreen() {
                     {t('humanPlanner.bookHumanSessionDesc') || "Get personalized advice from a certified planner"}
                   </Text>
                 </View>
-                <MaterialIcons name="chevron-right" size={24} color="#059669" />
+                <MaterialIcons name="chevron-right" size={24} color="#48BB78" />
               </TouchableOpacity>
             </ScrollView>
           ) : (
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     borderColor: '#A7F3D0', // Light green border
-    shadowColor: '#059669',
+    shadowColor: '#48BB78',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#059669',
+    backgroundColor: '#48BB78',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -540,6 +540,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   humanPlannerSubtitle: {
-    color: '#059669',
+    color: '#48BB78',
   },
 });

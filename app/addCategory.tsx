@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   iconButtonSelected: {
-    borderColor: '#00D9A8',
+    borderColor: '#48BB78',
     backgroundColor: '#E6F9F5',
   },
   iconText: {
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   saveButton: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

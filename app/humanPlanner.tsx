@@ -73,7 +73,7 @@ export default function HumanPlannerScreen() {
                 <ScrollView contentContainerStyle={styles.content}>
                     <View style={styles.introCard}>
                         <View style={styles.iconContainer}>
-                            <MaterialIcons name="person-pin" size={40} color="#059669" />
+                            <MaterialIcons name="person-pin" size={40} color="#48BB78" />
                         </View>
                         <Text style={[styles.introTitle, { fontSize: fontSize.large }]}>
                             {t('humanPlanner.introTitle')}
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     },
     topicSelected: {
         backgroundColor: '#ECFDF5',
-        borderColor: '#059669',
+        borderColor: '#48BB78',
     },
     topicText: {
         color: '#374151',
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     topicTextSelected: {
-        color: '#059669',
+        color: '#48BB78',
         fontWeight: '700',
     },
     footer: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
         borderTopColor: '#E5E7EB',
     },
     submitButton: {
-        backgroundColor: '#059669',
+        backgroundColor: '#48BB78',
         borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',

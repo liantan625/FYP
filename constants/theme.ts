@@ -27,6 +27,26 @@ export const Colors = {
   },
 };
 
+// Standard app colors for consistent branding
+export const AppColors = {
+  // Primary green - use for main actions, headers, and accents
+  primary: '#48BB78',
+  primaryLight: '#68D391',
+  primaryDark: '#38A169',
+
+  // Success/positive indicators
+  success: '#48BB78',
+  successLight: '#C6F6D5',
+
+  // Error/danger
+  error: '#EF4444',
+  errorLight: '#FEE2E2',
+
+  // Warning
+  warning: '#F59E0B',
+  warningLight: '#FEF3C7',
+};
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */

@@ -16,7 +16,7 @@ export default function SuccessfulSignUp() {
       <View style={styles.content}>
         {/* Success Icon */}
         <View style={styles.iconContainer}>
-          <MaterialIcons name="check-circle" size={100} color="#00D9A8" />
+          <MaterialIcons name="check-circle" size={100} color="#48BB78" />
         </View>
 
         {/* Success Message */}
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 30,
-    shadowColor: '#00D9A8',
+    shadowColor: '#48BB78',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontWeight: '600',
-    color: '#00D9A8',
+    color: '#48BB78',
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -92,11 +92,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     paddingVertical: 16,
     paddingHorizontal: 40,
     borderRadius: 12,
-    shadowColor: '#00D9A8',
+    shadowColor: '#48BB78',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

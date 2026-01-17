@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -294,12 +294,12 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   saveButton: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     borderRadius: 14,
     paddingVertical: 18, // Larger touch target
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#00D9A8',
+    shadowColor: '#48BB78',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

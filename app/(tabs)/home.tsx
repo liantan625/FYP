@@ -393,7 +393,7 @@ export default function HomeScreen() {
               accessibilityLabel={t('financialTools.expert')}
             >
               <View style={[styles.toolIconBox, { backgroundColor: '#F0FDF4' }]}>
-                <MaterialIcons name="support-agent" size={36} color="#16A34A" />
+                <MaterialIcons name="support-agent" size={36} color="#48BB78" />
               </View>
               <Text style={[styles.toolTitle, { fontSize: fontSize.medium }]}>{t('financialTools.expert')}</Text>
             </TouchableOpacity>
@@ -459,17 +459,7 @@ export default function HomeScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Floating AI Chat Button - Larger & Accessible */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/expert')}
-        activeOpacity={0.8}
-        accessible={true}
-        accessibilityLabel="Chat with financial expert AI"
-        accessibilityRole="button"
-      >
-        <MaterialIcons name="smart-toy" size={32} color="#fff" />
-      </TouchableOpacity>
+
     </SafeAreaView>
   );
 }
@@ -483,7 +473,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100, // Increased to avoid FAB overlap (was 20)
+    paddingBottom: 40,
   },
   headerContainer: {
     padding: 24,
@@ -577,7 +567,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressLabel: {
-    color: '#059669', // Strong green
+    color: '#48BB78', // Strong green
     fontWeight: '700',
   },
   targetLabel: {
@@ -592,7 +582,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#10B981',
+    backgroundColor: '#48BB78',
     borderRadius: 6,
   },
   sectionContainer: {
@@ -710,7 +700,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statusBannerSuccess: {
-    backgroundColor: '#059669', // Emerald 600
+    backgroundColor: '#48BB78', // Emerald 600
   },
   statusBannerDanger: {
     backgroundColor: '#DC2626', // Red 600

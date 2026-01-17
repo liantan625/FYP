@@ -310,7 +310,11 @@ export default function TransactionsScreen() {
             <Text style={[styles.sectionTitle, { fontSize: fontSize.medium }]}>
               {t('report.financialTrend')}
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={{ paddingRight: 16 }}
+            >
               <BarChart
                 data={{
                   labels: monthlyData.labels,
@@ -321,7 +325,7 @@ export default function TransactionsScreen() {
                     },
                   ],
                 }}
-                width={Math.max(screenWidth - 48, monthlyData.labels.length * 60)}
+                width={Math.max(screenWidth * 1.2, monthlyData.labels.length * 80)}
                 height={220}
                 yAxisLabel="RM"
                 yAxisSuffix=""
@@ -332,13 +336,16 @@ export default function TransactionsScreen() {
                   decimalPlaces: 0,
                   color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
                   labelColor: () => '#475569',
-                  barPercentage: 0.6,
+                  barPercentage: 0.5,
                   propsForBackgroundLines: {
                     strokeDasharray: '',
                     stroke: '#E2E8F0',
                   },
+                  propsForLabels: {
+                    fontSize: 10,
+                  },
                 }}
-                style={styles.chart}
+                style={styles.chartScrollable}
                 showValuesOnTopOfBars={false}
                 fromZero
               />
@@ -577,6 +584,10 @@ const styles = StyleSheet.create({
   chart: {
     borderRadius: 12,
     marginLeft: -16,
+  },
+  chartScrollable: {
+    borderRadius: 12,
+    marginLeft: 0,
   },
   pieChartContainer: {
     alignItems: 'center',

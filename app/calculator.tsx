@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   calculateButton: {
-    backgroundColor: '#006400',
+    backgroundColor: '#48BB78',
     borderRadius: 12,
     paddingVertical: 16,
     marginTop: 24,
@@ -288,11 +288,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resultLabel: {
-    color: '#059669',
+    color: '#48BB78',
     fontWeight: '600',
   },
   resultAmount: {
-    color: '#059669',
+    color: '#48BB78',
     fontWeight: 'bold',
     marginTop: 8,
   },

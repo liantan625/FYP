@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   saveButton: {
-    backgroundColor: '#00D9A8',
+    backgroundColor: '#48BB78',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   modalDone: {
-    color: '#00D9A8',
+    color: '#48BB78',
     fontSize: 16,
     fontWeight: 'bold',
   },

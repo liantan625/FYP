@@ -207,7 +207,7 @@ export default function SignUpScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setShowLanguageModal(true)} style={styles.languageButtonContainer}>
-          <MaterialIcons name="language" size={24} color="#00D9A8" />
+          <MaterialIcons name="language" size={24} color="#48BB78" />
           <Animated.Text style={[styles.languageButtonText, { opacity: fadeAnim }]}>
             {instructions[instructionIndex]}
           </Animated.Text>
@@ -421,7 +421,7 @@ export default function SignUpScreen() {
                   {lang.label}
                 </Text>
                 {i18n.language === lang.code && (
-                  <MaterialIcons name="check" size={24} color="#00D9A8" />
+                  <MaterialIcons name="check" size={24} color="#48BB78" />
                 )}
               </TouchableOpacity>
             ))}
@@ -453,11 +453,11 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     backgroundColor: '#F0FDF9',
     borderWidth: 1,
-    borderColor: '#00D9A8',
+    borderColor: '#48BB78',
   },
   languageButtonText: {
     marginLeft: 8,
-    color: '#00D9A8',
+    color: '#48BB78',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -601,11 +601,11 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     backgroundColor: '#F0FDF9',
     borderWidth: 1,
-    borderColor: '#00D9A8',
+    borderColor: '#48BB78',
   },
   fontSizeButtonText: {
     marginLeft: 8,
-    color: '#00D9A8',
+    color: '#48BB78',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -673,6 +673,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   selectedLanguageText: {
-    color: '#00D9A8',
+    color: '#48BB78',
   },
 });

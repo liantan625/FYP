@@ -428,7 +428,7 @@ export default function ReportScreen() {
             <Text style={[styles.balanceLabel, { color: colors.text, opacity: 0.7 }]}>
               {t('report.retirementAssets')}
             </Text>
-            <Text style={[styles.balanceAmount, { color: '#10b981' }]}>
+            <Text style={[styles.balanceAmount, { color: '#48BB78' }]}>
               RM {totalAssets.toFixed(2)}
             </Text>
           </View>
@@ -642,7 +642,7 @@ export default function ReportScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.exportButton, { backgroundColor: '#10b981', marginTop: 12 }]}
+            style={[styles.exportButton, { backgroundColor: '#48BB78', marginTop: 12 }]}
             onPress={handleGenerateCSV}
             disabled={isGeneratingCsv}
           >
@@ -830,11 +830,11 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   exportButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: '#48BB78',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#10b981',
+    shadowColor: '#48BB78',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -907,7 +907,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   periodToggleButtonActive: {
-    backgroundColor: '#10b981',
+    backgroundColor: '#48BB78',
   },
   periodToggleText: {
     fontWeight: '600',
