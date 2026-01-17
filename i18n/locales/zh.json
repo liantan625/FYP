@@ -409,6 +409,7 @@
     "targetAmount": "目标金额",
     "currentAmount": "当前金额",
     "targetDate": "目标日期",
+    "enterAmount": "输入目标金额",
     "of": "/",
     "complete": "完成",
     "update": "更新",
