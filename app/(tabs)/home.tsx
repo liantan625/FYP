@@ -232,7 +232,7 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -456,7 +456,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={{ height: 100 }} />
+
       </ScrollView>
 
 
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 0,
   },
   headerContainer: {
     padding: 24,
@@ -593,6 +593,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    paddingHorizontal: 24,
   },
   sectionHeaderIcon: {
     marginRight: 12,
@@ -604,7 +605,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statsGrid: {
-    gap: 16,
+    // gap replaced by marginBottom on items for compatibility
   },
   statCard: {
     flexDirection: 'row',
@@ -613,6 +614,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderLeftWidth: 4,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
