@@ -62,7 +62,7 @@ export default function ProfileScreen() {
         .collection('users')
         .doc(currentUser.uid)
         .onSnapshot(documentSnapshot => {
-          if (documentSnapshot.exists) {
+          if (documentSnapshot.exists()) {
             setUser(documentSnapshot.data() as UserData);
           } else {
             setError(t('profile.userDataNotFound'));

@@ -298,7 +298,7 @@ export default function ReportScreen() {
       const fetchUserAge = async () => {
         try {
           const userDoc = await firestore().collection('users').doc(user.uid).get();
-          if (userDoc.exists) {
+          if (userDoc.exists()) {
             const userData = userDoc.data();
             if (userData && userData.age) {
               setUserAge(userData.age);

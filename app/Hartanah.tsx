@@ -3,18 +3,23 @@ import React, { useState, useEffect } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Mock data for demonstration
-const MOCK_ASSETS = {
-  property: [],
-};
+// Asset type definition
+interface Asset {
+  id: string;
+  assetName: string;
+  amount: number;
+  category: string;
+  description?: string;
+  createdAt?: { toDate: () => Date };
+}
 
 export default function HartanahScreen() {
   const router = useRouter();
-  const [assets, setAssets] = useState([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -25,9 +30,9 @@ export default function HartanahScreen() {
         .collection('assets')
         .where('category', '==', 'property')
         .onSnapshot(querySnapshot => {
-          const assetsData = [];
+          const assetsData: Asset[] = [];
           querySnapshot.forEach(doc => {
-            assetsData.push({ id: doc.id, ...doc.data() });
+            assetsData.push({ id: doc.id, ...doc.data() } as Asset);
           });
           setAssets(assetsData);
         });
@@ -36,12 +41,14 @@ export default function HartanahScreen() {
     }
   }, []);
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: Asset }) => (
     <View style={styles.assetItem}>
       <View>
         <Text style={styles.assetName}>{item.assetName}</Text>
         <Text style={styles.assetDescription}>{item.description}</Text>
-        <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')}</Text>
+        {item.createdAt && (
+          <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')}</Text>
+        )}
       </View>
       <View style={styles.assetRight}>
         <Text style={styles.assetAmount}>RM {item.amount.toFixed(2)}</Text>

@@ -718,21 +718,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '500',
   },
-  fab: {
-    position: 'absolute',
-    bottom: 32,
-    right: 24,
-    width: 64, // LargeFAB
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#2563EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 100,
-  },
 });

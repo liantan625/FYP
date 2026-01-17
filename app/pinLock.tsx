@@ -60,7 +60,7 @@ export default function PinLockScreen() {
 
         try {
             const userDoc = await firestore().collection('users').doc(user.uid).get();
-            if (userDoc.exists) {
+            if (userDoc.exists()) {
                 const userData = userDoc.data();
                 // Check if PIN is hashed (64 chars for SHA256) or plain
                 const storedPin = userData?.passcode;

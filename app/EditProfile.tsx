@@ -27,7 +27,7 @@ export default function EditProfileScreen() {
         .collection('users')
         .doc(user.uid)
         .onSnapshot(documentSnapshot => {
-          if (documentSnapshot.exists) {
+          if (documentSnapshot.exists()) {
             const data = documentSnapshot.data();
             setName(data?.name || '');
             const savedBirthday = data?.birthday || '';

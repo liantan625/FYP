@@ -7,9 +7,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 
+// Asset type definition
+interface Asset {
+  id: string;
+  assetName: string;
+  amount: number;
+  category: string;
+  description?: string;
+  createdAt?: { toDate: () => Date };
+}
+
 export default function LainLainScreen() {
   const router = useRouter();
-  const [assets, setAssets] = useState([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
 
   useEffect(() => {
     const user = auth().currentUser;
@@ -20,9 +30,9 @@ export default function LainLainScreen() {
         .collection('assets')
         .where('category', '==', 'others')
         .onSnapshot(querySnapshot => {
-          const assetsData = [];
+          const assetsData: Asset[] = [];
           querySnapshot.forEach(doc => {
-            assetsData.push({ id: doc.id, ...doc.data() });
+            assetsData.push({ id: doc.id, ...doc.data() } as Asset);
           });
           setAssets(assetsData);
         });
@@ -31,12 +41,14 @@ export default function LainLainScreen() {
     }
   }, []);
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: Asset }) => (
     <View style={styles.assetItem}>
       <View>
         <Text style={styles.assetName}>{item.assetName}</Text>
         <Text style={styles.assetDescription}>{item.description}</Text>
-        <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')}</Text>
+        {item.createdAt && (
+          <Text style={styles.assetDate}>{new Date(item.createdAt.toDate()).toLocaleDateString('en-GB')}</Text>
+        )}
       </View>
       <View style={styles.assetRight}>
         <Text style={styles.assetAmount}>RM {item.amount.toFixed(2)}</Text>

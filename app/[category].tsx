@@ -8,12 +8,48 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Asset type definition
+interface Asset {
+  id: string;
+  assetName: string;
+  amount: number;
+  category: string;
+  description?: string;
+  createdAt?: { toDate: () => Date };
+}
+
+interface CategoryInfo {
+  name: string;
+  icon: string;
+  color: string;
+  categoryValue: string;
+}
+
+// Category name mapping type
+type CategoryKey = 'bank' | 'investment' | 'property' | 'income' | 'others';
+
+const categoryNames: Record<CategoryKey, string> = {
+  'bank': 'Simpanan',
+  'investment': 'Pelaburan',
+  'property': 'Hartanah',
+  'income': 'Pendapatan',
+  'others': 'Lain-Lain',
+};
+
+const categoryIcons: Record<CategoryKey, string> = {
+  'bank': '🏦',
+  'investment': '💰',
+  'property': '🏠',
+  'income': '💵',
+  'others': '❓',
+};
+
 export default function DynamicAssetCategoryScreen() {
   const router = useRouter();
   const fontSize = useScaledFontSize();
   const params = useLocalSearchParams();
-  const [assets, setAssets] = useState([]);
-  const [categoryInfo, setCategoryInfo] = useState({
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [categoryInfo, setCategoryInfo] = useState<CategoryInfo>({
     name: 'Kategori Aset',
     icon: '💰',
     color: '#48BB78',
@@ -27,7 +63,7 @@ export default function DynamicAssetCategoryScreen() {
   const loadCategoryInfo = async () => {
     try {
       // Get category value from params (e.g., "emas", "tanah")
-      const categoryValue = params.category;
+      const categoryValue = params.category as string;
 
       if (!categoryValue) return;
 
@@ -35,7 +71,7 @@ export default function DynamicAssetCategoryScreen() {
       const customCategoriesJson = await AsyncStorage.getItem('customAssetCategories');
       if (customCategoriesJson) {
         const customCategories = JSON.parse(customCategoriesJson);
-        const foundCategory = customCategories.find(cat => cat.value === categoryValue);
+        const foundCategory = customCategories.find((cat: { value: string }) => cat.value === categoryValue);
 
         if (foundCategory) {
           setCategoryInfo({
@@ -70,7 +106,7 @@ export default function DynamicAssetCategoryScreen() {
     }
   };
 
-  const loadAssets = (categoryValue) => {
+  const loadAssets = (categoryValue: string) => {
     const user = auth().currentUser;
     if (user) {
       const unsubscribe = firestore()
@@ -79,9 +115,9 @@ export default function DynamicAssetCategoryScreen() {
         .collection('assets')
         .where('category', '==', categoryValue)
         .onSnapshot(querySnapshot => {
-          const assetsData = [];
+          const assetsData: Asset[] = [];
           querySnapshot.forEach(doc => {
-            assetsData.push({ id: doc.id, ...doc.data() });
+            assetsData.push({ id: doc.id, ...doc.data() } as Asset);
           });
           setAssets(assetsData);
         });
@@ -90,29 +126,21 @@ export default function DynamicAssetCategoryScreen() {
     }
   };
 
-  const getCategoryName = (categoryValue) => {
-    const names = {
-      'bank': 'Simpanan',
-      'investment': 'Pelaburan',
-      'property': 'Hartanah',
-      'income': 'Pendapatan',
-      'others': 'Lain-Lain',
-    };
-    return names[categoryValue] || categoryValue;
+  const getCategoryName = (categoryValue: string): string => {
+    if (categoryValue in categoryNames) {
+      return categoryNames[categoryValue as CategoryKey];
+    }
+    return categoryValue;
   };
 
-  const getCategoryIcon = (categoryValue) => {
-    const icons = {
-      'bank': '🏦',
-      'investment': '💰',
-      'property': '🏠',
-      'income': '💵',
-      'others': '❓',
-    };
-    return icons[categoryValue] || '💰';
+  const getCategoryIcon = (categoryValue: string): string => {
+    if (categoryValue in categoryIcons) {
+      return categoryIcons[categoryValue as CategoryKey];
+    }
+    return '💰';
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: Asset }) => (
     <View style={styles.assetItem}>
       <View style={styles.assetLeft}>
         <Text style={[styles.assetIcon, { fontSize: fontSize.title }]}>{categoryInfo.icon}</Text>
@@ -298,3 +326,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+

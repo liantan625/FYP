@@ -59,7 +59,7 @@ export default function ResetPINScreen() {
 
         try {
             const userDoc = await firestore().collection('users').doc(user.uid).get();
-            if (userDoc.exists) {
+            if (userDoc.exists()) {
                 const userData = userDoc.data();
                 const phone = user.phoneNumber || userData?.phoneNumber || '';
                 setPhoneNumber(phone);

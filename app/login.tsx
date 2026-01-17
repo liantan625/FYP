@@ -141,7 +141,7 @@ export default function LoginScreen() {
       // Check if user exists in Firestore and has completed profile
       const userDoc = await firestore().collection('users').doc(user.uid).get();
 
-      if (userDoc.exists) {
+      if (userDoc.exists()) {
         const userData = userDoc.data();
         if (userData?.name && userData?.idNumber && userData?.birthday) {
           // Route to PIN lock for verification
@@ -214,7 +214,7 @@ export default function LoginScreen() {
       // Check if user exists in Firestore and has completed profile
       const userDoc = await firestore().collection('users').doc(user.uid).get();
 
-      if (userDoc.exists) {
+      if (userDoc.exists()) {
         const userData = userDoc.data();
         if (userData?.name && userData?.idNumber && userData?.birthday) {
           // Route to PIN lock for verification
