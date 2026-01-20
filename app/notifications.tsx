@@ -34,13 +34,21 @@ const getNotificationIcon = (type: string): { name: string; color: string; bgCol
 };
 
 // Memoized notification item for performance
-const NotificationItem = memo(({ item, fontSize }: { item: any; fontSize: any }) => {
+const NotificationItem = memo(({ item, fontSize, t }: { item: any; fontSize: any; t: any }) => {
   const icon = getNotificationIcon(item.type);
 
   const formatTime = (timestamp: any) => {
     if (!timestamp) return '';
     const date = timestamp.toDate();
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Translate category if available
+  const getCategoryLabel = (category: string) => {
+    const translationKey = `category.${category.toLowerCase()}`;
+    const translated = t(translationKey);
+    // If translation not found, it returns the key, so return original
+    return translated === translationKey ? category : translated;
   };
 
   return (
@@ -80,7 +88,7 @@ const NotificationItem = memo(({ item, fontSize }: { item: any; fontSize: any })
             {item.category && (
               <View style={styles.categoryBadge}>
                 <Text style={[styles.categoryText, { fontSize: fontSize.tiny }]}>
-                  {item.category}
+                  {getCategoryLabel(item.category)}
                 </Text>
               </View>
             )}
@@ -186,7 +194,7 @@ export default function NotificationsScreen() {
   );
 
   const renderItem = ({ item }: { item: any }) => (
-    <NotificationItem item={item} fontSize={fontSize} />
+    <NotificationItem item={item} fontSize={fontSize} t={t} />
   );
 
   const renderSectionHeader = ({ section: { title } }: { section: { title: string } }) => (
@@ -213,34 +221,11 @@ export default function NotificationsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('notifications.title')}</Text>
-          {totalUnread > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadBadgeText}>{totalUnread}</Text>
-            </View>
-          )}
-        </View>
+        <Text style={[styles.headerTitle, { fontSize: fontSize.large }]}>{t('notifications.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Summary Card */}
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryIconContainer}>
-          <MaterialIcons name="notifications-active" size={28} color="#fff" />
-        </View>
-        <View style={styles.summaryContent}>
-          <Text style={[styles.summaryTitle, { fontSize: fontSize.medium }]}>
-            {t('notifications.summaryTitle')}
-          </Text>
-          <Text style={[styles.summarySubtitle, { fontSize: fontSize.small }]}>
-            {t('notifications.summaryStats', {
-              count: sections.reduce((acc, s) => acc + s.data.length, 0),
-              unread: totalUnread
-            })}
-          </Text>
-        </View>
-      </View>
+
 
       {/* Notifications List */}
       <SectionList
