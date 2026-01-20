@@ -7,6 +7,8 @@ import {
     Vibration,
     ActivityIndicator,
     StyleSheet,
+    ScrollView,
+    Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,6 +18,15 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { useScaledFontSize } from '@/hooks/use-scaled-font';
 import { useTranslation } from 'react-i18next';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const isSmallScreen = SCREEN_HEIGHT < 700;
+
+// Responsive sizes
+const NUMPAD_BUTTON_SIZE = isSmallScreen ? 60 : 72;
+const NUMPAD_MARGIN = isSmallScreen ? 8 : 12;
+const DOT_SIZE = isSmallScreen ? 12 : 16;
+const DOT_GAP = isSmallScreen ? 12 : 16;
 
 type Step = 'current' | 'new' | 'confirm';
 
@@ -214,7 +225,7 @@ export default function ChangePINScreen() {
                                         onPress={handleDelete}
                                         onLongPress={() => setActivePin('')}
                                     >
-                                        <MaterialIcons name="backspace" size={24} color="#64748B" />
+                                        <MaterialIcons name="backspace" size={isSmallScreen ? 20 : 24} color="#64748B" />
                                     </TouchableOpacity>
                                 );
                             }
@@ -225,7 +236,7 @@ export default function ChangePINScreen() {
                                     onPress={() => handleNumberPress(item)}
                                     disabled={isLoading}
                                 >
-                                    <Text style={[styles.numpadText, { fontSize: fontSize.xlarge }]}>
+                                    <Text style={[styles.numpadText, { fontSize: isSmallScreen ? 24 : 28 }]}>
                                         {item}
                                     </Text>
                                 </TouchableOpacity>
@@ -260,52 +271,58 @@ export default function ChangePINScreen() {
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.content}>
-                {/* Progress Indicator */}
-                <View style={styles.progressContainer}>
-                    {steps.map((s, index) => (
-                        <View key={s} style={styles.progressItem}>
-                            <View
-                                style={[
-                                    styles.progressCircle,
-                                    (step === s || currentStepIndex > index) && styles.progressCircleActive,
-                                ]}
-                            >
-                                <Text style={styles.progressText}>{index + 1}</Text>
-                            </View>
-                            {index < 2 && (
+            <ScrollView 
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+            >
+                <View style={styles.content}>
+                    {/* Progress Indicator */}
+                    <View style={styles.progressContainer}>
+                        {steps.map((s, index) => (
+                            <View key={s} style={styles.progressItem}>
                                 <View
                                     style={[
-                                        styles.progressLine,
-                                        currentStepIndex > index && styles.progressLineActive,
+                                        styles.progressCircle,
+                                        (step === s || currentStepIndex > index) && styles.progressCircleActive,
                                     ]}
-                                />
-                            )}
-                        </View>
-                    ))}
-                </View>
+                                >
+                                    <Text style={styles.progressText}>{index + 1}</Text>
+                                </View>
+                                {index < 2 && (
+                                    <View
+                                        style={[
+                                            styles.progressLine,
+                                            currentStepIndex > index && styles.progressLineActive,
+                                        ]}
+                                    />
+                                )}
+                            </View>
+                        ))}
+                    </View>
 
-                {/* Title */}
-                <Text style={[styles.title, { fontSize: fontSize.xlarge }]}>
-                    {getTitle()}
-                </Text>
-                <Text style={[styles.subtitle, { fontSize: fontSize.medium }]}>
-                    {getSubtitle()}
-                </Text>
-
-                {/* Error Message */}
-                {error ? (
-                    <Text style={[styles.errorText, { fontSize: fontSize.small }]}>
-                        {error}
+                    {/* Title */}
+                    <Text style={[styles.title, { fontSize: isSmallScreen ? 20 : 24 }]}>
+                        {getTitle()}
                     </Text>
-                ) : null}
+                    <Text style={[styles.subtitle, { fontSize: isSmallScreen ? 14 : 16 }]}>
+                        {getSubtitle()}
+                    </Text>
 
-                {/* PIN Dots */}
-                {renderPinDots()}
+                    {/* Error Message */}
+                    {error ? (
+                        <Text style={[styles.errorText, { fontSize: fontSize.small }]}>
+                            {error}
+                        </Text>
+                    ) : null}
 
-                {/* Numpad */}
-                {renderNumpad()}
-            </View>
+                    {/* PIN Dots */}
+                    {renderPinDots()}
+
+                    {/* Numpad */}
+                    {renderNumpad()}
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -328,29 +345,34 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
+        paddingHorizontal: 16,
+        paddingVertical: isSmallScreen ? 8 : 16,
     },
     backButton: {
         padding: 8,
+    },
+    scrollContent: {
+        flexGrow: 1,
     },
     content: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,
+        paddingBottom: isSmallScreen ? 16 : 32,
     },
     progressContainer: {
         flexDirection: 'row',
-        marginBottom: 32,
+        marginBottom: isSmallScreen ? 16 : 32,
     },
     progressItem: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     progressCircle: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: isSmallScreen ? 28 : 32,
+        height: isSmallScreen ? 28 : 32,
+        borderRadius: isSmallScreen ? 14 : 16,
         backgroundColor: '#D1D5DB',
         alignItems: 'center',
         justifyContent: 'center',
@@ -361,9 +383,10 @@ const styles = StyleSheet.create({
     progressText: {
         color: '#fff',
         fontWeight: 'bold',
+        fontSize: isSmallScreen ? 12 : 14,
     },
     progressLine: {
-        width: 32,
+        width: isSmallScreen ? 24 : 32,
         height: 4,
         backgroundColor: '#D1D5DB',
     },
@@ -377,7 +400,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         color: '#6B7280',
-        marginBottom: 32,
+        marginBottom: isSmallScreen ? 16 : 32,
     },
     errorText: {
         color: '#EF4444',
@@ -386,13 +409,13 @@ const styles = StyleSheet.create({
     dotsContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginBottom: 40,
-        gap: 16,
+        marginBottom: isSmallScreen ? 24 : 40,
+        gap: DOT_GAP,
     },
     dot: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
+        width: DOT_SIZE,
+        height: DOT_SIZE,
+        borderRadius: DOT_SIZE / 2,
         borderWidth: 2,
         borderColor: '#CBD5E1',
         backgroundColor: 'transparent',
@@ -403,17 +426,19 @@ const styles = StyleSheet.create({
     },
     numpad: {
         width: '100%',
-        maxWidth: 300,
+        maxWidth: NUMPAD_BUTTON_SIZE * 3 + NUMPAD_MARGIN * 4,
+        alignItems: 'center',
     },
     numpadRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 16,
+        width: '100%',
+        marginBottom: NUMPAD_MARGIN,
     },
     numpadButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: NUMPAD_BUTTON_SIZE,
+        height: NUMPAD_BUTTON_SIZE,
+        borderRadius: NUMPAD_BUTTON_SIZE / 2,
         backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
