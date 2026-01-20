@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,213 +18,366 @@ interface Article {
   id: string;
   title: string;
   emoji: string;
-  category: string;
+  categoryKey: string; // Use key instead of translated text
   readTime: string;
   summary: string;
   content: string;
+  sourceUrl?: string;
 }
 
+// Articles with category keys for proper filtering
 const ARTICLES: Article[] = [
+  // Retirement Articles
   {
     id: '1',
-    title: 'Cara Mula Menyimpan untuk Persaraan',
+    title: 'Age 55 & 60 Withdrawal (KWSP Official Guide)',
     emoji: '🏦',
-    category: 'Persaraan',
+    categoryKey: 'retirement',
     readTime: '5 min',
-    summary: 'Panduan lengkap untuk memulakan simpanan persaraan anda dari sekarang.',
-    content: `Menyimpan untuk persaraan adalah langkah penting yang perlu dimulakan seawal mungkin. Berikut adalah panduan lengkap:
+    summary: 'Panduan rasmi KWSP mengenai pengeluaran Umur 55 & 60 Tahun.',
+    content: `Pengeluaran Umur 55 Tahun:
+Ahli boleh mengeluarkan semua simpanan dalam Akaun 1 & 2 apabila mencapai umur 55 tahun.
 
-1. Tetapkan Matlamat Persaraan
-Tentukan berapa banyak wang yang anda perlukan untuk hidup selesa selepas bersara. Sebagai panduan, anda memerlukan sekurang-kurangnya 2/3 daripada pendapatan terakhir anda.
+Pengeluaran Umur 60 Tahun:
+Ahli boleh mengeluarkan semua simpanan dalam Akaun Emas (simpanan selepas umur 55) apabila mencapai umur 60 tahun.
 
-2. Mulakan dengan KWSP
-Pastikan caruman KWSP anda konsisten. Majikan menyumbang 13% dan pekerja 11% daripada gaji bulanan.
+Pilihan Pengeluaran:
+1. Pengeluaran Penuh (Lump Sum)
+2. Pengeluaran Sebahagian
+3. Pengeluaran Berkala (Bulanan)
+4. Dividen Tahunan Sahaja
 
-3. Tambah dengan PRS
-Private Retirement Scheme (PRS) adalah pilihan tambahan yang baik. Anda boleh mendapat pelepasan cukai sehingga RM3,000 setahun.
+Syarat Kelayakan:
+• Warganegara Malaysia & Bukan Warganegara
+• Mencapai umur 55 atau 60 tahun
+• Mempunyai simpanan dalam KWSP
 
-4. Diversifikasi Pelaburan
-Jangan letakkan semua wang dalam satu tempat. Pertimbangkan ASB, unit trust, atau saham.
-
-5. Semak dan Kaji Semula
-Semak portfolio persaraan anda setiap tahun dan buat penyesuaian jika perlu.`,
+Cara Memohon:
+• Melalui i-Akaun (Online)
+• Di Kaunter KWSP
+• Melalui Pos`,
+    sourceUrl: 'https://www.kwsp.gov.my/en/member/life-stages/age-55-60-withdrawal',
   },
   {
     id: '2',
-    title: 'Mengurus Hutang dengan Bijak',
-    emoji: '💳',
-    category: 'Pengurusan Hutang',
-    readTime: '4 min',
-    summary: 'Strategi berkesan untuk menguruskan dan menjelaskan hutang anda.',
-    content: `Hutang boleh menjadi beban jika tidak diuruskan dengan betul. Berikut adalah strategi untuk mengurus hutang:
+    title: 'Retirement Planning in Malaysia: Essential Tips',
+    emoji: '🎯',
+    categoryKey: 'retirement',
+    readTime: '6 min',
+    summary: 'Tips penting untuk merancang masa depan kewangan yang selamat di Malaysia.',
+    content: `Merancang persaraan adalah kritikal memandangkan jangka hayat rakyat Malaysia yang semakin meningkat.
 
-1. Senaraikan Semua Hutang
-Tulis semua hutang anda termasuk baki, kadar faedah, dan bayaran minimum.
+Tips Utama:
+1. Mulakan Awal: Kuasa faedah kompaun sangat besar jika anda mula muda.
+2. Tahu Nombor Anda: Kira berapa banyak yang anda perlukan. Pesara bandar mungkin memerlukan RM2,500+ sebulan untuk kehidupan asas.
+3. Jangan Bergantung Hanya Pada KWSP: Ramai ahli KWSP kehabisan simpanan dalam masa 5 tahun selepas bersara.
+4. Perlindungan Insurans/Takaful: Kos perubatan meningkat dengan usia. Pastikan anda dilindungi.
+5. Langsaikan Hutang: Cuba masuk alam persaraan tanpa hutang rumah atau kereta.
 
-2. Kaedah Snowball
-Bayar hutang terkecil dahulu untuk mendapat motivasi, kemudian gunakan wang tersebut untuk hutang seterusnya.
-
-3. Kaedah Avalanche
-Bayar hutang dengan kadar faedah tertinggi dahulu untuk menjimatkan wang dalam jangka panjang.
-
-4. Elakkan Hutang Baru
-Jangan tambah hutang baru semasa cuba menjelaskan hutang sedia ada.
-
-5. Runding dengan Bank
-Jika menghadapi kesukaran, hubungi bank untuk membincangkan pilihan penstrukturan semula.
-
-6. Buat Dana Kecemasan
-Simpan RM1,000 sebagai dana kecemasan kecil supaya tidak perlu berhutang untuk perbelanjaan mengejut.`,
+Pelbagaikan Portfolio:
+• ASB/Tabung Haji
+• PRS (Skim Persaraan Swasta)
+• Hartanah
+• Pelaburan berisiko rendah`,
+    sourceUrl: 'https://www.prudential.com.my/en/insurance-101/all-stories/-retirement-planning-malaysia/',
   },
+
+  // Budget Articles  
   {
     id: '3',
-    title: '50/30/20: Formula Bajet Mudah',
+    title: 'The 50/30/20 Budget Rule For Malaysians',
     emoji: '📊',
-    category: 'Bajet',
+    categoryKey: 'budget',
     readTime: '3 min',
-    summary: 'Pelajari formula bajet popular yang mudah untuk diamalkan.',
-    content: `Formula 50/30/20 adalah kaedah bajet yang mudah dan berkesan:
+    summary: 'Peraturan bajet mudah: 50% Keperluan, 30% Kehendak, 20% Simpanan.',
+    content: `Peraturan 50/30/20 adalah panduan mudah untuk menguruskan gaji bersih anda (selepas tolak KWSP/SOCSO/Cukai).
 
-50% - Keperluan
-• Sewa/Ansuran rumah
-• Utiliti (elektrik, air, internet)
-• Makanan asas
-• Pengangkutan
-• Insurans kesihatan
+50% - Keperluan (Needs):
+Perkara yang anda tidak boleh hidup tanpanya.
+• Sewa/Pinjaman Rumah
+• Pinjaman Kereta
+• Barangan Runcit Asas
+• Utiliti (Elektrik, Air)
+• Insurans
 
-30% - Kehendak
-• Hiburan dan rekreasi
-• Makan di luar
-• Hobi
+30% - Kehendak (Wants):
+Perkara yang menjadikan hidup lebih seronok tetapi bukan keperluan asas.
+• Makan Luar Mewah
+• Hiburan (Wayang, Konsert)
+• Percutian
+• Gajet & Hobi
 • Langganan (Netflix, Spotify)
-• Pakaian bukan keperluan
 
-20% - Simpanan & Hutang
-• Simpanan kecemasan
-• Simpanan persaraan
-• Pelaburan
-• Bayaran hutang tambahan
+20% - Simpanan & Hutang (Savings & Debt):
+Membayar diri anda sendiri & masa depan.
+• Simpanan Kecemasan
+• Pelaburan (ASB, StashAway)
+• Bayaran Lebih Hutang Kad Kredit
+• Simpanan Persaraan Tambahan (PRS)
 
-Contoh: Gaji RM4,000
-• Keperluan: RM2,000
-• Kehendak: RM1,200
-• Simpanan: RM800
-
-Mulakan dengan formula ini dan sesuaikan mengikut keperluan anda.`,
+Sesuaikan peratusan ini mengikut situasi kewangan anda sendiri.`,
+    sourceUrl: 'https://ringgitplus.com/en/blog/the-experts-corner/the-50-30-20-budget-rule-for-malaysians.html',
   },
   {
     id: '4',
-    title: 'Dana Kecemasan: Berapa Banyak?',
-    emoji: '🛡️',
-    category: 'Simpanan',
+    title: 'Apa Rahsia Pengurusan Bajet yang Betul?',
+    emoji: '📝',
+    categoryKey: 'budget',
     readTime: '4 min',
-    summary: 'Ketahui berapa banyak dana kecemasan yang anda perlukan.',
-    content: `Dana kecemasan adalah simpanan untuk situasi tidak dijangka seperti kehilangan kerja atau kecemasan perubatan.
+    summary: 'Panduan AIA mengenai cara menguruskan bajet harian dan bulanan dengan berkesan.',
+    content: `Pengurusan bajet yang betul bukan bermaksud menyekat semua keseronokan, tetapi berbelanja dengan bijak.
 
-Berapa Banyak Diperlukan?
-• Minimum: 3 bulan perbelanjaan
-• Ideal: 6 bulan perbelanjaan
-• Lebih selamat: 12 bulan perbelanjaan
+Langkah-langkah Membuat Bajet:
+1. Rekodkan Pendapatan Bersih: Gaji bawa pulang + pendapatan sampingan.
+2. Jejak Perbelanjaan: Tulis setiap sen yang dibelanjakan selama sebulan.
+3. Tetapkan Matlamat: Apa yang anda mahu capai? (Rumah, Kahwin, Kereta).
+4. Buat Pelan: Peruntukkan wang untuk setiap kategori.
+5. Semak & Ubah Suai: Bajet bukan statik. Ubah jika perlu.
 
-Contoh Pengiraan:
-Jika perbelanjaan bulanan anda RM3,000:
-• Minimum: RM9,000
-• Ideal: RM18,000
-• Lebih selamat: RM36,000
+Tips Tambahan:
+• Bayar Diri Dahulu: Asingkan simpanan sebaik sahaja gaji masuk.
+• Gunakan Tunai: Untuk kategori seperti makan tengah hari atau hiburan untuk elak belanja lebih.
+• Tunggu 24 Jam: Untuk pembelian impulse barang mahal.
 
-Di Mana Simpan?
-1. Akaun simpanan berasingan
-2. Akaun simpanan kadar tinggi
-3. Tabung Haji atau ASB (mudah dikeluarkan)
-
-Tips Membina Dana Kecemasan:
-• Mulakan dengan RM1,000 sebagai sasaran pertama
-• Simpan secara automatik setiap bulan
-• Anggap ia sebagai "bil" yang wajib dibayar
-• Jangan sentuh kecuali untuk kecemasan sebenar`,
+Ingat, bajet memberi anda kebebasan untuk berbelanja tanpa rasa bersalah!`,
+    sourceUrl: 'https://www.aia.com.my/bm/knowledge-hub/plan-well/apa-rahsia-pengurusan-bajet-yang-betul.html',
   },
+
+  // Savings Articles
   {
     id: '5',
-    title: 'Pelaburan untuk Pemula',
-    emoji: '📈',
-    category: 'Pelaburan',
-    readTime: '6 min',
-    summary: 'Panduan asas pelaburan untuk mereka yang baru bermula.',
-    content: `Pelaburan adalah cara untuk mengembangkan wang anda. Berikut panduan untuk pemula:
+    title: 'Emergency Fund: Why Every Malaysian Needs One',
+    emoji: '🛡️',
+    categoryKey: 'savings',
+    readTime: '4 min',
+    summary: 'Mengapa Dana Kecemasan penting dan berapa banyak yang perlu disimpan.',
+    content: `Dana kecemasan adalah "bantal penyelamat" kewangan anda apabila perkara tidak diingini berlaku.
 
-Jenis Pelaburan Popular di Malaysia:
+Kenapa Perlu Ada?
+• Kehilangan Pekerjaan: Ekonomi tidak menentu.
+• Kecemasan Perubatan: Kos rawatan boleh tinggi.
+• Kerosakan Kereta/Rumah: Pembaikan yang tidak dijangka.
 
-1. ASB (Amanah Saham Bumiputera)
-• Untuk Bumiputera sahaja
-• Dividen konsisten 4-6% setahun
-• Modal dijamin kerajaan
-• Minimum RM1
+Berapa Banyak Cukup?
+• Minimum: 3 bulan perbelanjaan sara hidup.
+• Ideal: 6 bulan perbelanjaan sara hidup.
+• Freelancer/Peniaga: 12 bulan (kerana pendapatan tidak tetap).
 
-2. Unit Trust
-• Diuruskan oleh pengurus dana profesional
-• Pelbagai pilihan risiko
-• Sesuai untuk pemula
+Di Mana Simpan?
+Tempat yang mudah cair (mudah dikeluarkan) tetapi selamat.
+• Akaun Simpanan High-Yield
+• Tabung Haji
+• ASB (Amanah Saham Bumiputera)
 
-3. Saham
-• Pulangan tinggi tetapi risiko tinggi
-• Perlu pengetahuan dan kajian
-• Minimum pembelian 100 unit
-
-4. REIT (Real Estate Investment Trust)
-• Pelaburan hartanah tanpa beli rumah
-• Dividen tetap
-• Didagangkan di Bursa Malaysia
-
-5. Emas
-• Lindung nilai inflasi
-• Boleh beli secara fizikal atau digital
-
-Prinsip Asas:
-• Mulakan awal
-• Diversifikasi portfolio
-• Fahami risiko
-• Jangan ikut emosi
-• Fikir jangka panjang`,
+Jangan simpan dalam saham atau hartanah kerana sukar dicairkan segera atau nilainya mungkin jatuh semasa anda memerlukannya.`,
+    sourceUrl: 'https://www.sunlifemalaysia.com/life-moments/bright-facts/emergency-fund-why-every-malaysian-needs-one/',
   },
   {
     id: '6',
-    title: 'Cara Jimat Belanja Harian',
-    emoji: '💰',
-    category: 'Penjimatan',
+    title: 'Small Steps You Can Take To Reach Your Saving Goals',
+    emoji: '👣',
+    categoryKey: 'savings',
+    readTime: '3 min',
+    summary: 'Langkah kecil yang boleh diambil untuk mencapai matlamat simpanan besar (PIDM).',
+    content: `Menyimpan wang tidak semestinya drastik. Langkah kecil yang konsisten lebih berkesan.
+
+1. Mula Kecil:
+Simpan RM5 sehari. Setahun = RM1,825. Cukup untuk dana kecemasan permulaan.
+
+2. Automatikkan Simpanan:
+Set "standing instruction" supaya wang dipindahkan ke akaun simpanan sebaik gaji masuk. Apa yang anda tak nampak, anda tak belanja.
+
+3. Semak Langganan:
+Batalkan gym membership yang tak pergi, atau pakej TV yang tak ditonton.
+
+4. Bawa Bekal:
+Masak di rumah boleh jimat RM10-RM15 sehari berbanding makan di luar.
+
+5. Tetapkan Matlamat Visual:
+Letak gambar matlamat (rumah/kereta/percutian) di tempat yang anda selalu nampak untuk motivasi.
+
+Matlamat Simpanan Jangka Pendek:
+• Percutian
+• Gajet
+• Dana Kecemasan`,
+    sourceUrl: 'https://www.pidm.gov.my/my/general/info-corner/editorials/article/small-steps-you-can-take-to-reach-your-saving-goals',
+  },
+
+  // Investment Articles
+  {
+    id: '7',
+    title: 'How To Start Investing | Investment For Beginners',
+    emoji: '📈',
+    categoryKey: 'investment',
+    readTime: '6 min',
+    summary: 'Panduan HSBC tentang asas pelaburan dan cara memulakannya.',
+    content: `Melabur adalah cara untuk kembangkan wang anda melawan inflasi.
+
+Langkah Sebelum Melabur:
+1. Pastikan ada Dana Kecemasan (3-6 bulan).
+2. Langsaikan hutang faedah tinggi (Kad Kredit).
+3. Tentukan profil risiko anda (Konservatif, Sederhana, Agresif).
+
+Konsep Asas:
+• Risiko vs Pulangan: Risiko tinggi biasanya potensi pulangan lebih tinggi.
+• Diversifikasi: Jangan letak semua telur dalam satu bakul.
+• Jangka Masa: Melabur adalah untuk jangka panjang (5+ tahun).
+
+Kelas Aset Utama:
+• Tunai/Deposit Tetap (FD): Risiko rendah, pulangan rendah.
+• Bon/Sukuk: Pinjaman kepada kerajaan/syarikat.
+• Saham (Equities): Pemilikan dalam syarikat. Risiko & pulangan tinggi.
+• Hartanah: Fizikal atau REITs.
+
+Mula dengan jumlah kecil dan konsisten (Dollar Cost Averaging).`,
+    sourceUrl: 'https://www.hsbc.com.my/financial-wellbeing/how-to-start-investing/',
+  },
+  {
+    id: '8',
+    title: 'Unit Trusts in Malaysia: Types, Benefits & How to Invest',
+    emoji: '📊',
+    categoryKey: 'investment',
+    readTime: '5 min',
+    summary: 'Semua tentang Amanah Saham (Unit Trust) di Malaysia.',
+    content: `Unit Trust (Amanah Saham) mengumpul wang dari ramai pelabur untuk dilaburkan oleh pengurus dana profesional.
+
+Jenis Unit Trust:
+• Ekuiti: Melabur dalam saham pasaran (Risiko Tinggi).
+• Bon: Melabur dalam sekuriti pendapatan tetap (Risiko Sederhana).
+• Pasaran Wang (Money Market): Melabur dalam deposit jangka pendek (Risiko Rendah).
+• Seimbang (Balanced): Gabungan ekuiti dan bon.
+
+Kelebihan:
+1. Diversifikasi Segera: Dengan modal kecil, anda memiliki portfolio pelbagai.
+2. Pengurusan Profesional: Pakar uruskan pelaburan anda.
+3. Kecairan (Liquidity): Boleh jual balik unit bila-bila masa.
+4. Mampu Milik: Boleh mula dengan RM100 atau RM1,000.
+
+Cara Melabur:
+• Melalui Ejen Unit Trust (CWA, Public Mutual, dll).
+• Melalui Bank.
+• Platform Online (FSMOne, eUnittrust).
+
+Fahami caj-caj terlibat: Caj jualan (Sales charge), Yuran pengurusan tahunan, dll.`,
+    sourceUrl: 'https://www.sc.com/my/investments/wealthinsights/everything-about-unit-trusts/',
+  },
+
+  // Debt Management Articles
+  {
+    id: '9',
+    title: 'Debt Management with AKPK',
+    emoji: '🤝',
+    categoryKey: 'debt',
     readTime: '4 min',
-    summary: 'Tips praktikal untuk menjimatkan perbelanjaan setiap hari.',
-    content: `Penjimatan kecil setiap hari boleh menjadi jumlah besar. Berikut adalah tips:
+    summary: 'Bantuan pengurusan hutang percuma daripada AKPK untuk rakyat Malaysia.',
+    content: `AKPK (Agensi Kaunseling dan Pengurusan Kredit) ditubuhkan oleh Bank Negara Malaysia untuk bantu individu urus hutang.
 
-Makanan & Minuman:
-• Bawa bekal ke tempat kerja
-• Kurangkan kopi mahal
-• Masak di rumah lebih kerap
-• Buat senarai sebelum membeli-belah
+Perkhidmatan Utama AKPK:
+1. Kaunseling Kewangan: Nasihat percuma tentang bajet dan pengurusan wang.
+2. Program Pengurusan Kredit (PPK/DMP): Membantu menstruktur semula pinjaman bank jika anda sukar bayar.
 
-Pengangkutan:
-• Gunakan pengangkutan awam
-• Carpool dengan rakan sekerja
-• Servis kereta mengikut jadual
-• Bandingkan harga petrol
+Siapa Layak PPK?
+• Mempunyai pinjaman dengan institusi kewangan terpilih.
+• Belum diisytiharkan muflis.
+• Mempunyai pendapatan boleh guna (selepas tolak perbelanjaan) untuk bayar ansuran baru.
+• Hutang tidak melebihi RM5 juta.
 
-Utiliti:
-• Matikan lampu yang tidak digunakan
-• Pasang penapis air dan berhenti beli air botol
-• Gunakan kipas sebelum aircond
-• Tukar ke LED
+Manfaat PPK:
+• Satu bayaran bulanan terkonsolidasi.
+• Tempoh bayaran dipanjangkan (ansuran rendah).
+• Tiada gangguan daripada pemungut hutang (jika bayar ikut jadual).
 
-Langganan:
-• Audit langganan bulanan
-• Kongsi akaun streaming
-• Batalkan yang jarang digunakan
+Jika anda rasa sesak nafas dengan hutang, jangan tunggu. Hubungi AKPK segera. Perkhidmatan adalah PERCUMA.`,
+    sourceUrl: 'https://www.akpk.org.my/debt-management',
+  },
+  {
+    id: '10',
+    title: '5 Credit Card Tips For Malaysian Fresh Graduates',
+    emoji: '💳',
+    categoryKey: 'debt',
+    readTime: '4 min',
+    summary: 'Tips penggunaan kad kredit bijak untuk mengelak perangkap hutang.',
+    content: `Kad kredit adalah alat kewangan hebat jika digunakan betul, tetapi bencana jika salah guna.
 
-Belanja:
-• Tunggu 24 jam sebelum beli barang mahal
-• Cari kod diskaun dan promosi
-• Beli semasa jualan
-• Pertimbangkan barang terpakai
+1. Bayar Penuh Setiap Bulan:
+Ini peraturan emas. Jika anda guna RM500, bayar RM500. Elak caj faedah (15-18% setahun!).
 
-Sasaran: Jimat RM10/hari = RM300/bulan = RM3,600/tahun!`,
+2. Jangan Anggap Sebagai "Duit Lebih":
+Kad kredit bukan tambahan kepada gaji anda. Ia adalah pinjaman sementara.
+
+3. Kumpul Skor Kredit (CCRIS):
+Penggunaan yang baik membina rekod CCRIS yang cantik. Ini bantu lulus loan rumah/kereta masa depan.
+
+4. Pilih Kad Yang Sesuai:
+Cari kad "No Annual Fee" atau kad dengan Cashback untuk petrol/groceries. Elak kad premium dengan yuran tinggi untuk permulaan.
+
+5. Jaga Had Penggunaan (Credit Limit Utilization):
+Cuba guna bawah 30% daripada limit kad. Contoh: Limit RM5,000, cuba jangan guna lebih RM1,500.
+
+Ingat: Bank untung bila anda bayar lambat atau bayar minimum. Jangan jadi pelanggan kesukaan bank!`,
+    sourceUrl: 'https://www.comparehero.my/credit-card/articles/credit-card-tips-fresh-graduates',
+  },
+
+  // Daily Savings Articles
+  {
+    id: '11',
+    title: '5 Cara Untuk Jimatkan Belanja Harian Anda & Keluarga',
+    emoji: '💰',
+    categoryKey: 'saving',
+    readTime: '4 min',
+    summary: 'Tips praktikal berjimat cermat menghadapi kos sara hidup yang meningkat.',
+    content: `Kos sara hidup makin tinggi. Ini cara praktikal untuk jimat:
+
+1. Rancang Menu Mingguan:
+Elak bazir makanan dan beli barang dapur ikut list sahaja. Elak makan luar yang mahal.
+
+2. Banding Harga:
+Gunakan app (seperti Hargapedia) untuk banding harga barang runcit. Beli jenama pasaraya (Lotus's, Giant brand) yang lebih murah tapi kualiti sama.
+
+3. Jimat Tenaga Elektrik:
+• Tutup suis plug bila tak guna (bukan standby).
+• Guna aircond pada suhu 24-25°C.
+• Guna mesin basuh bila muatan penuh sahaja.
+
+4. Hiburan Percuma/Murah:
+Bawa keluarga ke taman rekreasi, perpustakaan, atau piknik. Tak perlu ke mall setiap hujung minggu yang selalunya berakhir dengan belanja besar.
+
+5. DIY Apa Yang Boleh:
+Belajar baiki kerosakan kecil rumah di YouTube. Basuh kereta sendiri. Potong rumput sendiri. Ia jimat dan senaman yang baik!`,
+    sourceUrl: 'https://siraplimau.com/bimbang-kos-sara-hidup-makin-tinggi-ini-5-cara-untuk-jimatkan-belanja-harian-anda-keluarga/',
+  },
+  {
+    id: '12',
+    title: 'Kickstart Your Savings With The 52 Week Challenge',
+    emoji: '📅',
+    categoryKey: 'saving',
+    readTime: '3 min',
+    summary: 'Cabaran simpanan 52 minggu yang popular untuk membina tabiat menyimpan.',
+    content: `Cabaran 52 Minggu adalah cara menyeronokkan untuk kumpul duit setahun.
+
+Konsep Asas:
+Simpan jumlah ikut minggu.
+• Minggu 1: RM1
+• Minggu 2: RM2
+• Minggu 10: RM10
+• ...
+• Minggu 52: RM52
+
+Jumlah terkumpul setahun: RM1,378!
+
+Variasi untuk Lebih Mencabar:
+• Gandakan: RM2, RM4, RM6... (Total RM2,756)
+• Terbalik: Mula RM52 minggu pertama, RM51 minggu kedua... (Lebih mudah diperingkat akhir tahun bila banyak belanja).
+• Tetap: RM20 atau RM50 seminggu secara konsisten.
+
+Tips Kejayaan:
+1. Sediakan balang lutsinar (nampak duit bertambah).
+2. Atau "Create Goal" dalam Maybank MAE/CIMB Clicks.
+3. Ajak kawan ofis buat sekali untuk motivasi.
+4. Jangan skip! Ganti segera jika terlepas.
+
+Duit ini boleh digunakan untuk road tax, insurans kereta, atau belanja raya tahun depan!`,
+    sourceUrl: 'https://www.multiply.org.my/en/kickstart-your-savings-with-the-52-week-challenge/',
   },
 ];
 
@@ -234,17 +388,24 @@ export default function TipsScreen() {
   const fontSize = useScaledFontSize();
   const { t } = useTranslation();
 
-  const [selectedCategory, setSelectedCategory] = useState('Semua');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const filteredArticles = selectedCategory === 'Semua'
+  // Filter using categoryKey instead of translated text
+  const filteredArticles = selectedCategory === 'all'
     ? ARTICLES
-    : ARTICLES.filter(article => article.category === selectedCategory);
+    : ARTICLES.filter(article => article.categoryKey === selectedCategory);
 
   const openArticle = (article: Article) => {
     setSelectedArticle(article);
     setModalVisible(true);
+  };
+
+  const openSource = (url?: string) => {
+    if (url) {
+      Linking.openURL(url);
+    }
   };
 
   return (
@@ -314,7 +475,7 @@ export default function TipsScreen() {
             <View style={styles.articleContent}>
               <View style={styles.articleMeta}>
                 <Text style={[styles.articleCategory, { fontSize: fontSize.small }]}>
-                  {article.category}
+                  {t(`tips.categories.${article.categoryKey}`)}
                 </Text>
                 <Text style={[styles.articleReadTime, { fontSize: fontSize.small }]}>
                   ⏱️ {article.readTime}
@@ -350,7 +511,7 @@ export default function TipsScreen() {
               <MaterialIcons name="close" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={[styles.modalCategory, { fontSize: fontSize.small }]}>
-              {selectedArticle?.category}
+              {selectedArticle ? t(`tips.categories.${selectedArticle.categoryKey}`) : ''}
             </Text>
             <View style={{ width: 40 }} />
           </View>
@@ -362,12 +523,24 @@ export default function TipsScreen() {
             </Text>
             <View style={styles.modalMeta}>
               <Text style={[styles.modalReadTime, { fontSize: fontSize.small }]}>
-                ⏱️ {selectedArticle?.readTime} bacaan
+                ⏱️ {selectedArticle?.readTime} {t('tips.readTime')}
               </Text>
             </View>
             <Text style={[styles.modalBody, { fontSize: fontSize.medium }]}>
               {selectedArticle?.content}
             </Text>
+
+            {selectedArticle?.sourceUrl && (
+              <TouchableOpacity
+                style={styles.sourceButton}
+                onPress={() => openSource(selectedArticle?.sourceUrl)}
+              >
+                <MaterialIcons name="link" size={20} color="#F59E0B" />
+                <Text style={[styles.sourceButtonText, { fontSize: fontSize.small }]}>
+                  Baca lebih lanjut
+                </Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -534,5 +707,20 @@ const styles = StyleSheet.create({
   modalBody: {
     color: '#444',
     lineHeight: 28,
+  },
+  sourceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    marginBottom: 40,
+    padding: 16,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+  },
+  sourceButtonText: {
+    color: '#F59E0B',
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
