@@ -88,7 +88,7 @@
     "thisYear": "Tahun Ini"
   },
   "asset": {
-    "title": "Analisis Dana Persaraan",
+    "title": "Analisis Dana",
     "totalAssets": "Jumlah Aset Persaraan",
     "yourAssets": "Aset Anda",
     "addAsset": "Tambah Aset",
@@ -122,7 +122,7 @@
     "subtext": "Huraian"
   },
   "spending": {
-    "title": "Pengurus Perbelanjaan",
+    "title": "Perbelanjaan",
     "summary": "Ringkasan Perbelanjaan",
     "label": "Perbelanjaan",
     "popular": "Kategori Popular",

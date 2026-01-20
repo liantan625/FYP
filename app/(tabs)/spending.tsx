@@ -410,7 +410,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: Platform.OS === 'android' ? 40 : 20, // Verify status bar handling
   },
   headerBtn: {
     padding: 8,
