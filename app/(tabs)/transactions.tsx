@@ -197,7 +197,7 @@ export default function TransactionsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#48BB78" />
           <Text style={[styles.loadingText, { fontSize: fontSize.medium }]}>{t('common.loading')}</Text>
@@ -207,7 +207,7 @@ export default function TransactionsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity

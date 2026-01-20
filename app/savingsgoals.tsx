@@ -802,7 +802,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingBottom: 40,
+    paddingBottom: 60,
     maxHeight: '85%',
   },
   modalHeader: {
@@ -856,7 +856,8 @@ const styles = StyleSheet.create({
   },
   modalButtons: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
+    marginTop: 24,
     gap: 12,
   },
   cancelButton: {

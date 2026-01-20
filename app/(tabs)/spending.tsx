@@ -231,7 +231,7 @@ export default function SpendingScreen() {
   const dailyAverage = summary.totalExpenses / (daysPassed || 1);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
