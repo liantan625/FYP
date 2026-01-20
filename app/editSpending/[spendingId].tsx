@@ -310,16 +310,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   deleteButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#EF4444',
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
     marginTop: 16,
-    borderWidth: 2,
-    borderColor: '#EF4444',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   deleteButtonText: {
-    color: '#EF4444',
+    color: '#fff',
     fontWeight: '700',
   },
 });

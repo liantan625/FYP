@@ -416,7 +416,13 @@ export default function TransactionsScreen() {
               <TouchableOpacity
                 key={item.id}
                 style={styles.transactionCard}
-                onPress={() => Alert.alert(item.category, `${t('transactions.total')}: RM ${item.amount.toFixed(2)}`)}
+                onPress={() => {
+                  if (item.type === 'income') {
+                    router.push(`/editAsset/${item.id}`);
+                  } else {
+                    router.push(`/editSpending/${item.id}`);
+                  }
+                }}
                 activeOpacity={0.7}
                 accessible={true}
                 accessibilityLabel={`${item.type === 'income' ? item.assetName : item.spendingName}, ${item.category}, ${item.type === 'income' ? '+' : '-'} RM ${item.amount.toFixed(2)}, ${item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString('en-GB') : ''}`}
