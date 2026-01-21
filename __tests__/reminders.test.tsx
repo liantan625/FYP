@@ -101,8 +101,33 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
 
+// Mock expo-notifications
+jest.mock('expo-notifications', () => ({
+    getPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+    requestPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+    scheduleNotificationAsync: jest.fn().mockResolvedValue('notification-id'),
+    cancelScheduledNotificationAsync: jest.fn().mockResolvedValue(undefined),
+    setNotificationHandler: jest.fn(),
+}));
+
+// Mock notifications utility
+jest.mock('@/utils/notifications', () => ({
+    requestNotificationPermissions: jest.fn().mockResolvedValue(true),
+    scheduleReminderNotification: jest.fn().mockResolvedValue('notification-id'),
+    cancelReminderNotification: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock Alert
 jest.spyOn(Alert, 'alert');
+
+// Suppress console.error during tests (expected errors from error handling tests)
+const originalConsoleError = console.error;
+beforeAll(() => {
+    console.error = jest.fn();
+});
+afterAll(() => {
+    console.error = originalConsoleError;
+});
 
 describe('RemindersScreen', () => {
     const mockReminders = [

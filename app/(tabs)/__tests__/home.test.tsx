@@ -155,6 +155,15 @@ jest.mock('@react-native-firebase/firestore', () => {
     });
 });
 
+// Suppress console.log during tests
+const originalConsoleLog = console.log;
+beforeAll(() => {
+    console.log = jest.fn();
+});
+afterAll(() => {
+    console.log = originalConsoleLog;
+});
+
 // Import component after mocks
 import HomeScreen from '../home';
 

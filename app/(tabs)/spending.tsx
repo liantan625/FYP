@@ -95,7 +95,8 @@ export default function SpendingScreen() {
   });
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchSpendingData = useCallback(async () => {
+  // Real-time listener for spending data
+  useEffect(() => {
     const user = auth().currentUser;
     if (!user) return;
 
@@ -103,81 +104,81 @@ export default function SpendingScreen() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    try {
-      const querySnapshot = await firestore()
-        .collection('users')
-        .doc(user.uid)
-        .collection('spendings')
-        .get();
+    // Use onSnapshot for real-time updates
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('spendings')
+      .onSnapshot(
+        (querySnapshot) => {
+          const spendingsByCategory: { [key: string]: number } = {};
+          const categoryMap: { [key: string]: string } = {
+            'Runcit': 'groceries',
+            'Sewa': 'rent',
+            'Perayaan': 'celebration',
+            'Hiburan': 'entertainment',
+            'Lain-Lain': 'others',
+          };
 
-      const spendingsByCategory: { [key: string]: number } = {};
-      const categoryMap: { [key: string]: string } = {
-        'Runcit': 'groceries',
-        'Sewa': 'rent',
-        'Perayaan': 'celebration',
-        'Hiburan': 'entertainment',
-        'Lain-Lain': 'others',
-      };
+          let monthlyTotal = 0;
 
-      let monthlyTotal = 0;
+          if (querySnapshot && !querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+              const spending = doc.data();
+              const categoryName = spending.category;
+              const amount = spending.amount;
+              const docDate = spending?.date?.toDate ? spending.date.toDate() : new Date(spending?.date);
 
-      if (querySnapshot && !querySnapshot.empty) {
-        querySnapshot.forEach(doc => {
-          const spending = doc.data();
-          const categoryName = spending.category;
-          const amount = spending.amount;
-          const docDate = spending?.date?.toDate ? spending.date.toDate() : new Date(spending?.date);
+              const targetCategory = categoriesData.find(c => c.name === categoryName || c.key === categoryName);
+              const effectiveKey = targetCategory ? targetCategory.name : 'Lain-Lain';
 
-          // Map legacy/Malay names to keys if needed, or use raw if matches
-          const mappedCategoryName = Object.keys(categoryMap).find(key => categoryMap[key] === categoryName) || categoryName;
-
-          // Note: This logic assumes 'categoryName' matches the 'key' or 'name' in our list.
-          // Ideally we should match by ID or consistent key.
-          // For now, we try to match the 'name' property in categoriesData.
-
-          const targetCategory = categoriesData.find(c => c.name === categoryName || c.key === categoryName);
-          const effectiveKey = targetCategory ? targetCategory.name : 'Lain-Lain'; // Fallback
-
-          if (docDate >= startOfMonth && docDate <= endOfMonth) {
-            if (spendingsByCategory[effectiveKey]) {
-              spendingsByCategory[effectiveKey] += amount;
-            } else {
-              spendingsByCategory[effectiveKey] = amount;
-            }
-            monthlyTotal += amount;
+              if (docDate >= startOfMonth && docDate <= endOfMonth) {
+                if (spendingsByCategory[effectiveKey]) {
+                  spendingsByCategory[effectiveKey] += amount;
+                } else {
+                  spendingsByCategory[effectiveKey] = amount;
+                }
+                monthlyTotal += amount;
+              }
+            });
           }
-        });
-      }
 
-      console.log('Spendings by Category:', spendingsByCategory, 'Monthly Total:', monthlyTotal);
+          console.log('Spendings by Category:', spendingsByCategory, 'Monthly Total:', monthlyTotal);
 
-      const updatedCategories = categoriesData.map(category => ({
-        ...category,
-        monthlySpent: spendingsByCategory[category.name] || 0,
-      }));
+          const updatedCategories = categoriesData.map(category => ({
+            ...category,
+            monthlySpent: spendingsByCategory[category.name] || 0,
+          }));
 
-      setCategories(updatedCategories);
+          setCategories(updatedCategories);
 
-      const totalExpenses = monthlyTotal;
+          const totalExpenses = monthlyTotal;
 
-      setSummary({
-        totalExpenses,
-        percentageUsed: (totalExpenses / budgetGoal) * 100,
-      });
-    } catch (error) {
-      console.error("Error fetching spendings: ", error);
-    }
+          setSummary({
+            totalExpenses,
+            percentageUsed: (totalExpenses / budgetGoal) * 100,
+          });
+        },
+        (error) => {
+          console.error("Error listening to spendings: ", error);
+        }
+      );
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    fetchSpendingData();
-  }, [fetchSpendingData]);
+  // Manual refresh function (still useful for pull-to-refresh)
+  const fetchSpendingData = useCallback(async () => {
+    // This will trigger a re-render, and the listener will handle the data
+    // For manual refresh, we just set refreshing state
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchSpendingData();
-    setRefreshing(false);
-  }, [fetchSpendingData]);
+    // The onSnapshot listener automatically updates, so just wait briefly
+    setTimeout(() => setRefreshing(false), 500);
+  }, []);
 
   const handleCategoryPress = (categoryName: string) => {
     let screenName = '';
