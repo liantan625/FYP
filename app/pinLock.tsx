@@ -8,6 +8,7 @@ import {
     Vibration,
     Platform,
     useWindowDimensions,
+    ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -268,17 +269,31 @@ export default function PinLockScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={[styles.content, isSmallScreen && { paddingHorizontal: 16 }]}>
+            <ScrollView
+                contentContainerStyle={[
+                    styles.content,
+                    isSmallScreen && { paddingHorizontal: 16, paddingVertical: 10 }
+                ]}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+            >
                 {/* Logo */}
-                <View style={[styles.logoContainer, isSmallScreen && { marginBottom: 12 }]}>
-                    <View style={[styles.logo, { width: logoSize, height: logoSize, borderRadius: logoSize / 4 }]}>
+                <View style={[styles.logoContainer, isSmallScreen && { marginBottom: 16 }]}>
+                    <View style={[
+                        styles.logo,
+                        { width: logoSize, height: logoSize, borderRadius: logoSize / 4 }
+                    ]}>
                         <MaterialIcons name="lock" size={logoIconSize} color="#48BB78" />
                     </View>
                 </View>
 
                 {/* Title */}
-                <Text style={[styles.title, { fontSize: fontSize.xlarge, marginBottom: isSmallScreen ? 4 : 8 }]}>{t('pinLock.title')}</Text>
-                <Text style={[styles.subtitle, { fontSize: fontSize.medium, marginBottom: isSmallScreen ? 16 : 32 }]}>{t('pinLock.subtitle')}</Text>
+                <Text style={[styles.title, { fontSize: fontSize.xlarge, marginBottom: isSmallScreen ? 4 : 8 }]}>
+                    {t('pinLock.title')}
+                </Text>
+                <Text style={[styles.subtitle, { fontSize: fontSize.medium, marginBottom: isSmallScreen ? 16 : 32 }]}>
+                    {t('pinLock.subtitle')}
+                </Text>
 
                 {/* PIN Dots */}
                 {renderPinDots()}
@@ -287,10 +302,15 @@ export default function PinLockScreen() {
                 {renderNumpad()}
 
                 {/* Forgot PIN */}
-                <TouchableOpacity style={[styles.forgotButton, isSmallScreen && { marginTop: 16, padding: 12 }]} onPress={() => handleForgotPin()}>
-                    <Text style={[styles.forgotText, { fontSize: fontSize.medium }]}>{t('pinLock.forgotPin')}</Text>
+                <TouchableOpacity
+                    style={[styles.forgotButton, isSmallScreen && { marginTop: 12, padding: 8 }]}
+                    onPress={() => handleForgotPin()}
+                >
+                    <Text style={[styles.forgotText, { fontSize: fontSize.medium }]}>
+                        {t('pinLock.forgotPin')}
+                    </Text>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -301,7 +321,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
     },
     content: {
-        flex: 1,
+        flexGrow: 1,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 24,

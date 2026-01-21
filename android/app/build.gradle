@@ -110,15 +110,19 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('duitu-release-key.keystore')
+            storePassword 'duitu2024'
+            keyAlias 'duitu-key-alias'
+            keyPassword 'duitu2024'
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
@@ -188,6 +192,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // Play Integrity API
+    implementation("com.google.android.play:integrity:1.4.0")
 }
 
 apply plugin: 'com.google.gms.google-services'
